@@ -4,6 +4,7 @@
 
 #include <d3d12.h>
 #include <d3dx12.h>
+#include <string>
 
 class FbxLoader
 {
@@ -33,4 +34,8 @@ private:
 	FbxLoader(const FbxLoader& obj) = delete;
 	// コピー代入演算子を禁止
 	void operator=(const FbxLoader& obj) = delete;
+
+	using string = std::string;
+
+	static const string baseDirectory;
 };

@@ -1,6 +1,8 @@
 ﻿#include "FbxLoader.h"
 #include <cassert>
 
+const std::string FbxLoader::baseDirectory = "Resources/";
+
 void FbxLoader::Initialize(ID3D12Device* device)
 {
     assert(fbxManager == nullptr);
