@@ -39,6 +39,9 @@
     <Filter Include="fbx">
       <UniqueIdentifier>{d098ff42-4cd4-4af4-bd2c-a8b4c354869d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3d\mapchip">
+      <UniqueIdentifier>{6f24b461-ef77-4f9a-8050-5ac9346ae6ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -101,6 +104,9 @@
     <ClCompile Include="fbx\FbxLoader.cpp">
       <Filter>fbx</Filter>
     </ClCompile>
+    <ClCompile Include="mapchip\Mapchip.cpp">
+      <Filter>3d\mapchip</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Collision\Collision.h">
@@ -162,6 +168,9 @@
     </ClInclude>
     <ClInclude Include="fbx\FbxLoader.h">
       <Filter>fbx</Filter>
+    </ClInclude>
+    <ClInclude Include="mapchip\Mapchip.h">
+      <Filter>3d\mapchip</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
