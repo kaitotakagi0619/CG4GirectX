@@ -3,6 +3,7 @@
 #include <cassert>
 #include <sstream>
 #include <iomanip>
+#include "FbxLoader.h"
 
 using namespace DirectX;
 
@@ -45,6 +46,8 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 
 	// 3Dオブジェクトにカメラをセット
 	Object3d::SetCamera(camera);
+
+	FbxLoader::GetInstance()->LoadModelFromFile("cube");
 
 	// デバッグテキスト用テクスチャ読み込み
 	if (!Sprite::LoadTexture(debugTextTexNumber, L"Resources/debugfont.png")) {

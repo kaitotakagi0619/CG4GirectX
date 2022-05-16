@@ -8,16 +8,20 @@
 
 class FbxLoader
 {
+private:
+	using string = std::string;
 public:
-	/// <summary>
-	/// シングルトンインスタンスの取得
-	/// </summary>
-	/// <returns>インスタンス</returns>
+	static const string baseDirectory;
+	void LoadModelFromFile(const string& modelName);
+public:
+	// 初期化
 	void Initialize(ID3D12Device* device);
-
+	// ファイナライズ
 	void Finalize();
 
+	// シングルトンインスタンスの取得
 	static FbxLoader* GetInstance();
+
 
 private:
 
@@ -35,7 +39,5 @@ private:
 	// コピー代入演算子を禁止
 	void operator=(const FbxLoader& obj) = delete;
 
-	using string = std::string;
 
-	static const string baseDirectory;
 };
