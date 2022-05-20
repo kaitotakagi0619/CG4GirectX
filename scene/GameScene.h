@@ -11,6 +11,8 @@
 #include "Audio.h"
 #include "Light.h"
 #include "CollisionPrimitive.h"
+#include "FbxLoader.h"
+#include "FbxObject3d.h"
 
 // ゲームシーン
 class GameScene
@@ -73,9 +75,13 @@ private: // メンバ変数
 	Model* modelFighter2 = nullptr;
 	Model* modelSphere = nullptr;
 
-	Object3d* objSphere =  nullptr ;
+	Object3d* objSphere = nullptr;
 	Object3d* objSkydome = nullptr;
 	Object3d* objGround = nullptr;
 	Object3d* objFighter = nullptr;
 	Object3d* objFighter2 = nullptr;
+
+	//FBX実装
+	FbxModel* fbxModel1 = nullptr;
+	FbxObject3d* fbxObject1 = nullptr;
 };

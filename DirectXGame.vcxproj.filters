@@ -107,6 +107,12 @@
     <ClCompile Include="mapchip\Mapchip.cpp">
       <Filter>3d\mapchip</Filter>
     </ClCompile>
+    <ClCompile Include="fbx\FbxObject3d.cpp">
+      <Filter>fbx</Filter>
+    </ClCompile>
+    <ClCompile Include="fbx\FbxModel.cpp">
+      <Filter>fbx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Collision\Collision.h">
@@ -171,6 +177,12 @@
     </ClInclude>
     <ClInclude Include="mapchip\Mapchip.h">
       <Filter>3d\mapchip</Filter>
+    </ClInclude>
+    <ClInclude Include="fbx\FbxModel.h">
+      <Filter>fbx</Filter>
+    </ClInclude>
+    <ClInclude Include="fbx\FbxObject3d.h">
+      <Filter>fbx</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

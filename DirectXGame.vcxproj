@@ -163,6 +163,8 @@
     <ClCompile Include="Collision\CollisionPrimitive.cpp" />
     <ClCompile Include="Ease\Ease.cpp" />
     <ClCompile Include="fbx\FbxLoader.cpp" />
+    <ClCompile Include="fbx\FbxModel.cpp" />
+    <ClCompile Include="fbx\FbxObject3d.cpp" />
     <ClCompile Include="input\Input.cpp" />
     <ClCompile Include="Light\Light.cpp" />
     <ClCompile Include="main.cpp" />
@@ -187,6 +189,8 @@
     <ClInclude Include="Collision\CollisionPrimitive.h" />
     <ClInclude Include="Ease\Ease.h" />
     <ClInclude Include="fbx\FbxLoader.h" />
+    <ClInclude Include="fbx\FbxModel.h" />
+    <ClInclude Include="fbx\FbxObject3d.h" />
     <ClInclude Include="input\Input.h" />
     <ClInclude Include="Light\Light.h" />
     <ClInclude Include="mapchip\Mapchip.h" />

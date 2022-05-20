@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include "FbxLoader.h"
+#include "FbxObject3d.h"
 
 using namespace DirectX;
 
@@ -49,6 +50,12 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 
 	FbxLoader::GetInstance()->LoadModelFromFile("cube");
 
+	FbxObject3d::SetDevice(dxCommon->GetDevice());
+
+	FbxObject3d::SetCamera(camera);
+
+	FbxObject3d::CreateGraphicsPipeline();
+
 	// デバッグテキスト用テクスチャ読み込み
 	if (!Sprite::LoadTexture(debugTextTexNumber, L"Resources/debugfont.png")) {
 		assert(0);
@@ -90,8 +97,8 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	objFighter = Object3d::Create(modelFighter);
 	objFighter2 = Object3d::Create(modelFighter2);
 
-	objFighter->SetPosition({ 0,0,0 });
-	objFighter2->SetPosition({ -2,0,0 });
+	objFighter->SetPosition({ 0,0,-20 });
+	objFighter2->SetPosition({ -2,0,-5 });
 	objFighter2->SetRotation({ 0,180,0 });
 
 	objSphere = Object3d::Create(modelSphere);
@@ -106,11 +113,45 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	light = Light::Create();
 	light->SetLightColor({ 1,1,1 });
 	Object3d::SetLight(light);
+
+	//モデル名を指定してファイル読み込み
+	fbxModel1 = FbxLoader::GetInstance()->LoadModelFromFile("boneTest");
+	//3Dオブジェクト生成とモデルのセット
+	fbxObject1 = new FbxObject3d;
+	fbxObject1->Initialize();
+	fbxObject1->SetModel(fbxModel1);
 }
 
 void GameScene::Update()
 {
+	XMFLOAT3 playerPos = objFighter->GetPosition();
+	// 移動後の座標を計算
+	if (input->PushKey(DIK_W) && playerPos.z < 15.0f)
+	{
+		playerPos.z += 0.1f;
+	}
+	else if (input->PushKey(DIK_S) && playerPos.z > -15.0f)
+	{
+		playerPos.z -= 0.1f;
+	}
+
+	if (input->PushKey(DIK_D) && playerPos.x < 15.0f)
+	{
+		playerPos.x += 0.1f;
+	}
+	else if (input->PushKey(DIK_A) && playerPos.x > -15.0f)
+	{
+		playerPos.x -= 0.1f;
+	}
+	objFighter->SetPosition(playerPos);
+	cameraPos = objFighter->GetPosition();
+
+	camera->SetEye({ cameraPos.x, cameraPos.y , cameraPos.z });
+	camera->SetTarget({ cameraPos.x , cameraPos.y, cameraPos.z + 20 });
+	camera->Update();
 	//CreateLight();
+
+	fbxObject1->AnimationFlag = true;
 
 	particleMan->Update();
 
@@ -120,6 +161,7 @@ void GameScene::Update()
 	objFighter2->Update();
 	objSphere->Update();
 	light->Update();
+	fbxObject1->Update();
 }
 
 void GameScene::Draw()
@@ -146,10 +188,12 @@ void GameScene::Draw()
 	objSkydome->Draw();
 	// 3Dオブジェクトの描画
 	objGround->Draw();
-	//objFighter->Draw();
+	objFighter->Draw();
 	objFighter2->Draw();
 	objSphere->Draw();
 	Object3d::PostDraw();
+
+	fbxObject1->Draw(cmdList);
 
 	// パーティクルの描画
 	particleMan->Draw(cmdList);
