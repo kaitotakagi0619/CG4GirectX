@@ -13,6 +13,7 @@
 #include "CollisionPrimitive.h"
 #include "FbxLoader.h"
 #include "FbxObject3d.h"
+#include "Mapchip.h"
 
 // ゲームシーン
 class GameScene
