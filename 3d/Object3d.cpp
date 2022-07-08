@@ -32,8 +32,29 @@ void Object3d::StaticInitialize(ID3D12Device * device, Camera* camera)
 	CreateGraphicsPipeline();
 
 	// モデルの静的初期化
-	Model::StaticInitialize(device);
+	ReadModel::StaticInitialize(device);
 }
+
+void Object3d::ErrorCheck(HRESULT result,ComPtr<ID3DBlob> vsBlob,ComPtr<ID3DBlob> psBlob, ComPtr<ID3DBlob> errorBlob)
+{
+	if (FAILED(result)) {
+
+		// errorBlobからエラー内容をstring型にコピー
+		std::string errstr;
+		errstr.resize(errorBlob->GetBufferSize());
+
+		std::copy_n((char*)errorBlob->GetBufferPointer(),
+			errorBlob->GetBufferSize(),
+			errstr.begin());
+		errstr += "\n";
+
+		// エラー内容を出力ウィンドウに表示
+		OutputDebugStringA(errstr.c_str());
+		exit(1);
+	}
+}
+
+
 
 void Object3d::CreateGraphicsPipeline()
 {
@@ -54,21 +75,7 @@ void Object3d::CreateGraphicsPipeline()
 		0,
 		&vsBlob, &errorBlob);
 
-	if (FAILED(result)) {
-
-		// errorBlobからエラー内容をstring型にコピー
-		std::string errstr;
-		errstr.resize(errorBlob->GetBufferSize());
-
-		std::copy_n((char*)errorBlob->GetBufferPointer(),
-			errorBlob->GetBufferSize(),
-			errstr.begin());
-		errstr += "\n";
-
-		// エラー内容を出力ウィンドウに表示
-		OutputDebugStringA(errstr.c_str());
-		exit(1);
-	}
+	ErrorCheck(result, vsBlob, psBlob, errorBlob);
 
 	// ピクセルシェーダの読み込みとコンパイル
 	result = D3DCompileFromFile(
@@ -81,20 +88,7 @@ void Object3d::CreateGraphicsPipeline()
 		0,
 		&psBlob, &errorBlob);
 
-	if (FAILED(result))
-	{
-		// errorBlobからエラー内容をstring型にコピー
-		std::string errstr;
-		errstr.resize(errorBlob->GetBufferSize());
-
-		std::copy_n((char*)errorBlob->GetBufferPointer(),
-			errorBlob->GetBufferSize(),
-			errstr.begin());
-		errstr += "\n";
-		// エラー内容を出力ウィンドウに表示
-		OutputDebugStringA(errstr.c_str());
-		exit(1);
-	}
+	ErrorCheck(result, vsBlob, psBlob, errorBlob);
 
 	// 頂点レイアウト
 	D3D12_INPUT_ELEMENT_DESC inputLayout[] =
@@ -223,7 +217,7 @@ void Object3d::PostDraw()
 	Object3d::cmdList = nullptr;
 }
 
-Object3d * Object3d::Create(Model* model)
+Object3d * Object3d::Create(ReadModel* model)
 {
 	// 3Dオブジェクトのインスタンスを生成
 	Object3d* object3d = new Object3d();

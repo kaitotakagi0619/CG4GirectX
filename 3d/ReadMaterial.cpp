@@ -1,4 +1,4 @@
-﻿#include "Material.h"
+﻿#include "ReadMaterial.h"
 #include <DirectXTex.h>
 #include <cassert>
 
@@ -8,32 +8,32 @@ using namespace std;
 /// <summary>
 /// 静的メンバ変数の実体
 /// </summary>
-ID3D12Device* Material::device = nullptr;
+ID3D12Device* ReadMaterial::device = nullptr;
 
-void Material::StaticInitialize(ID3D12Device * device)
+void ReadMaterial::StaticInitialize(ID3D12Device * device)
 {
 	// 再初期化チェック
-	assert(!Material::device);
+	assert(!ReadMaterial::device);
 
-	Material::device = device;
+	ReadMaterial::device = device;
 }
 
-Material * Material::Create()
+ReadMaterial * ReadMaterial::Create()
 {
-	Material* instance = new Material;
+	ReadMaterial* instance = new ReadMaterial;
 
 	instance->Initialize();
 
 	return instance;
 }
 
-void Material::Initialize()
+void ReadMaterial::Initialize()
 {
 	// 定数バッファの生成
 	CreateConstantBuffer();
 }
 
-void Material::CreateConstantBuffer()
+void ReadMaterial::CreateConstantBuffer()
 {
 	HRESULT result;
 	// 定数バッファの生成
@@ -49,7 +49,7 @@ void Material::CreateConstantBuffer()
 	}	
 }
 
-void Material::LoadTexture(const std::string& directoryPath, CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle, CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle)
+void ReadMaterial::LoadTexture(const std::string& directoryPath, CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle, CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle)
 {
 	// テクスチャなし
 	if (textureFilename.size() == 0) {
@@ -129,7 +129,7 @@ void Material::LoadTexture(const std::string& directoryPath, CD3DX12_CPU_DESCRIP
 	);
 }
 
-void Material::Update()
+void ReadMaterial::Update()
 {
 	HRESULT result;
 	// 定数バッファへデータ転送

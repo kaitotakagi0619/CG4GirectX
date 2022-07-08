@@ -62,13 +62,13 @@
     <ClCompile Include="3d\Object3d.cpp">
       <Filter>3d</Filter>
     </ClCompile>
-    <ClCompile Include="3d\Model.cpp">
+    <ClCompile Include="3d\ReadModel.cpp">
       <Filter>3d</Filter>
     </ClCompile>
-    <ClCompile Include="3d\Mesh.cpp">
+    <ClCompile Include="3d\CreateMesh.cpp">
       <Filter>3d</Filter>
     </ClCompile>
-    <ClCompile Include="3d\Material.cpp">
+    <ClCompile Include="3d\ReadMaterial.cpp">
       <Filter>3d</Filter>
     </ClCompile>
     <ClCompile Include="3d\ParticleManager.cpp">
@@ -130,13 +130,13 @@
     <ClInclude Include="3d\Object3d.h">
       <Filter>3d</Filter>
     </ClInclude>
-    <ClInclude Include="3d\Model.h">
+    <ClInclude Include="3d\ReadModel.h">
       <Filter>3d</Filter>
     </ClInclude>
-    <ClInclude Include="3d\Mesh.h">
+    <ClInclude Include="3d\CreateMesh.h">
       <Filter>3d</Filter>
     </ClInclude>
-    <ClInclude Include="3d\Material.h">
+    <ClInclude Include="3d\ReadMaterial.h">
       <Filter>3d</Filter>
     </ClInclude>
     <ClInclude Include="3d\ParticleManager.h">

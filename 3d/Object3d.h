@@ -7,7 +7,7 @@
 #include <d3dx12.h>
 #include <string>
 
-#include "Model.h"
+#include "ReadModel.h"
 #include "Camera.h"
 #include "Light.h"
 
@@ -66,7 +66,7 @@ public: // 静的メンバ関数
 	static void PostDraw();
 
 	// 3Dオブジェクト生成
-	static Object3d* Create(Model* model = nullptr);
+	static Object3d* Create(ReadModel* model = nullptr);
 
 	static void SetLight(Light* light) {
 		Object3d::light = light;
@@ -112,11 +112,13 @@ public: // メンバ関数
 
 	// モデルのセット
 	// <param name="model">モデル</param>
-	void SetModel(Model* model) { this->model = model; }
+	void SetModel(ReadModel* model) { this->model = model; }
 
 	// ビルボードフラグのセット
 	// <param name="isBillboard">ビルボードか</param>
 	void SetBillboard(bool isBillboard) { this->isBillboard = isBillboard; }
+
+	static void ErrorCheck(HRESULT result,ComPtr<ID3DBlob> vsBlob,ComPtr<ID3DBlob> psBlob,ComPtr<ID3DBlob> errorBlob);
 
 private: // メンバ変数
 	// 定数バッファ
@@ -134,7 +136,7 @@ private: // メンバ変数
 	// 親オブジェクト
 	Object3d* parent = nullptr;
 	// モデル
-	Model* model = nullptr;
+	ReadModel* model = nullptr;
 	// ビルボード
 	bool isBillboard = false;
 };

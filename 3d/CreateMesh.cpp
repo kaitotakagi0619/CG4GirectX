@@ -1,4 +1,4 @@
-﻿#include "Mesh.h"
+﻿#include "CreateMesh.h"
 #include <d3dcompiler.h>
 #include <cassert>
 
@@ -9,40 +9,40 @@ using namespace DirectX;
 /// <summary>
 /// 静的メンバ変数の実体
 /// </summary>
-ID3D12Device* Mesh::device = nullptr;
+ID3D12Device* CreateMesh::device = nullptr;
 
-void Mesh::StaticInitialize(ID3D12Device * device)
+void CreateMesh::StaticInitialize(ID3D12Device * device)
 {
 	// 再初期化チェック
-	assert(!Mesh::device);
+	assert(!CreateMesh::device);
 
-	Mesh::device = device;
+	CreateMesh::device = device;
 
 	// マテリアルの静的初期化
-	Material::StaticInitialize(device);
+	ReadMaterial::StaticInitialize(device);
 }
 
-void Mesh::SetName(const std::string& name)
+void CreateMesh::SetName(const std::string& name)
 {
 	this->name = name;
 }
 
-void Mesh::AddVertex(const VertexPosNormalUv & vertex)
+void CreateMesh::AddVertex(const VertexPosNormalUv & vertex)
 {
 	vertices.emplace_back(vertex);
 }
 
-void Mesh::AddIndex(unsigned short index)
+void CreateMesh::AddIndex(unsigned short index)
 {
 	indices.emplace_back(index);
 }
 
-void Mesh::SetMaterial(Material * material)
+void CreateMesh::SetMaterial(ReadMaterial * material)
 {
 	this->material = material;
 }
 
-void Mesh::CreateBuffers()
+void CreateMesh::CreateBuffers()
 {
 	HRESULT result;
 	
@@ -102,7 +102,7 @@ void Mesh::CreateBuffers()
 	ibView.SizeInBytes = sizeIB;
 }
 
-void Mesh::Draw(ID3D12GraphicsCommandList * cmdList)
+void CreateMesh::Draw(ID3D12GraphicsCommandList * cmdList)
 {
 	// 頂点バッファをセット
 	cmdList->IASetVertexBuffers(0, 1, &vbView);
@@ -119,12 +119,12 @@ void Mesh::Draw(ID3D12GraphicsCommandList * cmdList)
 	cmdList->DrawIndexedInstanced((UINT)indices.size(), 1, 0, 0, 0);
 }
 
-void Mesh::AddSmoothData(unsigned short indexPosition, unsigned short indexVertex)
+void CreateMesh::AddSmoothData(unsigned short indexPosition, unsigned short indexVertex)
 {
 	smoothData[indexPosition].emplace_back(indexVertex);
 }
 
-void Mesh::CalculateSmoothedVertexNormals()
+void CreateMesh::CalculateSmoothedVertexNormals()
 {
 	auto itr = smoothData.begin();
 	for (; itr != smoothData.end(); ++itr) {

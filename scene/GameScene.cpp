@@ -85,11 +85,11 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	// テクスチャ2番に読み込み
 
 	// モデル読み込み
-	modelSkydome = Model::CreateFromOBJ("skydome");
-	modelGround = Model::CreateFromOBJ("ground");
-	modelFighter = Model::CreateFromOBJ("chr_sword");
-	modelFighter2 = Model::CreateFromOBJ("chr_sword");
-	modelSphere = Model::CreateFromOBJ("sphere2", true);
+	modelSkydome = ReadModel::CreateFromOBJ("skydome");
+	modelGround = ReadModel::CreateFromOBJ("ground");
+	modelFighter = ReadModel::CreateFromOBJ("chr_sword");
+	modelFighter2 = ReadModel::CreateFromOBJ("chr_sword");
+	modelSphere = ReadModel::CreateFromOBJ("sphere2", true);
 
 	// 3Dオブジェクト生成
 	objSkydome = Object3d::Create(modelSkydome);
@@ -126,23 +126,7 @@ void GameScene::Update()
 {
 	XMFLOAT3 playerPos = objFighter->GetPosition();
 	// 移動後の座標を計算
-	if (input->PushKey(DIK_W) && playerPos.z < 15.0f)
-	{
-		playerPos.z += 0.1f;
-	}
-	else if (input->PushKey(DIK_S) && playerPos.z > -15.0f)
-	{
-		playerPos.z -= 0.1f;
-	}
-
-	if (input->PushKey(DIK_D) && playerPos.x < 15.0f)
-	{
-		playerPos.x += 0.1f;
-	}
-	else if (input->PushKey(DIK_A) && playerPos.x > -15.0f)
-	{
-		playerPos.x -= 0.1f;
-	}
+	CharactorMove(playerPos);
 	objFighter->SetPosition(playerPos);
 	cameraPos = objFighter->GetPosition();
 
@@ -267,4 +251,25 @@ void GameScene::CreateLight()
 		<< cameraPos.y << ","
 		<< cameraPos.z << ")";
 	debugText.Print(debugstr.str(), 50, 70, 1.0f);
+}
+
+void GameScene::CharactorMove(XMFLOAT3 pos)
+{
+	if (input->PushKey(DIK_W) && pos.z < 15.0f)
+	{
+		pos.z += 0.1f;
+	}
+	else if (input->PushKey(DIK_S) && pos.z > -15.0f)
+	{
+		pos.z -= 0.1f;
+	}
+
+	if (input->PushKey(DIK_D) && pos.x < 15.0f)
+	{
+		pos.x += 0.1f;
+	}
+	else if (input->PushKey(DIK_A) && pos.x > -15.0f)
+	{
+		pos.x -= 0.1f;
+	}
 }

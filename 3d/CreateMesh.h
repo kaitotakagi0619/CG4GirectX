@@ -5,12 +5,12 @@
 #include <d3d12.h>
 #include <DirectXMath.h>
 #include <d3dx12.h>
-#include "Material.h"
+#include "ReadMaterial.h"
 #include <vector>
 #include <unordered_map>
 
 // 形状データ
-class Mesh
+class CreateMesh
 {
 private: // エイリアス
 	// Microsoft::WRL::を省略
@@ -58,10 +58,10 @@ public: // メンバ関数
 	inline size_t GetVertexCount() { return vertices.size(); }
 
 	// マテリアルの取得
-	Material* GetMaterial() { return material; }
+	ReadMaterial* GetMaterial() { return material; }
 
 	// マテリアルの割り当て
-	void SetMaterial(Material* material);
+	void SetMaterial(ReadMaterial* material);
 
 	// バッファの生成
 	void CreateBuffers();
@@ -95,7 +95,7 @@ private: // メンバ変数
 	// 頂点インデックス配列
 	std::vector<unsigned short> indices;
 	// マテリアル
-	Material* material = nullptr;
+	ReadMaterial* material = nullptr;
 
 	std::unordered_map<unsigned short, std::vector<unsigned short>> smoothData;
 };

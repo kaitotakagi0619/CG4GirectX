@@ -30,6 +30,44 @@ private: // エイリアス
 private: // 静的メンバ変数
 	static const int debugTextTexNumber = 0;
 
+	struct EnemyData
+	{
+		XMFLOAT3 e_pos; //座標
+		XMFLOAT3 old_e_pos; //1フレーム前の座標
+
+		float e_x_radius; //中心点からxの最大値まで
+		float e_y_radius; //中心点からyの最大値まで
+
+		bool is_normal; //徘徊状態
+		bool is_bounce; //跳ねる状態
+		bool is_catch; //捕縛状態
+		bool is_alive; //生死
+		bool is_grand; //地面についているか
+		bool is_turn; //攻撃を受けたか
+
+		float e_speed; //移動量
+		float e_down; //下降度
+
+		float e_acc; //加速度
+
+		int angle; //円運動の角度
+
+		int enemy_type; //エネミーの種類
+		bool can_catch; //捕縛可能か
+
+		bool is_add; //加算するか
+
+		bool is_fall;
+
+		float turn_move; //裏返るときの動き
+
+		int escape_time; //逃げるまでの時間
+
+		float max_rope; //ロープの最大
+
+		float circle_radius; //円の半径
+	};
+
 public: // メンバ関数
 
 	// コンストクラタ
@@ -52,6 +90,8 @@ public: // メンバ関数
 
 	void CreateLight();
 
+	void CharactorMove(XMFLOAT3 pos);
+
 
 private: // メンバ変数
 	DirectXCommon* dxCommon = nullptr;
@@ -70,11 +110,11 @@ private: // メンバ変数
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
 
-	Model* modelSkydome = nullptr;
-	Model* modelGround = nullptr;
-	Model* modelFighter = nullptr;
-	Model* modelFighter2 = nullptr;
-	Model* modelSphere = nullptr;
+	ReadModel* modelSkydome = nullptr;
+	ReadModel* modelGround = nullptr;
+	ReadModel* modelFighter = nullptr;
+	ReadModel* modelFighter2 = nullptr;
+	ReadModel* modelSphere = nullptr;
 
 	Object3d* objSphere = nullptr;
 	Object3d* objSkydome = nullptr;

@@ -3,10 +3,10 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include "Mesh.h"
+#include "CreateMesh.h"
 
 // モデルデータ
-class Model
+class ReadModel
 {
 private: // エイリアス
 	// Microsoft::WRL::を省略
@@ -20,7 +20,7 @@ private: // エイリアス
 private:
 	static const std::string baseDirectory;
 
-private: // 静的メンバ変数
+private: // 静的メンバ変数Z
 	// デバイス
 	static ID3D12Device* device;
 	// デスクリプタサイズ
@@ -36,11 +36,11 @@ public: // 静的メンバ関数
 	// <param name="modelname">モデル名</param>
 	// <returns>生成されたモデル</returns>
 	// static Model* CreateFromOBJ(const std::string& modelname);
-	static Model* CreateFromOBJ(const std::string& modelname, bool smoothing = false);
+	static ReadModel* CreateFromOBJ(const std::string& modelname, bool smoothing = false);
 	
 public: // メンバ関数
 	// デストラクタ
-	~Model();
+	~ReadModel();
 
 	// 初期化
 	// <param name="modelname">モデル名</param>
@@ -55,11 +55,11 @@ private: // メンバ変数
 	// 名前
 	std::string name;
 	// メッシュコンテナ
-	std::vector<Mesh*> meshes;
+	std::vector<CreateMesh*> meshes;
 	// マテリアルコンテナ
-	std::unordered_map<std::string, Material*> materials;
+	std::unordered_map<std::string, ReadMaterial*> materials;
 	// デフォルトマテリアル
-	Material* defaultMaterial = nullptr;
+	ReadMaterial* defaultMaterial = nullptr;
 	// デスクリプタヒープ
 	ComPtr<ID3D12DescriptorHeap> descHeap;
 
@@ -68,7 +68,7 @@ private: // メンバ関数
 	void LoadMaterial(const std::string& directoryPath, const std::string & filename);
 
 	// マテリアル登録
-	void AddMaterial(Material* material);
+	void AddMaterial(ReadMaterial* material);
 
 	// デスクリプタヒープの生成
 	void CreateDescriptorHeap();

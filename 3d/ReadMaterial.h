@@ -9,7 +9,7 @@
 /// <summary>
 /// マテリアル
 /// </summary>
-class Material
+class ReadMaterial
 {
 private: // エイリアス
 	// Microsoft::WRL::を省略
@@ -44,7 +44,7 @@ public: // 静的メンバ関数
 	/// マテリアル生成
 	/// </summary>
 	/// <returns>生成されたマテリアル</returns>
-	static Material* Create();
+	static ReadMaterial* Create();
 
 private: // 静的メンバ変数
 	// デバイス
@@ -92,7 +92,7 @@ private:
 
 private:
 	// コンストラクタ
-	Material() {
+	ReadMaterial() {
 		ambient = { 0.3f, 0.3f, 0.3f };
 		diffuse = { 0.0f, 0.0f, 0.0f };
 		specular = { 0.0f, 0.0f, 0.0f };

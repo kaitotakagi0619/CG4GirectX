@@ -1,4 +1,4 @@
-﻿#include "Model.h"
+﻿#include "ReadModel.h"
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -6,31 +6,31 @@
 using namespace std;
 
 // 静的メンバ変数の実体
-const std::string Model::baseDirectory = "Resources/";
-ID3D12Device* Model::device = nullptr;
-UINT Model::descriptorHandleIncrementSize = 0;
+const std::string ReadModel::baseDirectory = "Resources/";
+ID3D12Device* ReadModel::device = nullptr;
+UINT ReadModel::descriptorHandleIncrementSize = 0;
 
-void Model::StaticInitialize(ID3D12Device * device)
+void ReadModel::StaticInitialize(ID3D12Device * device)
 {
 	// 初期化チェック
-	assert(!Model::device);
+	assert(!ReadModel::device);
 
-	Model::device = device;
+	ReadModel::device = device;
 
 	// メッシュの静的初期化
-	Mesh::StaticInitialize(device);
+	CreateMesh::StaticInitialize(device);
 }
 
-Model* Model::CreateFromOBJ(const std::string& modelname, bool smoothing)
+ReadModel* ReadModel::CreateFromOBJ(const std::string& modelname, bool smoothing)
 {
 	// メモリ確保
-	Model* instance = new Model;
+	ReadModel* instance = new ReadModel;
 	instance->Initialize(modelname, smoothing);
 	
 	return instance;
 }
 
-Model::~Model()
+ReadModel::~ReadModel()
 {
 	for (auto m : meshes) {
 		delete m;
@@ -43,7 +43,7 @@ Model::~Model()
 	materials.clear();
 }
 
-void Model::Initialize(const std::string& modelname, bool smoothing)
+void ReadModel::Initialize(const std::string& modelname, bool smoothing)
 {
 	const string filename = modelname + ".obj";
 	const string directoryPath = baseDirectory + modelname + "/";
@@ -60,7 +60,7 @@ void Model::Initialize(const std::string& modelname, bool smoothing)
 	name = modelname;
 
 	// メッシュ生成
-	Mesh* mesh = new Mesh;
+	CreateMesh* mesh = new CreateMesh;
 	int indexCountTex = 0;
 	int indexCountNoTex = 0;
 
@@ -99,7 +99,7 @@ void Model::Initialize(const std::string& modelname, bool smoothing)
 				// コンテナに登録
 				meshes.emplace_back(mesh);
 				// 次のメッシュ生成
-				mesh = new Mesh;
+				mesh = new CreateMesh;
 				indexCountTex = 0;
 			}
 
@@ -173,7 +173,7 @@ void Model::Initialize(const std::string& modelname, bool smoothing)
 				// 頂点番号
 				index_stream >> indexPosition;				
 
-				Material* material = mesh->GetMaterial();
+				ReadMaterial* material = mesh->GetMaterial();
 				index_stream.seekg(1, ios_base::cur); // スラッシュを飛ばす
 				// マテリアル、テクスチャがある場合
 				if (material && material->textureFilename.size() > 0)
@@ -182,7 +182,7 @@ void Model::Initialize(const std::string& modelname, bool smoothing)
 					index_stream.seekg(1, ios_base::cur); // スラッシュを飛ばす
 					index_stream >> indexNormal;
 					// 頂点データの追加
-					Mesh::VertexPosNormalUv vertex{};
+					CreateMesh::VertexPosNormalUv vertex{};
 					vertex.pos = positions[indexPosition - 1];
 					vertex.normal = normals[indexNormal - 1];
 					vertex.uv = texcoords[indexTexcoord - 1];
@@ -199,7 +199,7 @@ void Model::Initialize(const std::string& modelname, bool smoothing)
 					if (c == '/')
 					{
 						// 頂点データの追加
-						Mesh::VertexPosNormalUv vertex{};
+						CreateMesh::VertexPosNormalUv vertex{};
 						vertex.pos = positions[indexPosition - 1];
 						vertex.normal = { 0, 0, 1 };
 						vertex.uv = { 0, 0 };
@@ -216,7 +216,7 @@ void Model::Initialize(const std::string& modelname, bool smoothing)
 						index_stream.seekg(1, ios_base::cur); // スラッシュを飛ばす
 						index_stream >> indexNormal;
 						// 頂点データの追加
-						Mesh::VertexPosNormalUv vertex{};
+						CreateMesh::VertexPosNormalUv vertex{};
 						vertex.pos = positions[indexPosition - 1];
 						vertex.normal = normals[indexNormal - 1];
 						vertex.uv = { 0, 0 };
@@ -264,7 +264,7 @@ void Model::Initialize(const std::string& modelname, bool smoothing)
 			if (defaultMaterial == nullptr)
 			{
 				// デフォルトマテリアルを生成
-				defaultMaterial = Material::Create();
+				defaultMaterial = ReadMaterial::Create();
 				defaultMaterial->name = "no material";
 				materials.emplace(defaultMaterial->name, defaultMaterial);
 			}
@@ -292,7 +292,7 @@ void Model::Initialize(const std::string& modelname, bool smoothing)
 	LoadTextures();
 }
 
-void Model::LoadMaterial(const std::string & directoryPath, const std::string & filename)
+void ReadModel::LoadMaterial(const std::string & directoryPath, const std::string & filename)
 {
 	// ファイルストリーム
 	std::ifstream file;
@@ -304,7 +304,7 @@ void Model::LoadMaterial(const std::string & directoryPath, const std::string & 
 		assert(0);
 	}
 
-	Material* material = nullptr;
+	ReadMaterial* material = nullptr;
 
 	// 1行ずつ読み込む
 	string line;
@@ -336,7 +336,7 @@ void Model::LoadMaterial(const std::string & directoryPath, const std::string & 
 			}
 
 			// 新しいマテリアルを生成
-			material = Material::Create();
+			material = ReadMaterial::Create();
 			// マテリアル名読み込み
 			line_stream >> material->name;
 		}
@@ -392,13 +392,13 @@ void Model::LoadMaterial(const std::string & directoryPath, const std::string & 
 	}
 }
 
-void Model::AddMaterial(Material * material)
+void ReadModel::AddMaterial(ReadMaterial * material)
 {
 	// コンテナに登録
 	materials.emplace(material->name, material);
 }
 
-void Model::CreateDescriptorHeap()
+void ReadModel::CreateDescriptorHeap()
 {
 	HRESULT result = S_FALSE;
 
@@ -423,14 +423,14 @@ void Model::CreateDescriptorHeap()
 	descriptorHandleIncrementSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
-void Model::LoadTextures()
+void ReadModel::LoadTextures()
 {
 	int textureIndex = 0;
 	string directoryPath = baseDirectory + name + "/";
 
 	for (auto& m : materials)
 	{
-		Material* material = m.second;
+		ReadMaterial* material = m.second;
 
 		// テクスチャあり
 		if (material->textureFilename.size() > 0)
@@ -453,7 +453,7 @@ void Model::LoadTextures()
 	}
 }
 
-void Model::Draw(ID3D12GraphicsCommandList * cmdList)
+void ReadModel::Draw(ID3D12GraphicsCommandList * cmdList)
 {
 	// デスクリプタヒープの配列
 	if (descHeap)
