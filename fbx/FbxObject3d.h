@@ -69,6 +69,23 @@ public: // メンバ関数
 	/// マイフレーム処理
 	/// </summary>
 	void Update();
+
+	// 座標の取得
+	const XMFLOAT3& GetPosition() { return position; }
+
+	//回転座標の取得
+	const XMFLOAT3& GetRotation() { return rotation; }
+
+	const XMFLOAT3& GetScale() { return scale; }
+
+	// 座標の設定
+	void SetPosition(XMFLOAT3 position) { this->position = position; }
+
+	//回転座標の設定
+	void SetRotation(XMFLOAT3 rotation) { this->rotation = rotation; }
+
+	// スケールの設定
+	void SetScale(XMFLOAT3 scale) { this->scale = scale; }
 	/// <summary>
 	/// モデルのセット
 	/// </summary>

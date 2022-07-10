@@ -120,6 +120,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	fbxObject1 = new FbxObject3d;
 	fbxObject1->Initialize();
 	fbxObject1->SetModel(fbxModel1);
+	fbxObject1->SetRotation({0,90,0});
 }
 
 void GameScene::Update()
@@ -173,8 +174,8 @@ void GameScene::Draw()
 	// 3Dオブジェクトの描画
 	objGround->Draw();
 	objFighter->Draw();
-	objFighter2->Draw();
-	objSphere->Draw();
+	//objFighter2->Draw();
+	//objSphere->Draw();
 	Object3d::PostDraw();
 
 	fbxObject1->Draw(cmdList);

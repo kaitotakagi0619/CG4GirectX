@@ -113,6 +113,9 @@
     <ClCompile Include="fbx\FbxModel.cpp">
       <Filter>fbx</Filter>
     </ClCompile>
+    <ClCompile Include="PostEffect.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Collision\Collision.h">
@@ -184,5 +187,6 @@
     <ClInclude Include="fbx\FbxObject3d.h">
       <Filter>fbx</Filter>
     </ClInclude>
+    <ClInclude Include="PostEffect.h" />
   </ItemGroup>
 </Project>
