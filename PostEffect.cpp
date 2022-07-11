@@ -69,10 +69,59 @@ void PostEffect::Initialize()
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 
-	device->CreateShaderResourceView(texBuff.Get(),
+	device->CreateShaderResourceView
+	(texBuff.Get(),
 		&srvDesc,
 		descHeapSRV->GetCPUDescriptorHandleForHeapStart()
 	);
+
+	//RTV用デスクリプタヒープ設定
+	D3D12_DESCRIPTOR_HEAP_DESC rtvDescHeapDesc{};
+	rtvDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvDescHeapDesc.NumDescriptors = 1;
+	//RTV用のデスクリプタヒープ設定
+	result = device->CreateDescriptorHeap(&rtvDescHeapDesc, IID_PPV_ARGS(&descHeapRTV));
+	assert(SUCCEEDED(result));
+	// デスクリプタヒープにRTV作成
+	device->CreateRenderTargetView(texBuff.Get(),
+		nullptr,
+		descHeapRTV->GetCPUDescriptorHandleForHeapStart()
+	);
+
+	//震度バッファリソース設定
+	CD3DX12_RESOURCE_DESC depthResDesc =
+		CD3DX12_RESOURCE_DESC::Tex2D(
+			DXGI_FORMAT_D32_FLOAT,
+			WinApp::window_width,
+			WinApp::window_height,
+			1, 0,
+			1, 0,
+			D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
+		);
+	//深度バッファの生成
+	result = device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), 	// アップロード可能
+		D3D12_HEAP_FLAG_NONE,
+		&depthResDesc,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		&CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f,0),
+		IID_PPV_ARGS(&depthBuff));
+	assert(SUCCEEDED(result));
+
+	//DSV用デスクリプタヒープ設定
+	D3D12_DESCRIPTOR_HEAP_DESC DescHeapDesc{};
+	DescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	DescHeapDesc.NumDescriptors = 1;
+	//DSV用のデスクリプタヒープ設定
+	result = device->CreateDescriptorHeap(&DescHeapDesc, IID_PPV_ARGS(&descHeapDSV));
+	assert(SUCCEEDED(result));
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT; // 深度値フォーマット
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	device->CreateDepthStencilView(depthBuff.Get(),
+		&dsvDesc,
+		descHeapDSV->GetCPUDescriptorHandleForHeapStart());
 }
 
 void PostEffect::Draw(ID3D12GraphicsCommandList* cmdList)
@@ -111,4 +160,12 @@ void PostEffect::Draw(ID3D12GraphicsCommandList* cmdList)
 	cmdList->SetGraphicsRootDescriptorTable(1, descHeapSRV->GetGPUDescriptorHandleForHeapStart());
 	// 描画コマンド
 	cmdList->DrawInstanced(4, 1, 0, 0);
+}
+
+void PostEffect::PreDrawScene(ID3D12GraphicsCommandList* cmdList)
+{
+}
+
+void PostEffect::PostDrawScene(ID3D12GraphicsCommandList* cmdList)
+{
 }
