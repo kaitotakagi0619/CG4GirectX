@@ -17,4 +17,9 @@ public:
     void PreDrawScene(ID3D12GraphicsCommandList* cmdList);
     void PostDrawScene(ID3D12GraphicsCommandList* cmdList);
     static const float clearColor[4];
+    void CreateGraphicsPipelineState();
+    //グラフィックスパイプライン
+    ComPtr<ID3D12PipelineState> pipelineState;
+    //ルートシグネチャ
+    ComPtr<ID3D12RootSignature> rootSignature;
 };

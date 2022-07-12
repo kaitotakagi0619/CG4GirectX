@@ -189,4 +189,11 @@
     </ClInclude>
     <ClInclude Include="PostEffect.h" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Resources\shaders\PostEffectPS.hlsl" />
+    <FxCompile Include="Resources\shaders\PostEffectVS.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\shaders\PostEffectTest.hlsli" />
+  </ItemGroup>
 </Project>

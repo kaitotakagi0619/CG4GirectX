@@ -47,7 +47,7 @@ int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
 		return 1;
 	}
 
-	Sprite::LoadTexture(100, L"Resources/white1x1.png");
+	//Sprite::LoadTexture(100, L"Resources/white1x1.png");
 
 	postEffect = new PostEffect();
 	postEffect->Initialize();
