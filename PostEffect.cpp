@@ -4,6 +4,8 @@
 
 using namespace DirectX;
 
+const float PostEffect::clearColor[4] = { 0.25f,0.5,0.1f,0.0f, };//色
+
 PostEffect::PostEffect()
 	: Sprite
 	(
@@ -21,7 +23,45 @@ void PostEffect::Initialize()
 {
 	HRESULT result;
 
-	Sprite::Initialize();
+	// 頂点バッファ生成
+	result = device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(sizeof(VertexPosUv) * vertNum),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&vertBuff));
+
+	// 頂点バッファへのデータ転送
+	VertexPosUv vertices[vertNum] = {
+		{{-0.5f, -0.5f, 0.0f},{0.0f,1.0f}},
+		{{-0.5f, +0.5f, 0.0f},{0.0f,0.0f}},
+		{{+0.5f, -0.5f, 0.0f},{1.0f,1.0f}},
+		{{+0.5f, +0.5f, 0.0f},{1.0f,0.0f}},
+	};
+
+	VertexPosUv* vertMap = nullptr;
+	result = vertBuff->Map(0, nullptr, (void**)&vertMap);
+	if (SUCCEEDED(result))
+	{
+		memcpy(vertMap, vertices, sizeof(vertices));
+		vertBuff->Unmap(0, nullptr);
+	}
+
+	// 頂点バッファビューの作成
+	vbView.BufferLocation = vertBuff->GetGPUVirtualAddress();
+	vbView.SizeInBytes = sizeof(VertexPosUv) * 4;
+	vbView.StrideInBytes = sizeof(VertexPosUv);
+
+	// 定数バッファの生成
+	result = device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), 	// アップロード可能
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferData) + 0xff) & ~0xff),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&constBuff));
+	assert(SUCCEEDED(result));
 
 	// リソース設定
 	CD3DX12_RESOURCE_DESC texresDesc = CD3DX12_RESOURCE_DESC::Tex2D(
@@ -31,14 +71,14 @@ void PostEffect::Initialize()
 		1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
 	);
 
-	// テクスチャ用バッファの生成
+	// テクスチャバッファの生成
 	result = device->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_CPU_PAGE_PROPERTY_WRITE_BACK,
 			D3D12_MEMORY_POOL_L0),
 		D3D12_HEAP_FLAG_NONE,
 		&texresDesc,
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, // テクスチャ用指定
-		nullptr,
+		&CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, clearColor),
 		IID_PPV_ARGS(&texBuff));
 	assert(SUCCEEDED(result));
 	const UINT pixelCount = WinApp::window_width * WinApp::window_height;
@@ -136,7 +176,7 @@ void PostEffect::Draw(ID3D12GraphicsCommandList* cmdList)
 	HRESULT result = this->constBuff->Map(0, nullptr, (void**)&constMap);
 	if (SUCCEEDED(result)) {
 		constMap->color = this->color;
-		constMap->mat = this->matWorld * matProjection;	// 行列の合成	
+		constMap->mat = XMMatrixIdentity();	// 行列の合成	
 		this->constBuff->Unmap(0, nullptr);
 	}
 
@@ -164,8 +204,34 @@ void PostEffect::Draw(ID3D12GraphicsCommandList* cmdList)
 
 void PostEffect::PreDrawScene(ID3D12GraphicsCommandList* cmdList)
 {
+	cmdList->ResourceBarrier(1,
+		&CD3DX12_RESOURCE_BARRIER::Transition(texBuff.Get(),
+		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+		D3D12_RESOURCE_STATE_RENDER_TARGET)
+	);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvH =
+		descHeapRTV->GetCPUDescriptorHandleForHeapStart();
+
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvH =
+		descHeapDSV->GetCPUDescriptorHandleForHeapStart();
+
+	cmdList->OMSetRenderTargets(1, &rtvH, false, &dsvH);
+
+	cmdList->RSSetViewports(1, &CD3DX12_VIEWPORT(0.0f, 0.0f,
+		WinApp::window_width, WinApp::window_height));
+
+	cmdList->RSSetScissorRects(1, &CD3DX12_RECT(0, 0,
+		WinApp::window_width, WinApp::window_height));
+
+	cmdList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
+
+	cmdList->ClearDepthStencilView(dsvH, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 }
 
 void PostEffect::PostDrawScene(ID3D12GraphicsCommandList* cmdList)
 {
+	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(texBuff.Get(),
+		D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+	);
 }
