@@ -7,7 +7,7 @@ public:
     PostEffect();
     void Initialize();
     void Draw(ID3D12GraphicsCommandList* cmdList);
-    ComPtr<ID3D12Resource> texBuff;
+    ComPtr<ID3D12Resource> texBuff[2];
     ComPtr<ID3D12DescriptorHeap> descHeapSRV;
     //マルチパスレンダリング
     ComPtr<ID3D12Resource> depthBuff;
