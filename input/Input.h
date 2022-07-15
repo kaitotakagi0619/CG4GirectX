@@ -20,6 +20,10 @@ private: // エイリアス
 	// Microsoft::WRL::を省略
 	template <class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
+public:
+
+	static Input* GetInstance();
+
 public: // メンバ関数
 	// 初期化
 	bool Initialize(HINSTANCE hInstance, HWND hwnd);
@@ -47,6 +51,8 @@ public: // メンバ関数
 
 	// マウス移動量を取得
 	MouseMove GetMouseMove();
+
+
 
 private: // メンバ変数
 	ComPtr<IDirectInput8> dinput;

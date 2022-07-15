@@ -1,11 +1,12 @@
 #pragma once
 #include "Sprite.h"
+#include "Input.h"
 class PostEffect :
     public Sprite
 {
 public:
     PostEffect();
-    void Initialize();
+    void Initialize(Input* input);
     void Draw(ID3D12GraphicsCommandList* cmdList);
     ComPtr<ID3D12Resource> texBuff[2];
     ComPtr<ID3D12DescriptorHeap> descHeapSRV;
@@ -22,4 +23,6 @@ public:
     ComPtr<ID3D12PipelineState> pipelineState;
     //ルートシグネチャ
     ComPtr<ID3D12RootSignature> rootSignature;
+private:
+    Input* input = nullptr;
 };

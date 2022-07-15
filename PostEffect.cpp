@@ -2,6 +2,7 @@
 #include <d3dx12.h>
 #include "WinApp.h"
 #include <d3dcompiler.h>
+#include "Input.h"
 #pragma comment(lib, "d3dcompiler.lib")
 
 using namespace DirectX;
@@ -21,8 +22,12 @@ PostEffect::PostEffect()
 {
 }
 
-void PostEffect::Initialize()
+void PostEffect::Initialize(Input* input)
 {
+	assert(input);
+
+	this->input = input;
+
 	HRESULT result;
 
 	// 頂点バッファ生成
@@ -179,6 +184,24 @@ void PostEffect::Initialize()
 
 void PostEffect::Draw(ID3D12GraphicsCommandList* cmdList)
 {
+	if (input->TriggerKey(DIK_0))
+	{
+		// デスクリプタヒープにSRV設定
+		static int tex = 0;
+		// テクスチャ番号を0と1で切り替え
+		tex = (tex + 1) % 2;
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{}; //設定構造体
+		srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = 1;
+		device->CreateShaderResourceView(texBuff[tex].Get(),
+			&srvDesc,
+			descHeapSRV->GetCPUDescriptorHandleForHeapStart()
+		);
+	}
+
 	// ワールド行列の更新
 	this->matWorld = XMMatrixIdentity();
 	this->matWorld *= XMMatrixRotationZ(XMConvertToRadians(rotation));
@@ -242,6 +265,7 @@ void PostEffect::PreDrawScene(ID3D12GraphicsCommandList* cmdList)
 
 	CD3DX12_VIEWPORT viewports[2];
 	CD3DX12_RECT scissorRects[2];
+
 	for (int i = 0; i < 2; i++)
 	{
 		viewports[i] = CD3DX12_VIEWPORT(0.0f, 0.0f, WinApp::window_width, WinApp::window_height);
@@ -372,7 +396,6 @@ void PostEffect::CreateGraphicsPipelineState()
 
 	// ブレンドステートの設定
 	gpipeline.BlendState.RenderTarget[0] = blenddesc;
-	gpipeline.BlendState.RenderTarget[1] = blenddesc;
 
 	// 深度バッファのフォーマット
 	gpipeline.DSVFormat = DXGI_FORMAT_D32_FLOAT;
@@ -384,9 +407,8 @@ void PostEffect::CreateGraphicsPipelineState()
 	// 図形の形状設定（三角形）
 	gpipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
-	gpipeline.NumRenderTargets = 2;	// 描画対象は2つ
+	gpipeline.NumRenderTargets = 1;	// 描画対象は2つ
 	gpipeline.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM; // 0～255指定のRGBA
-	gpipeline.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM; // 0～255指定のRGBA
 	gpipeline.SampleDesc.Count = 1; // 1ピクセルにつき1回サンプリング
 
 	// デスクリプタレンジ

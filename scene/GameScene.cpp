@@ -128,9 +128,10 @@ void GameScene::Update()
 	XMFLOAT3 playerPos = objFighter->GetPosition();
 	// 移動後の座標を計算
 	CharactorMove(playerPos);
-	objFighter->SetPosition(playerPos);
 	cameraPos = objFighter->GetPosition();
 
+	objFighter->SetPosition(playerPos);
+	
 	camera->SetEye({ cameraPos.x, cameraPos.y , cameraPos.z });
 	camera->SetTarget({ cameraPos.x , cameraPos.y, cameraPos.z + 20 });
 	camera->Update();
