@@ -21,7 +21,10 @@ GameScene::~GameScene()
 	}
 	safe_delete(particleMan);
 	safe_delete(objSkydome);
-	safe_delete(objSphere);
+	for (int i = 0; i < _countof(objSphere); i++)
+	{
+		safe_delete(objSphere[i]);
+	}
 	safe_delete(objGround);
 	safe_delete(objFighter);
 	safe_delete(modelSkydome);
@@ -44,6 +47,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 
 	// カメラ生成
 	camera = new Camera(WinApp::window_width, WinApp::window_height);
+	//camera = new DebugCamera(WinApp::window_width, WinApp::window_height, input);
 
 	// 3Dオブジェクトにカメラをセット
 	Object3d::SetCamera(camera);
@@ -90,19 +94,28 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	modelFighter = ReadModel::CreateFromOBJ("chr_sword");
 	modelFighter2 = ReadModel::CreateFromOBJ("chr_sword");
 	modelSphere = ReadModel::CreateFromOBJ("sphere2", true);
+	modelCity = ReadModel::CreateFromOBJ("city", true);
 
 	// 3Dオブジェクト生成
 	objSkydome = Object3d::Create(modelSkydome);
 	objGround = Object3d::Create(modelGround);
 	objFighter = Object3d::Create(modelFighter);
 	objFighter2 = Object3d::Create(modelFighter2);
+	objCity = Object3d::Create(modelCity);
 
-	objFighter->SetPosition({ 0,0,-20 });
-	objFighter2->SetPosition({ -2,0,-5 });
+	objFighter->SetPosition({ 0,2,30 });
+	objFighter2->SetPosition({ 0,12,30 });
+	enemy_data.angle = 0;
 	objFighter2->SetRotation({ 0,180,0 });
+	objCity->SetPosition({ 0,0,20 });
+	objCity->SetRotation({ 0,90,0 });
+	objCity->SetScale({ 3,3,3 });
 
-	objSphere = Object3d::Create(modelSphere);
-	objSphere->SetPosition({ +2,1,0 });
+	for (int i = 0; i < _countof(objSphere); i++)
+	{
+		objSphere[i] = Object3d::Create(modelSphere);
+		objSphere[i]->SetPosition({ +1000,-10,1000 });
+	}
 
 	audio->PlayWave("Resources/bgm.wav", 0.1f);
 
@@ -120,24 +133,176 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	fbxObject1 = new FbxObject3d;
 	fbxObject1->Initialize();
 	fbxObject1->SetModel(fbxModel1);
-	fbxObject1->SetRotation({0,90,0});
+	fbxObject1->SetRotation({ 0,90,0 });
+
+	SceneNum = Game;
 }
 
 void GameScene::Update()
 {
+
+	CreateLight();
 	XMFLOAT3 playerPos = objFighter->GetPosition();
-	// 移動後の座標を計算
-	CharactorMove(playerPos);
-	cameraPos = objFighter->GetPosition();
+	XMFLOAT3 playerScale = objFighter->GetScale();
+	XMFLOAT3 enemyPos = objFighter2->GetPosition();
+	XMFLOAT3 centerPos = { 0, 2, 50 };
+	for (int i = 0; i < _countof(objSphere); i++)
+	{
+		bullet[i].Pos = objSphere[i]->GetPosition();
+		bullet[i].Size = objSphere[i]->GetScale();
+	}
+	/*if (SceneNum == Title)
+	{
+		if (input->TriggerKey(DIK_RETURN))
+		{
+			SceneNum = Game;
+		}
+	}*/
 
-	objFighter->SetPosition(playerPos);
-	
-	camera->SetEye({ cameraPos.x, cameraPos.y , cameraPos.z });
-	camera->SetTarget({ cameraPos.x , cameraPos.y, cameraPos.z + 20 });
-	camera->Update();
-	//CreateLight();
+	if (SceneNum == Game)
+	{
+		// 移動後の座標を計算
+		if (input->PushKey(DIK_W))
+		{
+			playerPos.z += 0.1f;
+		}
+		else if (input->PushKey(DIK_S))
+		{
+			playerPos.z -= 0.1f;
+		}
 
-	fbxObject1->AnimationFlag = true;
+		if (input->PushKey(DIK_D))
+		{
+			playerPos.x += 0.1f;
+		}
+		else if (input->PushKey(DIK_A))
+		{
+			playerPos.x -= 0.1f;
+		}
+
+		if (input->TriggerKey(DIK_SPACE) && plBulShotFlag == false)
+		{
+			plBulFlag = true;
+		}
+
+		if (plBulFlag == true)
+		{
+			bullet[49].Pos = playerPos;
+			plBulShotFlag = true;
+			plBulFlag = false;
+		}
+
+		if (plBulShotFlag == true)
+		{
+			bullet[49].Pos.z += 0.2f;
+		}
+		if (bullet[49].Pos.z > 70)
+		{
+			bullet[49].Pos = { +1000,-10,1000 };
+			plBulShotFlag = false;
+		}
+
+		if (input->PushKey(DIK_UP))
+		{
+			CircularMotionUD(enemyPos, playerPos, 10.00f, enemy_data.angle, +1);
+		}
+		if (input->PushKey(DIK_DOWN))
+		{
+			CircularMotionUD(enemyPos, playerPos, 10.00f, enemy_data.angle, -1);
+		}
+		if (input->PushKey(DIK_LEFT))
+		{
+			CircularMotionLR(enemyPos, playerPos, 10.00f, enemy_data.angle, -1);
+		}
+		if (input->PushKey(DIK_RIGHT))
+		{
+			CircularMotionLR(enemyPos, playerPos, 10.00f, enemy_data.angle, +1);
+		}
+		objFighter->SetPosition(playerPos);
+		objFighter2->SetPosition(enemyPos);
+
+		for (int i = 0; i < _countof(objSphere); i++)
+		{
+			objSphere[i]->SetPosition(bullet[i].Pos);
+		}
+
+		bool bossHit = (enemyPos.x - playerScale.x < bullet[49].Pos.x + bullet[49].Size.x)
+			&& (enemyPos.x + playerScale.x > bullet[49].Pos.x - bullet[49].Size.x)
+			&& (enemyPos.z - playerScale.z < bullet[49].Pos.z + bullet[49].Size.z)
+			&& (enemyPos.z + playerScale.z > bullet[49].Pos.z - bullet[49].Size.z)
+			&& (enemyAlive == true);
+		{
+			if (bossHit)
+			{
+				for (int i = 0; i < _countof(objSphere); i++)
+				{
+					objSphere[i]->SetPosition({ +1000,-10,1000 });
+					bullet[i].Pos = objSphere[i]->GetPosition();
+					bullet[i].Size = objSphere[i]->GetScale();
+				}
+			}
+		}
+
+		if (enemyAlive == false)
+		{
+			enemyTimer++;
+		}
+
+		if (enemyTimer > 120)
+		{
+			enemyAlive = true;
+			bulCount = 0;
+			bulFlag = false;
+			bulShotFlag = false;
+			waveFlag = false;
+			waveFlag2 = false;
+			waveShotFlag = false;
+			waveShotFlag2 = false;
+			plBulFlag = false;
+			plBulShotFlag = false;
+			enemyVec = 0.1f;
+			enemyTimer = 0;
+		}
+		// 移動後の座標を計算
+		cameraPos = objFighter->GetPosition();
+
+		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
+		camera->SetTarget({ enemyPos.x , enemyPos.y , enemyPos.z });
+		camera->Update();
+
+		fbxObject1->AnimationFlag = true;
+	}
+
+	else if (SceneNum == Win || SceneNum == Lose)
+	{
+		if (input->TriggerKey(DIK_RETURN))
+		{
+			SceneNum = Title;
+			objFighter->SetPosition({ 0,1,30 });
+			objFighter2->SetPosition({ 0,1,50 });
+			objFighter2->SetRotation({ 0,180,0 });
+			playerPos = objFighter->GetPosition();
+			playerScale = objFighter->GetScale();
+			enemyPos = objFighter2->GetPosition();
+			bulCount = 0;
+			bulFlag = false;
+			bulShotFlag = false;
+			waveFlag = false;
+			waveFlag2 = false;
+			waveShotFlag = false;
+			waveShotFlag2 = false;
+			plBulFlag = false;
+			plBulShotFlag = false;
+			enemyAlive = true;
+			enemyVec = 0.1f;
+			for (int i = 0; i < _countof(objSphere); i++)
+			{
+				objSphere[i]->SetPosition({ +1000,-10,1000 });
+				bullet[i].Pos = objSphere[i]->GetPosition();
+				bullet[i].Size = objSphere[i]->GetScale();
+			}
+		}
+	}
 
 	particleMan->Update();
 
@@ -145,7 +310,11 @@ void GameScene::Update()
 	objGround->Update();
 	objFighter->Update();
 	objFighter2->Update();
-	objSphere->Update();
+	objCity->Update();
+	for (int i = 0; i < _countof(objSphere); i++)
+	{
+		objSphere[i]->Update();
+	}
 	light->Update();
 	fbxObject1->Update();
 }
@@ -171,15 +340,22 @@ void GameScene::Draw()
 
 #pragma region 3D描画
 	Object3d::PreDraw(cmdList);
-	//objSkydome->Draw();
+	objSkydome->Draw();
 	// 3Dオブジェクトの描画
-	objGround->Draw();
+	//objGround->Draw();
+	objCity->Draw();
 	//objFighter->Draw();
-	//objFighter2->Draw();
-	//objSphere->Draw();
+	if (enemyAlive == true)
+	{
+		//objFighter2->Draw();
+	}
+	for (int i = 0; i < _countof(objSphere); i++)
+	{
+		objSphere[i]->Draw();
+	}
 	Object3d::PostDraw();
 
-	fbxObject1->Draw(cmdList);
+	//fbxObject1->Draw(cmdList);
 
 	// パーティクルの描画
 	particleMan->Draw(cmdList);
@@ -229,10 +405,10 @@ void GameScene::CreateLight()
 	//光線方向初期値
 	static XMVECTOR lightDir = { 0, 1, 5, 0 };
 
-	if (input->PushKey(DIK_W)) { lightDir.m128_f32[1] += 1.0f; }
+	/*if (input->PushKey(DIK_W)) { lightDir.m128_f32[1] += 1.0f; }
 	else if (input->PushKey(DIK_S)) { lightDir.m128_f32[1] -= 1.0f; }
 	if (input->PushKey(DIK_D)) { lightDir.m128_f32[0] += 1.0f; }
-	else if (input->PushKey(DIK_A)) { lightDir.m128_f32[0] -= 1.0f; }
+	else if (input->PushKey(DIK_A)) { lightDir.m128_f32[0] -= 1.0f; }*/
 
 	light->SetLightDir(lightDir);
 
@@ -274,4 +450,20 @@ void GameScene::CharactorMove(XMFLOAT3 pos)
 	{
 		pos.x -= 0.1f;
 	}
+}
+
+void GameScene::CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angle, const int add)
+{
+	angle += add;
+
+	pos.z = (cosf(3.14 / 180.0f * angle) * r) + center_pos.z;//円運動の処理
+	pos.y = (sinf(3.14 / 180.0f * angle) * r) + center_pos.y;//円運動の処理
+}
+
+void GameScene::CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angle, const int add)
+{
+	angle += add;
+
+	pos.z = (cosf(3.14 / 180.0f * angle) * r) + center_pos.z;//円運動の処理
+	pos.x = (sinf(3.14 / 180.0f * angle) * r) + center_pos.x;//円運動の処理
 }

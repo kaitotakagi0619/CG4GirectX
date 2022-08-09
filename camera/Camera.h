@@ -16,9 +16,9 @@ public: // 静的メンバ関数
 	// コンストラクタ
 	Camera(int window_width, int window_height);
 	// デストラクタ
-	~Camera() = default;
+	virtual ~Camera() = default;
 	// 毎フレーム更新
-	void Update();
+	virtual void Update();
 	// ビュー行列を更新
 	void UpdateViewMatrix();
 	// 射影行列を更新
@@ -46,6 +46,7 @@ public: // 静的メンバ関数
 	// ベクトルによる移動
 	void CameraMoveVector(const XMFLOAT3& move);
 	void CameraMoveEyeVector(const XMFLOAT3& move);
+	void MoveVector(const XMVECTOR& move);
 
 protected: // メンバ変数
 	// ビュー行列

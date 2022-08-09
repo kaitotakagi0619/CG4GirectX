@@ -8,6 +8,7 @@
 #include "Object3d.h"
 #include "ParticleManager.h"
 #include "DebugText.h"
+#include "DebugCamera.h"
 #include "Audio.h"
 #include "Light.h"
 #include "CollisionPrimitive.h"
@@ -92,6 +93,10 @@ public: // メンバ関数
 
 	void CharactorMove(XMFLOAT3 pos);
 
+	void CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angle, const int add);
+
+	void CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angle, const int add);
+
 
 private: // メンバ変数
 	DirectXCommon* dxCommon = nullptr;
@@ -99,9 +104,39 @@ private: // メンバ変数
 	Audio* audio = nullptr;
 	DebugText debugText;
 
+	struct Bullet
+	{
+		XMFLOAT3 Pos;
+		XMFLOAT3 Size;
+		XMFLOAT3 Rotation;
+	};
+	Bullet bullet[50];
+
+	enum Scene
+	{
+		Title, Game, Win, Lose,
+	};
+	int SceneNum = Title;
+
+	int bulCount = 0;
+	bool bulFlag = false;
+	bool bulShotFlag = false;
+	bool waveFlag = false;
+	bool waveFlag2 = false;
+	bool waveShotFlag = false;
+	bool waveShotFlag2 = false;
+	bool plBulFlag = false;
+	bool plBulShotFlag = false;
+	float enemyVec = 0.1f;
+	bool enemyAlive = false;
+	int enemyTimer = 0;
+
+	EnemyData enemy_data;
+
+
 
 	XMFLOAT3 cameraPos = { 0,0,0 };
-	float cameraPosZ = -50.0f;
+	float cameraPosZ = 30.0f;
 
 	// ゲームシーン用
 	Camera* camera = nullptr;
@@ -115,12 +150,14 @@ private: // メンバ変数
 	ReadModel* modelFighter = nullptr;
 	ReadModel* modelFighter2 = nullptr;
 	ReadModel* modelSphere = nullptr;
+	ReadModel* modelCity = nullptr;
 
-	Object3d* objSphere = nullptr;
+	Object3d* objSphere[50] = { nullptr };
 	Object3d* objSkydome = nullptr;
 	Object3d* objGround = nullptr;
 	Object3d* objFighter = nullptr;
 	Object3d* objFighter2 = nullptr;
+	Object3d* objCity = nullptr;
 
 	//FBX実装
 	FbxModel* fbxModel1 = nullptr;

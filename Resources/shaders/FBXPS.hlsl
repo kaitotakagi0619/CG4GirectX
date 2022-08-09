@@ -21,8 +21,19 @@ PSOutput main(VSOutput input)
 	float diffuse = saturate(dot(-light, input.normal));
 	float brightness = diffuse + 0.3f;
 	float4 shadecolor = float4(brightness, brightness, brightness, 1.0f);
+	const float shininess = 4.0f;
+	float3 eyedir = normalize(cameraPos - input.worldpos.xyz);
+	float3 dotlightnormal = dot(lightv, input.normal);
+	float3 reflect = normalize(-lightv + 2 * dotlightnormal * input.normal);
+	float3 ambient = m_ambient;
+	float3 specular = pow(saturate(dot(reflect, eyedir)), shininess) * m_specular;
+
+
+	/*shadecolor.rgb = (ambient + diffuse + specular) * lightcolor;
+	shadecolor.a = m_alpha;*/
+
 	//陰影とテクスチャの色を合成
 	output.target0 = shadecolor * texcolor;
-	output.target1 = float4(1 - (shadecolor * texcolor).rgb, 1);
+	output.target1 = shadecolor * texcolor;
 	return output;
 }
