@@ -151,13 +151,13 @@ void GameScene::Update()
 		bullet[i].Pos = objSphere[i]->GetPosition();
 		bullet[i].Size = objSphere[i]->GetScale();
 	}
-	/*if (SceneNum == Title)
+	if (SceneNum == Title)
 	{
 		if (input->TriggerKey(DIK_RETURN))
 		{
 			SceneNum = Game;
 		}
-	}*/
+	}
 
 	if (SceneNum == Game)
 	{
