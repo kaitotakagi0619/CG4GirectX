@@ -141,6 +141,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 void GameScene::Update()
 {
 
+	//imgui準備
 	CreateLight();
 	XMFLOAT3 playerPos = objFighter->GetPosition();
 	XMFLOAT3 playerScale = objFighter->GetScale();
