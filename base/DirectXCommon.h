@@ -40,6 +40,7 @@ public: // メンバ関数
 	// <returns>描画コマンドリスト</returns>
 	ID3D12GraphicsCommandList* GetCommandList() { return commandList.Get(); }
 
+
 private: // メンバ変数
 	// ウィンドウズアプリケーション管理
 	WinApp* winApp;
@@ -57,6 +58,7 @@ private: // メンバ変数
 	ComPtr<ID3D12DescriptorHeap> dsvHeap;
 	ComPtr<ID3D12Fence> fence;
 	UINT64 fenceVal = 0;
+	ComPtr<ID3D12DescriptorHeap> _heapForImgui; //ヒープ保持用
 
 private: // メンバ関数
 	// DXGIデバイス初期化
@@ -82,5 +84,10 @@ private: // メンバ関数
 	// フェンス生成
 	// <returns>成否</returns>
 	bool CreateFence();	
+
+	//imgui初期化
+	ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeapForImgui();
+
+	ComPtr<ID3D12DescriptorHeap> GetHeapForImgui();
 };
 

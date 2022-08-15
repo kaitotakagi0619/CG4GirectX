@@ -135,7 +135,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	fbxObject1->SetModel(fbxModel1);
 	fbxObject1->SetRotation({ 0,90,0 });
 
-	SceneNum = Game;
+	SceneNum = Title;
 }
 
 void GameScene::Update()

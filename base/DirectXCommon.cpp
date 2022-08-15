@@ -45,6 +45,13 @@ void DirectXCommon::Initialize(WinApp* winApp)
 	if (!CreateFence()) {
 		assert(0);
 	}
+
+	//imgui初期化
+	_heapForImgui = CreateDescriptorHeapForImgui();
+	if (_heapForImgui == nullptr)
+	{
+		assert(0);
+	}
 }
 
 void DirectXCommon::PreDraw()
@@ -369,4 +376,25 @@ bool DirectXCommon::CreateFence()
 	}
 
 	return true;
+}
+
+ComPtr<ID3D12DescriptorHeap> DirectXCommon::CreateDescriptorHeapForImgui()
+{
+	ComPtr<ID3D12DescriptorHeap> ret;
+
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	desc.NodeMask = 0;
+	desc.NumDescriptors = 1;
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+	device->CreateDescriptorHeap(
+		&desc, IID_PPV_ARGS(ret.ReleaseAndGetAddressOf()));
+
+	return ret;
+}
+
+ComPtr<ID3D12DescriptorHeap> DirectXCommon::GetHeapForImgui()
+{
+	return _heapForImgui;
 }
