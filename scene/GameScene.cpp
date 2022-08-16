@@ -325,6 +325,10 @@ void GameScene::Draw()
 	// コマンドリストの取得
 	ID3D12GraphicsCommandList* cmdList = dxCommon->GetCommandList();
 
+	ImGui::Begin("Rendering Test Menu");
+	ImGui::SetWindowSize(ImVec2(400, 500), ImGuiCond_::ImGuiCond_FirstUseEver);
+	ImGui::End();
+
 #pragma region 背景スプライト描画
 	// 背景スプライト描画前処理
 	Sprite::PreDraw(cmdList);

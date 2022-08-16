@@ -2,6 +2,9 @@
 #include <vector>
 #include <cassert>
 #include "SafeDelete.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_win32.h"
+#include "imgui/imgui_impl_dx12.h"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -47,9 +50,7 @@ void DirectXCommon::Initialize(WinApp* winApp)
 	}
 
 	//imgui初期化
-	_heapForImgui = CreateDescriptorHeapForImgui();
-	if (_heapForImgui == nullptr)
-	{
+	if (!InitializeImgui())	{
 		assert(0);
 	}
 }
@@ -78,10 +79,20 @@ void DirectXCommon::PreDraw()
 	commandList->RSSetViewports(1, &CD3DX12_VIEWPORT(0.0f, 0.0f, WinApp::window_width, WinApp::window_height));
 	// シザリング矩形の設定
 	commandList->RSSetScissorRects(1, &CD3DX12_RECT(0, 0, WinApp::window_width, WinApp::window_height));
+
+	// imgui 描画前処理
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
 }
 
 void DirectXCommon::PostDraw()
 {
+	ImGui::Render();
+	ID3D12DescriptorHeap* ppHeaps[]{ _heapForImgui.Get() };
+	commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList.Get());
+
 	// リソースバリアを変更（描画対象→表示状態）
 	UINT bbIndex = swapchain->GetCurrentBackBufferIndex();
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(backBuffers[bbIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
@@ -397,4 +408,37 @@ ComPtr<ID3D12DescriptorHeap> DirectXCommon::CreateDescriptorHeapForImgui()
 ComPtr<ID3D12DescriptorHeap> DirectXCommon::GetHeapForImgui()
 {
 	return _heapForImgui;
+}
+
+bool DirectXCommon::InitializeImgui()
+{
+	HRESULT result = false;
+
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	desc.NumDescriptors = 1;
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+	result = device->CreateDescriptorHeap(
+		&desc, IID_PPV_ARGS(&_heapForImgui));
+
+	if (ImGui::CreateContext() == nullptr)
+	{
+		assert(0);
+		return false;
+	}
+
+	bool blnResult = ImGui_ImplWin32_Init(winApp->GetHwnd());
+	if (!blnResult)
+	{
+		assert(0);
+		return false;
+	}
+	blnResult = ImGui_ImplDX12_Init(
+		GetDevice(),
+		3,
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		_heapForImgui.Get(),
+		_heapForImgui->GetCPUDescriptorHandleForHeapStart(),
+		_heapForImgui->GetGPUDescriptorHandleForHeapStart());
 }

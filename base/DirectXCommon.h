@@ -6,6 +6,9 @@
 #include <wrl.h>
 #include <d3dx12.h>
 #include <cstdlib>
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_win32.h"
+#include "imgui/imgui_impl_dx12.h"
 
 #include "WinApp.h"
 
@@ -89,5 +92,7 @@ private: // メンバ関数
 	ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeapForImgui();
 
 	ComPtr<ID3D12DescriptorHeap> GetHeapForImgui();
+
+	bool InitializeImgui();
 };
 
