@@ -141,7 +141,7 @@ private: // メンバ変数
 	// ゲームシーン用
 	Camera* camera = nullptr;
 	//Sprite* spriteBG = nullptr;
-	Sprite* sprite[1] = { nullptr };
+	Sprite* sprite[3] = { nullptr };
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
 
@@ -157,6 +157,7 @@ private: // メンバ変数
 	Object3d* objGround = nullptr;
 	Object3d* objFighter = nullptr;
 	Object3d* objFighter2 = nullptr;
+	Object3d* bossEnemy = nullptr;
 	Object3d* objCity = nullptr;
 
 	//FBX実装

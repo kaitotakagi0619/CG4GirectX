@@ -73,14 +73,23 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 		assert(0);
 		return;
 	}
-	// テクスチャ読み込み
 	if (!Sprite::LoadTexture(2, L"Resources/pointer.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(3, L"Resources/title.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(4, L"Resources/win.png")) {
 		assert(0);
 		return;
 	}
 	// 背景スプライト生成
 	//spriteBG = Sprite::Create(1, { 0.0f,0.0f });
 	sprite[0] = Sprite::Create(2, { 0.0f,0.0f });
+	sprite[1] = Sprite::Create(3, { 0.0f,0.0f });
+	sprite[2] = Sprite::Create(4, { 0.0f,0.0f });
 	sprite[0]->SetSize({ 16.0f,16.0f });
 	sprite[0]->SetPosition({ WinApp::window_width / 2,WinApp::window_height / 2 });
 	// パーティクルマネージャ生成
@@ -102,11 +111,14 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	objFighter = Object3d::Create(modelFighter);
 	objFighter2 = Object3d::Create(modelFighter2);
 	objCity = Object3d::Create(modelCity);
+	bossEnemy = Object3d::Create(modelFighter2);
 
 	objFighter->SetPosition({ 0,2,30 });
 	objFighter2->SetPosition({ 0,12,30 });
+	bossEnemy->SetPosition({ 0,2, 40 });
 	enemy_data.angle = 0;
 	objFighter2->SetRotation({ 0,180,0 });
+	bossEnemy->SetRotation({ 0,180,0 });
 	objCity->SetPosition({ 0,0,20 });
 	objCity->SetRotation({ 0,90,0 });
 	objCity->SetScale({ 3,3,3 });
@@ -115,6 +127,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	{
 		objSphere[i] = Object3d::Create(modelSphere);
 		objSphere[i]->SetPosition({ +1000,-10,1000 });
+		objSphere[i]->SetScale({ 0.2,0.2,0.2 });
 	}
 
 	audio->PlayWave("Resources/bgm.wav", 0.1f);
@@ -144,21 +157,23 @@ void GameScene::Update()
 	//imgui準備
 	CreateLight();
 	XMFLOAT3 playerPos = objFighter->GetPosition();
+	XMFLOAT3 bossPos = bossEnemy->GetPosition();
 	XMFLOAT3 playerScale = objFighter->GetScale();
-	XMFLOAT3 enemyPos = objFighter2->GetPosition();
+	XMFLOAT3 targetCameraPos = objFighter2->GetPosition();
 	XMFLOAT3 centerPos = { 0, 2, 50 };
 	for (int i = 0; i < _countof(objSphere); i++)
 	{
 		bullet[i].Pos = objSphere[i]->GetPosition();
 		bullet[i].Size = objSphere[i]->GetScale();
 	}
-	if (SceneNum == Title)
+	/*if (SceneNum == Title)
 	{
 		if (input->TriggerKey(DIK_RETURN))
 		{
 			SceneNum = Game;
+			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angle, +1);
 		}
-	}
+	}*/
 
 	if (SceneNum == Game)
 	{
@@ -166,19 +181,23 @@ void GameScene::Update()
 		if (input->PushKey(DIK_W))
 		{
 			playerPos.z += 0.1f;
+			targetCameraPos.z += 0.1f;
 		}
 		else if (input->PushKey(DIK_S))
 		{
 			playerPos.z -= 0.1f;
+			targetCameraPos.z -= 0.1f;
 		}
 
 		if (input->PushKey(DIK_D))
 		{
 			playerPos.x += 0.1f;
+			targetCameraPos.x += 0.1f;
 		}
 		else if (input->PushKey(DIK_A))
 		{
 			playerPos.x -= 0.1f;
+			targetCameraPos.x -= 0.1f;
 		}
 
 		if (input->TriggerKey(DIK_SPACE) && plBulShotFlag == false)
@@ -205,32 +224,32 @@ void GameScene::Update()
 
 		if (input->PushKey(DIK_UP))
 		{
-			CircularMotionUD(enemyPos, playerPos, 10.00f, enemy_data.angle, +1);
+			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angle, +1);
 		}
 		if (input->PushKey(DIK_DOWN))
 		{
-			CircularMotionUD(enemyPos, playerPos, 10.00f, enemy_data.angle, -1);
+			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angle, -1);
 		}
 		if (input->PushKey(DIK_LEFT))
 		{
-			CircularMotionLR(enemyPos, playerPos, 10.00f, enemy_data.angle, -1);
+			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angle, -1);
 		}
 		if (input->PushKey(DIK_RIGHT))
 		{
-			CircularMotionLR(enemyPos, playerPos, 10.00f, enemy_data.angle, +1);
+			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angle, +1);
 		}
 		objFighter->SetPosition(playerPos);
-		objFighter2->SetPosition(enemyPos);
+		objFighter2->SetPosition(targetCameraPos);
 
 		for (int i = 0; i < _countof(objSphere); i++)
 		{
 			objSphere[i]->SetPosition(bullet[i].Pos);
 		}
 
-		bool bossHit = (enemyPos.x - playerScale.x < bullet[49].Pos.x + bullet[49].Size.x)
-			&& (enemyPos.x + playerScale.x > bullet[49].Pos.x - bullet[49].Size.x)
-			&& (enemyPos.z - playerScale.z < bullet[49].Pos.z + bullet[49].Size.z)
-			&& (enemyPos.z + playerScale.z > bullet[49].Pos.z - bullet[49].Size.z)
+		bool bossHit = (bossPos.x - playerScale.x < bullet[49].Pos.x + bullet[49].Size.x)
+			&& (bossPos.x + playerScale.x > bullet[49].Pos.x - bullet[49].Size.x)
+			&& (bossPos.z - playerScale.z < bullet[49].Pos.z + bullet[49].Size.z)
+			&& (bossPos.z + playerScale.z > bullet[49].Pos.z - bullet[49].Size.z)
 			&& (enemyAlive == true);
 		{
 			if (bossHit)
@@ -240,7 +259,9 @@ void GameScene::Update()
 					objSphere[i]->SetPosition({ +1000,-10,1000 });
 					bullet[i].Pos = objSphere[i]->GetPosition();
 					bullet[i].Size = objSphere[i]->GetScale();
+					SceneNum = Win;
 				}
+				
 			}
 		}
 
@@ -268,14 +289,17 @@ void GameScene::Update()
 		cameraPos = objFighter->GetPosition();
 
 		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
-		camera->SetTarget({ enemyPos.x , enemyPos.y , enemyPos.z });
+		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
 		camera->Update();
 
 		fbxObject1->AnimationFlag = true;
 	}
 
-	else if (SceneNum == Win || SceneNum == Lose)
+	/*else if (SceneNum == Win || SceneNum == Lose)
 	{
+		camera->SetEye({ 0,0,-50 });
+		camera->SetTarget({ 0, 0, 0 });
+		camera->Update();
 		if (input->TriggerKey(DIK_RETURN))
 		{
 			SceneNum = Title;
@@ -284,7 +308,7 @@ void GameScene::Update()
 			objFighter2->SetRotation({ 0,180,0 });
 			playerPos = objFighter->GetPosition();
 			playerScale = objFighter->GetScale();
-			enemyPos = objFighter2->GetPosition();
+			targetCameraPos = objFighter2->GetPosition();
 			bulCount = 0;
 			bulFlag = false;
 			bulShotFlag = false;
@@ -303,12 +327,13 @@ void GameScene::Update()
 				bullet[i].Size = objSphere[i]->GetScale();
 			}
 		}
-	}
+	}*/
 
 	particleMan->Update();
 
 	objSkydome->Update();
 	objGround->Update();
+	bossEnemy->Update();
 	objFighter->Update();
 	objFighter2->Update();
 	objCity->Update();
@@ -325,9 +350,9 @@ void GameScene::Draw()
 	// コマンドリストの取得
 	ID3D12GraphicsCommandList* cmdList = dxCommon->GetCommandList();
 
-	ImGui::Begin("Rendering Test Menu");
+	/*ImGui::Begin("Rendering Test Menu");
 	ImGui::SetWindowSize(ImVec2(400, 500), ImGuiCond_::ImGuiCond_FirstUseEver);
-	ImGui::End();
+	ImGui::End();*/
 
 #pragma region 背景スプライト描画
 	// 背景スプライト描画前処理
@@ -358,6 +383,7 @@ void GameScene::Draw()
 	{
 		objSphere[i]->Draw();
 	}
+	bossEnemy->Draw();
 	Object3d::PostDraw();
 
 	//fbxObject1->Draw(cmdList);
@@ -374,6 +400,14 @@ void GameScene::Draw()
 	//spriteBG->Draw();
 	// デバッグテキストの描画
 	sprite[0]->Draw();
+	if (SceneNum == Title)
+	{
+		sprite[1]->Draw();
+	}
+	if (SceneNum == Win)
+	{
+		sprite[2]->Draw();
+	}
 
 	// スプライト描画後処理
 	Sprite::PostDraw();
