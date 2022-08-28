@@ -166,14 +166,14 @@ void GameScene::Update()
 		bullet[i].Pos = objSphere[i]->GetPosition();
 		bullet[i].Size = objSphere[i]->GetScale();
 	}
-	/*if (SceneNum == Title)
+	if (SceneNum == Title)
 	{
 		if (input->TriggerKey(DIK_RETURN))
 		{
 			SceneNum = Game;
 			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angle, +1);
 		}
-	}*/
+	}
 
 	if (SceneNum == Game)
 	{
@@ -295,7 +295,7 @@ void GameScene::Update()
 		fbxObject1->AnimationFlag = true;
 	}
 
-	/*else if (SceneNum == Win || SceneNum == Lose)
+	else if (SceneNum == Win || SceneNum == Lose)
 	{
 		camera->SetEye({ 0,0,-50 });
 		camera->SetTarget({ 0, 0, 0 });
@@ -327,7 +327,7 @@ void GameScene::Update()
 				bullet[i].Size = objSphere[i]->GetScale();
 			}
 		}
-	}*/
+	}
 
 	particleMan->Update();
 
