@@ -130,7 +130,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 		objSphere[i]->SetScale({ 0.2,0.2,0.2 });
 	}
 
-	audio->PlayWave("Resources/bgm.wav", 0.1f);
+	audio->PlayWave("Resources/rock.wav", 0.1f);
 
 	// カメラ注視点をセット
 	camera->SetTarget({ 0, 0, 0 });
@@ -177,6 +177,39 @@ void GameScene::Update()
 
 	if (SceneNum == Game)
 	{
+		if (timing < 60)
+		{
+			timing++;
+		}
+		else
+		{
+			timing = 0;
+		}
+		//タイミングよく移動すると加速
+		if ((input->TriggerKey(DIK_W) && timing > 55)
+			|| (input->TriggerKey(DIK_W) && timing < 5))
+		{
+			playerPos.z += 2.5f;
+			targetCameraPos.z += 2.5f;
+		}
+		if ((input->TriggerKey(DIK_S) && timing > 55)
+			|| (input->TriggerKey(DIK_S) && timing < 5))
+		{
+			playerPos.z -= 2.5f;
+			targetCameraPos.z -= 2.5f;
+		}
+		if ((input->TriggerKey(DIK_A) && timing > 55)
+			|| (input->TriggerKey(DIK_S) && timing < 5))
+		{
+			playerPos.x += 2.5f;
+			targetCameraPos.x += 2.5f;
+		}
+		if ((input->TriggerKey(DIK_D) && timing > 55)
+			|| (input->TriggerKey(DIK_S) && timing < 5))
+		{
+			playerPos.x -= 2.5f;
+			targetCameraPos.x -= 2.5f;
+		}
 		// 移動後の座標を計算
 		if (input->PushKey(DIK_W))
 		{
@@ -199,6 +232,7 @@ void GameScene::Update()
 			playerPos.x -= 0.1f;
 			targetCameraPos.x -= 0.1f;
 		}
+
 
 		if (input->TriggerKey(DIK_SPACE) && plBulShotFlag == false)
 		{
@@ -412,6 +446,10 @@ void GameScene::Draw()
 	// スプライト描画後処理
 	Sprite::PostDraw();
 #pragma endregion
+}
+
+void GameScene::Move()
+{
 }
 
 void GameScene::CreateParticles()

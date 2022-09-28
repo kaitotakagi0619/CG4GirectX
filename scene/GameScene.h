@@ -86,6 +86,9 @@ public: // メンバ関数
 	// 描画
 	void Draw();
 
+	// 動き
+	void Move();
+
 	// パーティクル生成
 	void CreateParticles();
 
@@ -130,6 +133,7 @@ private: // メンバ変数
 	float enemyVec = 0.1f;
 	bool enemyAlive = false;
 	int enemyTimer = 0;
+	int timing = 0;
 
 	EnemyData enemy_data;
 
