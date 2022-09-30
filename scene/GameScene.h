@@ -135,7 +135,10 @@ private: // メンバ変数
 	int enemyTimer = 0;
 	int timing = 0;
 	bool isJump = false;
+	bool isJustJump = false;
 	float jCount = 0.6;
+	const float jCountMax = 0.5;
+	const float jCountMin = 0.3;
 
 	EnemyData enemy_data;
 

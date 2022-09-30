@@ -274,14 +274,23 @@ void GameScene::Update()
 		}
 
 		// ジャンプ
-		if (input->PushKey(DIK_I))
+		if (input->PushKey(DIK_I) && isJump == false && isJustJump == false)
 		{
-			isJump = true;
+			if(timing > 55 || timing < 5)
+			{
+				isJustJump = true;
+				jCount = jCountMax;
+			}
+			else
+			{
+				isJump = true;
+				jCount = jCountMin;
+			}
 		}
 		if (isJump == true)
 		{
 			jCount -= 0.025;
-			if (jCount > -0.6)
+			if (jCount > -jCountMin)
 			{
 				playerPos.y += jCount;
 				targetCameraPos.y += jCount;
@@ -289,7 +298,19 @@ void GameScene::Update()
 			else
 			{
 				isJump = false;
-				jCount = 0.6f;
+			}
+		}
+		if (isJustJump == true)
+		{
+			jCount -= 0.025;
+			if (jCount > -jCountMax)
+			{
+				playerPos.y += jCount;
+				targetCameraPos.y += jCount;
+			}
+			else
+			{
+				isJustJump = false;
 			}
 		}
 
