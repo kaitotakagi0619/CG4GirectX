@@ -272,6 +272,28 @@ void GameScene::Update()
 		{
 			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angle, +1);
 		}
+
+		// ジャンプ
+		if (input->PushKey(DIK_I))
+		{
+			isJump = true;
+		}
+		if (isJump == true)
+		{
+			jCount -= 0.025;
+			if (jCount > -0.6)
+			{
+				playerPos.y += jCount;
+				targetCameraPos.y += jCount;
+			}
+			else
+			{
+				isJump = false;
+				jCount = 0.6f;
+			}
+		}
+
+
 		objFighter->SetPosition(playerPos);
 		objFighter2->SetPosition(targetCameraPos);
 

@@ -134,6 +134,8 @@ private: // メンバ変数
 	bool enemyAlive = false;
 	int enemyTimer = 0;
 	int timing = 0;
+	bool isJump = false;
+	float jCount = 0.6;
 
 	EnemyData enemy_data;
 
