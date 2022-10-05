@@ -19,7 +19,9 @@ GameScene::~GameScene()
 	{
 		safe_delete(sprite[i]);
 	}
-	safe_delete(particleMan);
+	safe_delete(spriteMagazinUI);
+
+	//オブジェクトのdelete
 	safe_delete(objSkydome);
 	for (int i = 0; i < _countof(objSphere); i++)
 	{
@@ -27,11 +29,28 @@ GameScene::~GameScene()
 	}
 	safe_delete(objGround);
 	safe_delete(objFighter);
+	safe_delete(objFighter2);
+	safe_delete(bossEnemy);
+	safe_delete(objCity);
+
+	//機能のdelete
+	//safe_delete(dxCommon);
+	//safe_delete(input);
+	//safe_delete(audio);
+	safe_delete(light);
+	safe_delete(particleMan);
+	safe_delete(camera);
+	//モデルのdelete
 	safe_delete(modelSkydome);
 	safe_delete(modelGround);
 	safe_delete(modelFighter);
-	safe_delete(light);
-	safe_delete(camera);
+	safe_delete(modelFighter2);
+	safe_delete(modelSphere);
+	safe_delete(modelCity);
+
+	//fbxのdelete
+	safe_delete(fbxModel1);
+	safe_delete(fbxObject1);
 }
 
 void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)

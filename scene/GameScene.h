@@ -153,6 +153,7 @@ private: // メンバ変数
 	Camera* camera = nullptr;
 	//Sprite* spriteBG = nullptr;
 	Sprite* sprite[3] = { nullptr };
+	Sprite* spriteMagazinUI = nullptr;
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
 
@@ -163,11 +164,11 @@ private: // メンバ変数
 	ReadModel* modelSphere = nullptr;
 	ReadModel* modelCity = nullptr;
 
-	Object3d* objSphere[50] = { nullptr };
 	Object3d* objSkydome = nullptr;
 	Object3d* objGround = nullptr;
 	Object3d* objFighter = nullptr;
 	Object3d* objFighter2 = nullptr;
+	Object3d* objSphere[50] = { nullptr };
 	Object3d* bossEnemy = nullptr;
 	Object3d* objCity = nullptr;
 
