@@ -55,6 +55,10 @@ private: // 静的メンバ変数
 		int angleY; //円運動の角度
 		int angleZ; //円運動の角度
 
+		int virangleX; //円運動の角度
+		int virangleY; //円運動の角度
+		int virangleZ; //円運動の角度
+
 		int enemy_type; //エネミーの種類
 		bool can_catch; //捕縛可能か
 
@@ -134,6 +138,9 @@ private: // メンバ変数
 	bool waveShotFlag2 = false;
 	bool plBulFlag = false;
 	bool plBulShotFlag = false;
+	XMFLOAT3 plVelocity = { 0,0,0 };
+	XMFLOAT3 virVelocity = { 0,0,0 };
+	XMFLOAT3 virCameraPos = { 0,0,0 };
 	float enemyVec = 0.1f;
 	bool enemyAlive = false;
 	int enemyTimer = 0;
@@ -170,6 +177,7 @@ private: // メンバ変数
 	Object3d* objGround = nullptr;
 	Object3d* objFighter = nullptr;
 	Object3d* objFighter2 = nullptr;
+	Object3d* objFighter3 = nullptr;
 	Object3d* objSphere[50] = { nullptr };
 	Object3d* bossEnemy = nullptr;
 	Object3d* objCity = nullptr;

@@ -110,7 +110,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	sprite[1] = Sprite::Create(3, { 0.0f,0.0f });
 	sprite[2] = Sprite::Create(4, { 0.0f,0.0f });
 	sprite[0]->SetSize({ 16.0f,16.0f });
-	sprite[0]->SetPosition({ WinApp::window_width / 2,WinApp::window_height / 2 });
+	sprite[0]->SetPosition({ (WinApp::window_width / 2) - 8,(WinApp::window_height / 2) - 8 });
 	// パーティクルマネージャ生成
 	particleMan = ParticleManager::Create(dxCommon->GetDevice(), camera);
 
@@ -129,16 +129,23 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	objGround = Object3d::Create(modelGround);
 	objFighter = Object3d::Create(modelFighter);
 	objFighter2 = Object3d::Create(modelFighter2);
+	objFighter3 = Object3d::Create(modelFighter2);
 	objCity = Object3d::Create(modelCity);
 	bossEnemy = Object3d::Create(modelFighter2);
 
 	objFighter->SetPosition({ 0,2,30 });
 	objFighter2->SetPosition({ 0,12,30 });
+	objFighter3->SetPosition({ 0,12,30 });
 	bossEnemy->SetPosition({ 0,2, 40 });
 	enemy_data.angleX = 0;
 	enemy_data.angleY = 0;
 	enemy_data.angleZ = 0;
+
+	enemy_data.virangleX = 90;
+	enemy_data.virangleY = 0;
+	enemy_data.virangleZ = 90;
 	objFighter2->SetRotation({ 0,180,0 });
+	objFighter3->SetRotation({ 0,180,0 });
 	bossEnemy->SetRotation({ 0,180,0 });
 	objCity->SetPosition({ 0,0,20 });
 	objCity->SetRotation({ 0,90,0 });
@@ -181,6 +188,7 @@ void GameScene::Update()
 	XMFLOAT3 bossPos = bossEnemy->GetPosition();
 	XMFLOAT3 playerScale = objFighter->GetScale();
 	XMFLOAT3 targetCameraPos = objFighter2->GetPosition();
+	XMFLOAT3 virCameraPos = objFighter3->GetPosition();
 	XMFLOAT3 centerPos = { 0, 2, 50 };
 	for (int i = 0; i < _countof(objSphere); i++)
 	{
@@ -193,6 +201,9 @@ void GameScene::Update()
 		{
 			SceneNum = Game;
 			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, +1);
+			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, +1);
+			CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, +1);
+			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, +1);
 		}
 	}
 
@@ -206,8 +217,16 @@ void GameScene::Update()
 		{
 			timing = 0;
 		}
+		//移動用velocity計算
+		plVelocity.x = targetCameraPos.x - playerPos.x;
+		plVelocity.y = targetCameraPos.y - playerPos.y;
+		plVelocity.z = targetCameraPos.z - playerPos.z;
+		
+		virVelocity.x = virCameraPos.x - playerPos.x;
+		virVelocity.y = virCameraPos.y - playerPos.y;
+		virVelocity.z = virCameraPos.z - playerPos.z;
 		//タイミングよく移動すると加速
-		if ((input->TriggerKey(DIK_W) && timing > 55)
+	/*	if ((input->TriggerKey(DIK_W) && timing > 55)
 			|| (input->TriggerKey(DIK_W) && timing < 5))
 		{
 			playerPos.z += 2.5f;
@@ -218,8 +237,8 @@ void GameScene::Update()
 		{
 			playerPos.z -= 2.5f;
 			targetCameraPos.z -= 2.5f;
-		}
-		if ((input->TriggerKey(DIK_A) && timing > 55)
+		}*/
+		/*if ((input->TriggerKey(DIK_A) && timing > 55)
 			|| (input->TriggerKey(DIK_A) && timing < 5))
 		{
 			playerPos.x -= 2.5f;
@@ -230,28 +249,44 @@ void GameScene::Update()
 		{
 			playerPos.x += 2.5f;
 			targetCameraPos.x += 2.5f;
-		}
+		}*/
 		// 移動後の座標を計算
 		if (input->PushKey(DIK_W))
 		{
-			playerPos.z += 0.1f;
-			targetCameraPos.z += 0.1f;
+			playerPos.x +=			(plVelocity.x / 100);
+			playerPos.z +=			(plVelocity.z / 100);
+			targetCameraPos.x +=	(plVelocity.x / 100);
+			targetCameraPos.z +=	(plVelocity.z / 100);
+			virCameraPos.x +=		(plVelocity.x / 100);
+			virCameraPos.z +=		(plVelocity.z / 100);
 		}
 		else if (input->PushKey(DIK_S))
 		{
-			playerPos.z -= 0.1f;
-			targetCameraPos.z -= 0.1f;
+			playerPos.x -=			(plVelocity.x / 100);
+			playerPos.z -=			(plVelocity.z / 100);
+			targetCameraPos.x -=	(plVelocity.x / 100);
+			targetCameraPos.z -=	(plVelocity.z / 100);
+			virCameraPos.x -=		(plVelocity.x / 100);
+			virCameraPos.z -=		(plVelocity.z / 100);
 		}
 
 		if (input->PushKey(DIK_D))
 		{
-			playerPos.x += 0.1f;
-			targetCameraPos.x += 0.1f;
+			playerPos.x +=	 		(virVelocity.x / 100);
+			playerPos.z +=			(virVelocity.z / 100);
+			targetCameraPos.x +=	(virVelocity.x / 100);
+			targetCameraPos.z +=	(virVelocity.z / 100);
+			virCameraPos.x +=		(virVelocity.x / 100);
+			virCameraPos.z +=		(virVelocity.z / 100);
 		}
 		else if (input->PushKey(DIK_A))
 		{
-			playerPos.x -= 0.1f;
-			targetCameraPos.x -= 0.1f;
+			playerPos.x -=			(virVelocity.x / 100);
+			playerPos.z -=			(virVelocity.z / 100);
+			targetCameraPos.x -=	(virVelocity.x / 100);
+			targetCameraPos.z -=	(virVelocity.z / 100);
+			virCameraPos.x -=		(virVelocity.x / 100);
+			virCameraPos.z -=		(virVelocity.z / 100);
 		}
 
 
@@ -277,7 +312,9 @@ void GameScene::Update()
 		{
 			if (bullet[i].bulShotFlag == true)
 			{
-				bullet[i].Pos.z += 0.2f;
+				bullet[i].Pos.x += plVelocity.x;
+				bullet[i].Pos.y += plVelocity.y;
+				bullet[i].Pos.z += plVelocity.z;
 			}
 			if (bullet[i].Pos.z > 70)
 			{
@@ -286,21 +323,31 @@ void GameScene::Update()
 			}
 		}
 
-		if (input->PushKey(DIK_UP))
+		if (enemy_data.angleY < 90)
 		{
-			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, +1);
+			if (input->PushKey(DIK_UP))
+			{
+				CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, +1);
+				CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, +1);
+			}
 		}
-		if (input->PushKey(DIK_DOWN))
+		if (enemy_data.angleY > -90)
 		{
-			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, -1);
+			if (input->PushKey(DIK_DOWN))
+			{
+				CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, -1);
+				CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, -1);
+			}
 		}
 		if (input->PushKey(DIK_LEFT))
 		{
 			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, -1);
+			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, -1);
 		}
 		if (input->PushKey(DIK_RIGHT))
 		{
-			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, +1);
+			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX , +1);
+			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX , +1);
 		}
 
 		// ジャンプ
@@ -347,6 +394,7 @@ void GameScene::Update()
 
 		objFighter->SetPosition(playerPos);
 		objFighter2->SetPosition(targetCameraPos);
+		objFighter3->SetPosition(virCameraPos);
 
 		for (int i = 0; i < _countof(objSphere); i++)
 		{
@@ -416,9 +464,12 @@ void GameScene::Update()
 			objFighter->SetPosition({ 0,1,30 });
 			objFighter2->SetPosition({ 0,1,50 });
 			objFighter2->SetRotation({ 0,180,0 });
+			objFighter3->SetPosition({ 0,1,50 });
+			objFighter3->SetRotation({ 0,180,0 });
 			playerPos = objFighter->GetPosition();
 			playerScale = objFighter->GetScale();
 			targetCameraPos = objFighter2->GetPosition();
+			virCameraPos = objFighter3->GetPosition();
 			bulCount = 0;
 			for (int i = 0; i < _countof(objSphere); i++)
 			{
@@ -449,6 +500,7 @@ void GameScene::Update()
 	bossEnemy->Update();
 	objFighter->Update();
 	objFighter2->Update();
+	objFighter3->Update();
 	objCity->Update();
 	for (int i = 0; i < _countof(objSphere); i++)
 	{
@@ -610,7 +662,7 @@ void GameScene::CharactorMove(XMFLOAT3 pos)
 
 void GameScene::CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angleZ, int& angleY, const int add)
 {
-	angleZ += add;
+	//angleZ += add;
 	angleY += add;
 
 	pos.z = (cosf(3.14 / 180.0f * angleZ) * r) + center_pos.z;//円運動の処理
