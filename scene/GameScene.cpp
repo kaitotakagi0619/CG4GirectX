@@ -199,16 +199,16 @@ void GameScene::Update()
 			targetCameraPos.z -= 2.5f;
 		}
 		if ((input->TriggerKey(DIK_A) && timing > 55)
-			|| (input->TriggerKey(DIK_S) && timing < 5))
-		{
-			playerPos.x += 2.5f;
-			targetCameraPos.x += 2.5f;
-		}
-		if ((input->TriggerKey(DIK_D) && timing > 55)
-			|| (input->TriggerKey(DIK_S) && timing < 5))
+			|| (input->TriggerKey(DIK_A) && timing < 5))
 		{
 			playerPos.x -= 2.5f;
 			targetCameraPos.x -= 2.5f;
+		}
+		if ((input->TriggerKey(DIK_D) && timing > 55)
+			|| (input->TriggerKey(DIK_D) && timing < 5))
+		{
+			playerPos.x += 2.5f;
+			targetCameraPos.x += 2.5f;
 		}
 		// 移動後の座標を計算
 		if (input->PushKey(DIK_W))
@@ -234,26 +234,35 @@ void GameScene::Update()
 		}
 
 
-		if (input->TriggerKey(DIK_SPACE) && plBulShotFlag == false)
+		if (input->TriggerKey(DIK_SPACE) && bullet[bulCount].bulShotFlag == false)
 		{
-			plBulFlag = true;
+			bullet[bulCount].bulFlag = true;
+			bulCount++;
 		}
 
-		if (plBulFlag == true)
+		if (bulCount > 49)
 		{
-			bullet[49].Pos = playerPos;
-			plBulShotFlag = true;
-			plBulFlag = false;
+			bulCount = 0;
 		}
 
-		if (plBulShotFlag == true)
+		if (bullet[bulCount-1].bulFlag == true)
 		{
-			bullet[49].Pos.z += 0.2f;
+			bullet[bulCount-1].Pos = playerPos;
+			bullet[bulCount-1].bulShotFlag = true;
+			bullet[bulCount-1].bulFlag = false;
 		}
-		if (bullet[49].Pos.z > 70)
+
+		for (int i = 0; i < _countof(objSphere); i++)
 		{
-			bullet[49].Pos = { +1000,-10,1000 };
-			plBulShotFlag = false;
+			if (bullet[i].bulShotFlag == true)
+			{
+				bullet[i].Pos.z += 0.2f;
+			}
+			if (bullet[i].Pos.z > 70)
+			{
+				bullet[i].Pos = { +1000,-10,1000 };
+				bullet[i].bulShotFlag = false;
+			}
 		}
 
 		if (input->PushKey(DIK_UP))
@@ -351,8 +360,11 @@ void GameScene::Update()
 		{
 			enemyAlive = true;
 			bulCount = 0;
-			bulFlag = false;
-			bulShotFlag = false;
+			/*for (int i = 0; i < _countof(objSphere); i++)
+			{
+				bullet[i].bulFlag = false;
+				bullet[i].bulShotFlag = false;
+			}*/
 			waveFlag = false;
 			waveFlag2 = false;
 			waveShotFlag = false;
@@ -387,8 +399,11 @@ void GameScene::Update()
 			playerScale = objFighter->GetScale();
 			targetCameraPos = objFighter2->GetPosition();
 			bulCount = 0;
-			bulFlag = false;
-			bulShotFlag = false;
+			for (int i = 0; i < _countof(objSphere); i++)
+			{
+				bullet[i].bulFlag = false;
+				bullet[i].bulShotFlag = false;
+			}
 			waveFlag = false;
 			waveFlag2 = false;
 			waveShotFlag = false;
@@ -455,12 +470,12 @@ void GameScene::Draw()
 	if (enemyAlive == true)
 	{
 		//objFighter2->Draw();
+		bossEnemy->Draw();
 	}
 	for (int i = 0; i < _countof(objSphere); i++)
 	{
 		objSphere[i]->Draw();
 	}
-	bossEnemy->Draw();
 	Object3d::PostDraw();
 
 	//fbxObject1->Draw(cmdList);

@@ -112,6 +112,8 @@ private: // メンバ変数
 		XMFLOAT3 Pos;
 		XMFLOAT3 Size;
 		XMFLOAT3 Rotation;
+		bool bulFlag = false;
+		bool bulShotFlag = false;
 	};
 	Bullet bullet[50];
 
@@ -122,8 +124,8 @@ private: // メンバ変数
 	int SceneNum = Title;
 
 	int bulCount = 0;
-	bool bulFlag = false;
-	bool bulShotFlag = false;
+	/*bool bulFlag = false;
+	bool bulShotFlag = false;*/
 	bool waveFlag = false;
 	bool waveFlag2 = false;
 	bool waveShotFlag = false;
