@@ -19,7 +19,7 @@ GameScene::~GameScene()
 	{
 		safe_delete(sprite[i]);
 	}
-	safe_delete(spriteMagazinUI);
+	safe_delete(spriteMagazineUI);
 
 	//オブジェクトのdelete
 	safe_delete(objSkydome);
@@ -135,7 +135,9 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	objFighter->SetPosition({ 0,2,30 });
 	objFighter2->SetPosition({ 0,12,30 });
 	bossEnemy->SetPosition({ 0,2, 40 });
-	enemy_data.angle = 0;
+	enemy_data.angleX = 0;
+	enemy_data.angleY = 0;
+	enemy_data.angleZ = 0;
 	objFighter2->SetRotation({ 0,180,0 });
 	bossEnemy->SetRotation({ 0,180,0 });
 	objCity->SetPosition({ 0,0,20 });
@@ -190,7 +192,7 @@ void GameScene::Update()
 		if (input->TriggerKey(DIK_RETURN))
 		{
 			SceneNum = Game;
-			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angle, +1);
+			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, +1);
 		}
 	}
 
@@ -286,19 +288,19 @@ void GameScene::Update()
 
 		if (input->PushKey(DIK_UP))
 		{
-			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angle, +1);
+			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, +1);
 		}
 		if (input->PushKey(DIK_DOWN))
 		{
-			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angle, -1);
+			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, -1);
 		}
 		if (input->PushKey(DIK_LEFT))
 		{
-			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angle, -1);
+			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, -1);
 		}
 		if (input->PushKey(DIK_RIGHT))
 		{
-			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angle, +1);
+			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, +1);
 		}
 
 		// ジャンプ
@@ -606,18 +608,20 @@ void GameScene::CharactorMove(XMFLOAT3 pos)
 	}
 }
 
-void GameScene::CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angle, const int add)
+void GameScene::CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angleZ, int& angleY, const int add)
 {
-	angle += add;
+	angleZ += add;
+	angleY += add;
 
-	pos.z = (cosf(3.14 / 180.0f * angle) * r) + center_pos.z;//円運動の処理
-	pos.y = (sinf(3.14 / 180.0f * angle) * r) + center_pos.y;//円運動の処理
+	pos.z = (cosf(3.14 / 180.0f * angleZ) * r) + center_pos.z;//円運動の処理
+	pos.y = (sinf(3.14 / 180.0f * angleY) * r) + center_pos.y;//円運動の処理
 }
 
-void GameScene::CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angle, const int add)
+void GameScene::CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angleZ, int& angleX, const int add)
 {
-	angle += add;
+	angleZ += add;
+	angleX += add;
 
-	pos.z = (cosf(3.14 / 180.0f * angle) * r) + center_pos.z;//円運動の処理
-	pos.x = (sinf(3.14 / 180.0f * angle) * r) + center_pos.x;//円運動の処理
+	pos.z = (cosf(3.14 / 180.0f * angleZ) * r) + center_pos.z;//円運動の処理
+	pos.x = (sinf(3.14 / 180.0f * angleX) * r) + center_pos.x;//円運動の処理
 }

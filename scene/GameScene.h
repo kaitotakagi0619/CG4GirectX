@@ -51,7 +51,9 @@ private: // 静的メンバ変数
 
 		float e_acc; //加速度
 
-		int angle; //円運動の角度
+		int angleX; //円運動の角度
+		int angleY; //円運動の角度
+		int angleZ; //円運動の角度
 
 		int enemy_type; //エネミーの種類
 		bool can_catch; //捕縛可能か
@@ -96,9 +98,9 @@ public: // メンバ関数
 
 	void CharactorMove(XMFLOAT3 pos);
 
-	void CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angle, const int add);
+	void CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angleZ, int& angleY, const int add);
 
-	void CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angle, const int add);
+	void CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angleZ, int& angleX, const int add);
 
 
 private: // メンバ変数
@@ -153,7 +155,7 @@ private: // メンバ変数
 	Camera* camera = nullptr;
 	//Sprite* spriteBG = nullptr;
 	Sprite* sprite[3] = { nullptr };
-	Sprite* spriteMagazinUI = nullptr;
+	Sprite* spriteMagazineUI = nullptr;
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
 
