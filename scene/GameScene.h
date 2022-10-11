@@ -172,6 +172,7 @@ private: // メンバ変数
 	ReadModel* modelFighter2 = nullptr;
 	ReadModel* modelSphere = nullptr;
 	ReadModel* modelCity = nullptr;
+	ReadModel* modelcowgirl = nullptr;
 
 	Object3d* objSkydome = nullptr;
 	Object3d* objGround = nullptr;

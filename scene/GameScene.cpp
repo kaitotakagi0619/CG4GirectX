@@ -123,6 +123,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	modelFighter2 = ReadModel::CreateFromOBJ("chr_sword");
 	modelSphere = ReadModel::CreateFromOBJ("sphere2", true);
 	modelCity = ReadModel::CreateFromOBJ("city", true);
+	modelcowgirl = ReadModel::CreateFromOBJ("cowgirl", true);
 
 	// 3Dオブジェクト生成
 	objSkydome = Object3d::Create(modelSkydome);
@@ -131,7 +132,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	objFighter2 = Object3d::Create(modelFighter2);
 	objFighter3 = Object3d::Create(modelFighter2);
 	objCity = Object3d::Create(modelCity);
-	bossEnemy = Object3d::Create(modelFighter2);
+	bossEnemy = Object3d::Create(modelcowgirl);
 
 	objFighter->SetPosition({ 0,2,30 });
 	objFighter2->SetPosition({ 0,12,30 });
@@ -351,7 +352,7 @@ void GameScene::Update()
 		}
 
 		// ジャンプ
-		if (input->PushKey(DIK_I) && isJump == false && isJustJump == false)
+		if (input->PushKey(DIK_RSHIFT) && isJump == false && isJustJump == false)
 		{
 			if(timing > 55 || timing < 5)
 			{
