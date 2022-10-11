@@ -219,40 +219,41 @@ void GameScene::Update()
 			timing = 0;
 		}
 		//移動用velocity計算
-		plVelocity.x = targetCameraPos.x - playerPos.x;
-		plVelocity.y = targetCameraPos.y - playerPos.y;
-		plVelocity.z = targetCameraPos.z - playerPos.z;
+		if (input->PushKey(DIK_LSHIFT))
+		{
+			plVelocity.x = (targetCameraPos.x - playerPos.x) * 2;
+			plVelocity.y = (targetCameraPos.y - playerPos.y) * 2;
+			plVelocity.z = (targetCameraPos.z - playerPos.z) * 2;
 
-		virVelocity.x = virCameraPos.x - playerPos.x;
-		virVelocity.y = virCameraPos.y - playerPos.y;
-		virVelocity.z = virCameraPos.z - playerPos.z;
+			virVelocity.x = (virCameraPos.x - playerPos.x) * 2;
+			virVelocity.y = (virCameraPos.y - playerPos.y) * 2;
+			virVelocity.z = (virCameraPos.z - playerPos.z) * 2;
+		}
+		else
+		{
+			plVelocity.x = targetCameraPos.x - playerPos.x;
+			plVelocity.y = targetCameraPos.y - playerPos.y;
+			plVelocity.z = targetCameraPos.z - playerPos.z;
+
+			virVelocity.x = virCameraPos.x - playerPos.x;
+			virVelocity.y = virCameraPos.y - playerPos.y;
+			virVelocity.z = virCameraPos.z - playerPos.z;
+		}
+
+		// 移動後の座標を計算
 		//タイミングよく移動すると加速
-	/*	if ((input->TriggerKey(DIK_W) && timing > 55)
+		// -----------------------------------------//
+		if ((input->TriggerKey(DIK_W) && timing > 55)
 			|| (input->TriggerKey(DIK_W) && timing < 5))
 		{
-			playerPos.z += 2.5f;
-			targetCameraPos.z += 2.5f;
+			playerPos.x += (plVelocity.x / 10);
+			playerPos.z += (plVelocity.z / 10);
+			targetCameraPos.x += (plVelocity.x / 10);
+			targetCameraPos.z += (plVelocity.z / 10);
+			virCameraPos.x += (plVelocity.x / 10);
+			virCameraPos.z += (plVelocity.z / 10);
 		}
-		if ((input->TriggerKey(DIK_S) && timing > 55)
-			|| (input->TriggerKey(DIK_S) && timing < 5))
-		{
-			playerPos.z -= 2.5f;
-			targetCameraPos.z -= 2.5f;
-		}*/
-		/*if ((input->TriggerKey(DIK_A) && timing > 55)
-			|| (input->TriggerKey(DIK_A) && timing < 5))
-		{
-			playerPos.x -= 2.5f;
-			targetCameraPos.x -= 2.5f;
-		}
-		if ((input->TriggerKey(DIK_D) && timing > 55)
-			|| (input->TriggerKey(DIK_D) && timing < 5))
-		{
-			playerPos.x += 2.5f;
-			targetCameraPos.x += 2.5f;
-		}*/
-		// 移動後の座標を計算
-		if (input->PushKey(DIK_W))
+		else if (input->PushKey(DIK_W))
 		{
 			playerPos.x += (plVelocity.x / 100);
 			playerPos.z += (plVelocity.z / 100);
@@ -262,7 +263,18 @@ void GameScene::Update()
 			virCameraPos.z += (plVelocity.z / 100);
 		}
 
-		if (input->PushKey(DIK_S))
+
+		if ((input->TriggerKey(DIK_S) && timing > 55)
+			|| (input->TriggerKey(DIK_S) && timing < 5))
+		{
+			playerPos.x -= (plVelocity.x / 10);
+			playerPos.z -= (plVelocity.z / 10);
+			targetCameraPos.x -= (plVelocity.x / 10);
+			targetCameraPos.z -= (plVelocity.z / 10);
+			virCameraPos.x -= (plVelocity.x / 10);
+			virCameraPos.z -= (plVelocity.z / 10);
+		}
+		else if (input->PushKey(DIK_S))
 		{
 			playerPos.x -= (plVelocity.x / 100);
 			playerPos.z -= (plVelocity.z / 100);
@@ -272,16 +284,18 @@ void GameScene::Update()
 			virCameraPos.z -= (plVelocity.z / 100);
 		}
 
-		if (input->PushKey(DIK_D))
+
+		if ((input->TriggerKey(DIK_A) && timing > 55)
+			|| (input->TriggerKey(DIK_A) && timing < 5))
 		{
-			playerPos.x += (virVelocity.x / 100);
-			playerPos.z += (virVelocity.z / 100);
-			targetCameraPos.x += (virVelocity.x / 100);
-			targetCameraPos.z += (virVelocity.z / 100);
-			virCameraPos.x += (virVelocity.x / 100);
-			virCameraPos.z += (virVelocity.z / 100);
+			playerPos.x -= (virVelocity.x / 10);
+			playerPos.z -= (virVelocity.z / 10);
+			targetCameraPos.x -= (virVelocity.x / 10);
+			targetCameraPos.z -= (virVelocity.z / 10);
+			virCameraPos.x -= (virVelocity.x / 10);
+			virCameraPos.z -= (virVelocity.z / 10);
 		}
-		if (input->PushKey(DIK_A))
+		else if (input->PushKey(DIK_A))
 		{
 			playerPos.x -= (virVelocity.x / 100);
 			playerPos.z -= (virVelocity.z / 100);
@@ -292,7 +306,29 @@ void GameScene::Update()
 		}
 
 
-		if (input->TriggerKey(DIK_SPACE) && bullet[bulCount].bulShotFlag == false)
+		if ((input->TriggerKey(DIK_D) && timing > 55)
+			|| (input->TriggerKey(DIK_D) && timing < 5))
+		{
+			playerPos.x += (virVelocity.x / 10);
+			playerPos.z += (virVelocity.z / 10);
+			targetCameraPos.x += (virVelocity.x / 10);
+			targetCameraPos.z += (virVelocity.z / 10);
+			virCameraPos.x += (virVelocity.x / 10);
+			virCameraPos.z += (virVelocity.z / 10);
+		}
+		else if (input->PushKey(DIK_D))
+		{
+			playerPos.x += (virVelocity.x / 100);
+			playerPos.z += (virVelocity.z / 100);
+			targetCameraPos.x += (virVelocity.x / 100);
+			targetCameraPos.z += (virVelocity.z / 100);
+			virCameraPos.x += (virVelocity.x / 100);
+			virCameraPos.z += (virVelocity.z / 100);
+		}
+		// -----------------------------------------//
+
+
+		if (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false)
 		{
 			bullet[bulCount].bulFlag = true;
 			bulCount++;
@@ -353,7 +389,7 @@ void GameScene::Update()
 		}
 
 		// ジャンプ
-		if (input->PushKey(DIK_RSHIFT) && isJump == false && isJustJump == false)
+		if (input->PushKey(DIK_SPACE) && isJump == false && isJustJump == false)
 		{
 			if (timing > 55 || timing < 5)
 			{

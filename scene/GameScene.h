@@ -140,7 +140,6 @@ private: // メンバ変数
 	bool plBulShotFlag = false;
 	XMFLOAT3 plVelocity = { 0,0,0 };
 	XMFLOAT3 virVelocity = { 0,0,0 };
-	XMFLOAT3 virCameraPos = { 0,0,0 };
 	float enemyVec = 0.1f;
 	bool enemyAlive = false;
 	int enemyTimer = 0;
@@ -150,7 +149,12 @@ private: // メンバ変数
 	float jCount = 0.6;
 	const float jCountMax = 0.5;
 	const float jCountMin = 0.3;
-
+	XMFLOAT3 playerPos = { 0,0,0 };
+	XMFLOAT3 bossPos = { 0,0,0 };
+	XMFLOAT3 playerScale = { 0,0,0 };
+	XMFLOAT3 targetCameraPos = { 0,0,0 };
+	XMFLOAT3 virCameraPos = { 0,0,0 };
+	XMFLOAT3 centerPos = { 0, 2, 50 };
 	EnemyData enemy_data;
 
 
