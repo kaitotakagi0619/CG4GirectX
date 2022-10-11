@@ -30,6 +30,7 @@ GameScene::~GameScene()
 	safe_delete(objGround);
 	safe_delete(objFighter);
 	safe_delete(objFighter2);
+	safe_delete(objFighter3);
 	safe_delete(bossEnemy);
 	safe_delete(objCity);
 
@@ -104,13 +105,41 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 		assert(0);
 		return;
 	}
+	if (!Sprite::LoadTexture(5, L"Resources/timingUI.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(6, L"Resources/timingUILeft.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(7, L"Resources/timingUIRight.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(8, L"Resources/magazineUI.png")) {
+		assert(0);
+		return;
+	}
 	// 背景スプライト生成
 	//spriteBG = Sprite::Create(1, { 0.0f,0.0f });
 	sprite[0] = Sprite::Create(2, { 0.0f,0.0f });
 	sprite[1] = Sprite::Create(3, { 0.0f,0.0f });
 	sprite[2] = Sprite::Create(4, { 0.0f,0.0f });
+	sprite[3] = Sprite::Create(5, { 0.0f,0.0f });
+	sprite[4] = Sprite::Create(6, { 0.0f,0.0f });
+	sprite[5] = Sprite::Create(7, { 0.0f,0.0f });
 	sprite[0]->SetSize({ 16.0f,16.0f });
 	sprite[0]->SetPosition({ (WinApp::window_width / 2) - 8,(WinApp::window_height / 2) - 8 });
+	sprite[3]->SetSize({ 64.0f,64.0f });
+	sprite[4]->SetSize({ 32.0f,64.0f });
+	sprite[5]->SetSize({ 32.0f,64.0f });
+	sprite[3]->SetPosition({ (WinApp::window_width / 2) - 32,WinApp::window_height - 160 });
+	sprite[4]->SetPosition({ (WinApp::window_width / 2) - 272,WinApp::window_height - 160 });
+	sprite[5]->SetPosition({ (WinApp::window_width / 2) + 208,WinApp::window_height - 160 });
+	spriteMagazineUI = Sprite::Create(8, { 0.0f,0.0f });
+	spriteMagazineUI->SetSize({ 256.0f,128.0f });
+	spriteMagazineUI->SetPosition({ WinApp::window_width - 256,WinApp::window_height - 128 });
 	// パーティクルマネージャ生成
 	particleMan = ParticleManager::Create(dxCommon->GetDevice(), camera);
 
@@ -210,14 +239,18 @@ void GameScene::Update()
 
 	if (SceneNum == Game)
 	{
-		if (timing < 60)
+		if (timing > 0)
 		{
-			timing++;
+			timing--;
 		}
 		else
 		{
-			timing = 0;
+			timing = 60;
 		}
+
+		sprite[4]->SetPosition({ (WinApp::window_width / 2) - (4 * (float)timing + 32),WinApp::window_height - 160});
+		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height - 160});
+
 		//移動用velocity計算
 		if (input->PushKey(DIK_LSHIFT))
 		{
@@ -327,14 +360,15 @@ void GameScene::Update()
 		}
 		// -----------------------------------------//
 
-
+		//弾を撃つ
+		// -----------------------------------------//
 		if (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false)
 		{
 			bullet[bulCount].bulFlag = true;
 			bulCount++;
 		}
 
-		if (bulCount > 49)
+		if (input->TriggerKey(DIK_R))
 		{
 			bulCount = 0;
 		}
@@ -466,7 +500,6 @@ void GameScene::Update()
 		if (enemyTimer > 120)
 		{
 			enemyAlive = true;
-			bulCount = 0;
 			waveFlag = false;
 			waveFlag2 = false;
 			waveShotFlag = false;
@@ -503,7 +536,7 @@ void GameScene::Update()
 			playerScale = objFighter->GetScale();
 			targetCameraPos = objFighter2->GetPosition();
 			virCameraPos = objFighter3->GetPosition();
-			bulCount = 0;
+			bulCount = 30;
 			for (int i = 0; i < _countof(objSphere); i++)
 			{
 				bullet[i].bulFlag = false;
@@ -605,6 +638,13 @@ void GameScene::Draw()
 	if (SceneNum == Win)
 	{
 		sprite[2]->Draw();
+	}
+	if (SceneNum == Game)
+	{
+		sprite[3]->Draw();
+		sprite[4]->Draw();
+		sprite[5]->Draw();
+		spriteMagazineUI->Draw();
 	}
 
 	// スプライト描画後処理

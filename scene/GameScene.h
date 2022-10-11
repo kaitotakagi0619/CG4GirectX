@@ -125,7 +125,7 @@ private: // メンバ変数
 	float enemyVec = 0.1f;
 	bool enemyAlive = false;
 	int enemyTimer = 0;
-	int timing = 0;
+	int timing = 60;
 	bool isJump = false;
 	bool isJustJump = false;
 	float jCount = 0.6;
@@ -147,7 +147,7 @@ private: // メンバ変数
 	// ゲームシーン用
 	Camera* camera = nullptr;
 	//Sprite* spriteBG = nullptr;
-	Sprite* sprite[3] = { nullptr };
+	Sprite* sprite[6] = { nullptr };
 	Sprite* spriteMagazineUI = nullptr;
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
