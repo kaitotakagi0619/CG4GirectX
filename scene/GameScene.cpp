@@ -222,7 +222,7 @@ void GameScene::Update()
 		plVelocity.x = targetCameraPos.x - playerPos.x;
 		plVelocity.y = targetCameraPos.y - playerPos.y;
 		plVelocity.z = targetCameraPos.z - playerPos.z;
-		
+
 		virVelocity.x = virCameraPos.x - playerPos.x;
 		virVelocity.y = virCameraPos.y - playerPos.y;
 		virVelocity.z = virCameraPos.z - playerPos.z;
@@ -254,40 +254,41 @@ void GameScene::Update()
 		// 移動後の座標を計算
 		if (input->PushKey(DIK_W))
 		{
-			playerPos.x +=			(plVelocity.x / 100);
-			playerPos.z +=			(plVelocity.z / 100);
-			targetCameraPos.x +=	(plVelocity.x / 100);
-			targetCameraPos.z +=	(plVelocity.z / 100);
-			virCameraPos.x +=		(plVelocity.x / 100);
-			virCameraPos.z +=		(plVelocity.z / 100);
+			playerPos.x += (plVelocity.x / 100);
+			playerPos.z += (plVelocity.z / 100);
+			targetCameraPos.x += (plVelocity.x / 100);
+			targetCameraPos.z += (plVelocity.z / 100);
+			virCameraPos.x += (plVelocity.x / 100);
+			virCameraPos.z += (plVelocity.z / 100);
 		}
-		else if (input->PushKey(DIK_S))
+
+		if (input->PushKey(DIK_S))
 		{
-			playerPos.x -=			(plVelocity.x / 100);
-			playerPos.z -=			(plVelocity.z / 100);
-			targetCameraPos.x -=	(plVelocity.x / 100);
-			targetCameraPos.z -=	(plVelocity.z / 100);
-			virCameraPos.x -=		(plVelocity.x / 100);
-			virCameraPos.z -=		(plVelocity.z / 100);
+			playerPos.x -= (plVelocity.x / 100);
+			playerPos.z -= (plVelocity.z / 100);
+			targetCameraPos.x -= (plVelocity.x / 100);
+			targetCameraPos.z -= (plVelocity.z / 100);
+			virCameraPos.x -= (plVelocity.x / 100);
+			virCameraPos.z -= (plVelocity.z / 100);
 		}
 
 		if (input->PushKey(DIK_D))
 		{
-			playerPos.x +=	 		(virVelocity.x / 100);
-			playerPos.z +=			(virVelocity.z / 100);
-			targetCameraPos.x +=	(virVelocity.x / 100);
-			targetCameraPos.z +=	(virVelocity.z / 100);
-			virCameraPos.x +=		(virVelocity.x / 100);
-			virCameraPos.z +=		(virVelocity.z / 100);
+			playerPos.x += (virVelocity.x / 100);
+			playerPos.z += (virVelocity.z / 100);
+			targetCameraPos.x += (virVelocity.x / 100);
+			targetCameraPos.z += (virVelocity.z / 100);
+			virCameraPos.x += (virVelocity.x / 100);
+			virCameraPos.z += (virVelocity.z / 100);
 		}
-		else if (input->PushKey(DIK_A))
+		if (input->PushKey(DIK_A))
 		{
-			playerPos.x -=			(virVelocity.x / 100);
-			playerPos.z -=			(virVelocity.z / 100);
-			targetCameraPos.x -=	(virVelocity.x / 100);
-			targetCameraPos.z -=	(virVelocity.z / 100);
-			virCameraPos.x -=		(virVelocity.x / 100);
-			virCameraPos.z -=		(virVelocity.z / 100);
+			playerPos.x -= (virVelocity.x / 100);
+			playerPos.z -= (virVelocity.z / 100);
+			targetCameraPos.x -= (virVelocity.x / 100);
+			targetCameraPos.z -= (virVelocity.z / 100);
+			virCameraPos.x -= (virVelocity.x / 100);
+			virCameraPos.z -= (virVelocity.z / 100);
 		}
 
 
@@ -302,11 +303,11 @@ void GameScene::Update()
 			bulCount = 0;
 		}
 
-		if (bullet[bulCount-1].bulFlag == true)
+		if (bullet[bulCount - 1].bulFlag == true)
 		{
-			bullet[bulCount-1].Pos = playerPos;
-			bullet[bulCount-1].bulShotFlag = true;
-			bullet[bulCount-1].bulFlag = false;
+			bullet[bulCount - 1].Pos = playerPos;
+			bullet[bulCount - 1].bulShotFlag = true;
+			bullet[bulCount - 1].bulFlag = false;
 		}
 
 		for (int i = 0; i < _countof(objSphere); i++)
@@ -347,14 +348,14 @@ void GameScene::Update()
 		}
 		if (input->PushKey(DIK_RIGHT))
 		{
-			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX , +1);
-			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX , +1);
+			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, +1);
+			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, +1);
 		}
 
 		// ジャンプ
 		if (input->PushKey(DIK_RSHIFT) && isJump == false && isJustJump == false)
 		{
-			if(timing > 55 || timing < 5)
+			if (timing > 55 || timing < 5)
 			{
 				isJustJump = true;
 				jCount = jCountMax;
@@ -402,22 +403,22 @@ void GameScene::Update()
 			objSphere[i]->SetPosition(bullet[i].Pos);
 		}
 
-		bool bossHit = (bossPos.x - playerScale.x < bullet[49].Pos.x + bullet[49].Size.x)
-			&& (bossPos.x + playerScale.x > bullet[49].Pos.x - bullet[49].Size.x)
-			&& (bossPos.z - playerScale.z < bullet[49].Pos.z + bullet[49].Size.z)
-			&& (bossPos.z + playerScale.z > bullet[49].Pos.z - bullet[49].Size.z)
-			&& (enemyAlive == true);
+		for (int i = 0; i < _countof(objSphere); i++)
 		{
-			if (bossHit)
+			bool bossHit = (bossPos.x - playerScale.x < bullet[i].Pos.x + bullet[i].Size.x)
+				&& (bossPos.x + playerScale.x > bullet[i].Pos.x - bullet[i].Size.x)
+				&& (bossPos.z - playerScale.z < bullet[i].Pos.z + bullet[i].Size.z)
+				&& (bossPos.z + playerScale.z > bullet[i].Pos.z - bullet[i].Size.z)
+				&& (enemyAlive == true);
 			{
-				for (int i = 0; i < _countof(objSphere); i++)
+				if (bossHit)
 				{
 					objSphere[i]->SetPosition({ +1000,-10,1000 });
 					bullet[i].Pos = objSphere[i]->GetPosition();
 					bullet[i].Size = objSphere[i]->GetScale();
-					SceneNum = Win;
+					//SceneNum = Win;
+					enemyAlive = false;
 				}
-				
 			}
 		}
 
