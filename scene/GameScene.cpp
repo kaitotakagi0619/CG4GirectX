@@ -389,7 +389,7 @@ void GameScene::Update()
 		}
 
 		// ジャンプ
-		if (input->PushKey(DIK_SPACE) && isJump == false && isJustJump == false)
+		if (input->TriggerKey(DIK_SPACE) && isJump == false && isJustJump == false)
 		{
 			if (timing > 55 || timing < 5)
 			{
@@ -467,11 +467,6 @@ void GameScene::Update()
 		{
 			enemyAlive = true;
 			bulCount = 0;
-			/*for (int i = 0; i < _countof(objSphere); i++)
-			{
-				bullet[i].bulFlag = false;
-				bullet[i].bulShotFlag = false;
-			}*/
 			waveFlag = false;
 			waveFlag2 = false;
 			waveShotFlag = false;
