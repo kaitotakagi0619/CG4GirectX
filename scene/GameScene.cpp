@@ -56,6 +56,7 @@ GameScene::~GameScene()
 
 void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 {
+	ShowCursor(FALSE);
 	// nullptrチェック
 	assert(dxCommon);
 	assert(input);
@@ -212,14 +213,19 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 void GameScene::Update()
 {
 
-	//imgui準備
+
 	CreateLight();
-	XMFLOAT3 playerPos = objFighter->GetPosition();
-	XMFLOAT3 bossPos = bossEnemy->GetPosition();
-	XMFLOAT3 playerScale = objFighter->GetScale();
-	XMFLOAT3 targetCameraPos = objFighter2->GetPosition();
-	XMFLOAT3 virCameraPos = objFighter3->GetPosition();
-	XMFLOAT3 centerPos = { 0, 2, 50 };
+	//各種変数関係
+	Input::MouseMove mouseMove = input->GetMouseMove();
+	mousePos = { (float)mouseMove.lX / 50,(float)mouseMove.lY / 50};
+	playerPos = objFighter->GetPosition();
+	bossPos = bossEnemy->GetPosition();
+	playerScale = objFighter->GetScale();
+	targetCameraPos = objFighter2->GetPosition();
+	virCameraPos = objFighter3->GetPosition();
+	centerPos = { 0, 2, 50 };
+
+
 	for (int i = 0; i < _countof(objSphere); i++)
 	{
 		bullet[i].Pos = objSphere[i]->GetPosition();
@@ -250,6 +256,8 @@ void GameScene::Update()
 
 		sprite[4]->SetPosition({ (WinApp::window_width / 2) - (4 * (float)timing + 32),WinApp::window_height - 160});
 		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height - 160});
+
+		//sprite[0]->SetPosition({ mousePos.x,mousePos.y });
 
 		//移動用velocity計算
 		if (input->PushKey(DIK_LSHIFT))
@@ -395,32 +403,26 @@ void GameScene::Update()
 			}
 		}
 
-		if (enemy_data.angleY < 90)
+		if (enemy_data.angleY < 90 && mousePos.y < 0 || enemy_data.angleY > -90 && mousePos.y > 0)
 		{
-			if (input->PushKey(DIK_UP))
-			{
-				CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, +1);
-				CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, +1);
-			}
+			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, -mousePos.y);
+			CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, -mousePos.y);
 		}
-		if (enemy_data.angleY > -90)
+		if (mousePos.x != 0)
 		{
-			if (input->PushKey(DIK_DOWN))
-			{
-				CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, -1);
-				CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, -1);
-			}
+			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, mousePos.x);
+			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, mousePos.x);
 		}
-		if (input->PushKey(DIK_LEFT))
+		/*if (input->PushKey(DIK_DOWN))
 		{
-			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, -1);
-			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, -1);
-		}
-		if (input->PushKey(DIK_RIGHT))
+			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, -1);
+			CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, -1);
+		}*/
+		/*if (input->PushKey(DIK_RIGHT))
 		{
 			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, +1);
 			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, +1);
-		}
+		}*/
 
 		// ジャンプ
 		if (input->TriggerKey(DIK_SPACE) && isJump == false && isJustJump == false)
@@ -733,7 +735,7 @@ void GameScene::CharactorMove(XMFLOAT3 pos)
 	}
 }
 
-void GameScene::CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angleZ, int& angleY, const int add)
+void GameScene::CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, float& angleZ, float& angleY, const float add)
 {
 	//angleZ += add;
 	angleY += add;
@@ -742,7 +744,7 @@ void GameScene::CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const
 	pos.y = (sinf(3.14 / 180.0f * angleY) * r) + center_pos.y;//円運動の処理
 }
 
-void GameScene::CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angleZ, int& angleX, const int add)
+void GameScene::CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, float& angleZ, float& angleX, const float add)
 {
 	angleZ += add;
 	angleX += add;

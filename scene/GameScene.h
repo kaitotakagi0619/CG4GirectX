@@ -43,13 +43,13 @@ private: // 静的メンバ変数
 
 		float e_acc; //加速度
 
-		int angleX; //円運動の角度
-		int angleY; //円運動の角度
-		int angleZ; //円運動の角度
+		float angleX; //円運動の角度
+		float angleY; //円運動の角度
+		float angleZ; //円運動の角度
 
-		int virangleX; //円運動の角度
-		int virangleY; //円運動の角度
-		int virangleZ; //円運動の角度
+		float virangleX; //円運動の角度
+		float virangleY; //円運動の角度
+		float virangleZ; //円運動の角度
 
 		int enemy_type; //エネミーの種類
 		bool is_add; //加算するか
@@ -84,9 +84,9 @@ public: // メンバ関数
 
 	void CharactorMove(XMFLOAT3 pos);
 
-	void CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angleZ, int& angleY, const int add);
+	void CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, float& angleZ, float& angleY, const float add);
 
-	void CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, int& angleZ, int& angleX, const int add);
+	void CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, float& angleZ, float& angleX, const float add);
 
 
 private: // メンバ変数
@@ -137,6 +137,7 @@ private: // メンバ変数
 	XMFLOAT3 targetCameraPos = { 0,0,0 };
 	XMFLOAT3 virCameraPos = { 0,0,0 };
 	XMFLOAT3 centerPos = { 0, 2, 50 };
+	XMFLOAT2 mousePos = { 0,0 };
 	EnemyData enemy_data;
 
 
