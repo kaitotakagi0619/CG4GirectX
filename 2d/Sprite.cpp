@@ -454,6 +454,11 @@ void Sprite::SetTextureRect(XMFLOAT2 texBase, XMFLOAT2 texSize)
 	TransferVertices();
 }
 
+void Sprite::ChangeTex(int texNumber)
+{
+	this->texNumber = texNumber;
+}
+
 void Sprite::Draw()
 {
 	// ワールド行列の更新

@@ -29,7 +29,7 @@ private: // エイリアス
 	using XMMATRIX = DirectX::XMMATRIX;
 
 private: // 静的メンバ変数
-	static const int debugTextTexNumber = 0;
+	static const int debugTextTexNumber = 10;
 
 	struct EnemyData
 	{
@@ -111,7 +111,7 @@ private: // メンバ変数
 	};
 	int SceneNum = Title;
 
-	int bulCount = 0;
+	int bulCount = 30;
 	/*bool bulFlag = false;
 	bool bulShotFlag = false;*/
 	bool waveFlag = false;
@@ -139,6 +139,10 @@ private: // メンバ変数
 	XMFLOAT3 centerPos = { 0, 2, 50 };
 	XMFLOAT2 mousePos = { 0,0 };
 	EnemyData enemy_data;
+	int lastBul = 0;
+	int reloadCount = 0;
+	bool justTiming = false;
+	bool isReload = false;
 
 
 
@@ -149,6 +153,7 @@ private: // メンバ変数
 	Camera* camera = nullptr;
 	//Sprite* spriteBG = nullptr;
 	Sprite* sprite[6] = { nullptr };
+	Sprite* spriteNum[2] = { nullptr };
 	Sprite* spriteMagazineUI = nullptr;
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;

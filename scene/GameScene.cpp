@@ -19,6 +19,10 @@ GameScene::~GameScene()
 	{
 		safe_delete(sprite[i]);
 	}
+	for (int i = 0; i < _countof(spriteNum); i++)
+	{
+		safe_delete(spriteNum[i]);
+	}
 	safe_delete(spriteMagazineUI);
 
 	//オブジェクトのdelete
@@ -90,55 +94,107 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 	debugText.Initialize(debugTextTexNumber);
 
 	// テクスチャ読み込み
-	if (!Sprite::LoadTexture(1, L"Resources/texture.png")) {
+	if (!Sprite::LoadTexture(0, L"Resources/Number0.png")) {
 		assert(0);
 		return;
 	}
-	if (!Sprite::LoadTexture(2, L"Resources/pointer.png")) {
+	if (!Sprite::LoadTexture(1, L"Resources/Number1.png")) {
 		assert(0);
 		return;
 	}
-	if (!Sprite::LoadTexture(3, L"Resources/title.png")) {
+	if (!Sprite::LoadTexture(2, L"Resources/Number2.png")) {
 		assert(0);
 		return;
 	}
-	if (!Sprite::LoadTexture(4, L"Resources/win.png")) {
+	if (!Sprite::LoadTexture(3, L"Resources/Number3.png")) {
 		assert(0);
 		return;
 	}
-	if (!Sprite::LoadTexture(5, L"Resources/timingUI.png")) {
+	if (!Sprite::LoadTexture(4, L"Resources/Number4.png")) {
 		assert(0);
 		return;
 	}
-	if (!Sprite::LoadTexture(6, L"Resources/timingUILeft.png")) {
+	if (!Sprite::LoadTexture(5, L"Resources/Number5.png")) {
 		assert(0);
 		return;
 	}
-	if (!Sprite::LoadTexture(7, L"Resources/timingUIRight.png")) {
+	if (!Sprite::LoadTexture(6, L"Resources/Number6.png")) {
 		assert(0);
 		return;
 	}
-	if (!Sprite::LoadTexture(8, L"Resources/magazineUI.png")) {
+	if (!Sprite::LoadTexture(7, L"Resources/Number7.png")) {
 		assert(0);
 		return;
 	}
+	if (!Sprite::LoadTexture(8, L"Resources/Number8.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(9, L"Resources/Number9.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(11, L"Resources/texture.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(12, L"Resources/pointer.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(13, L"Resources/title.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(14, L"Resources/win.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(15, L"Resources/timingUI.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(16, L"Resources/timingUILeft.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(17, L"Resources/timingUIRight.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(18, L"Resources/magazineUI.png")) {
+		assert(0);
+		return;
+	}
+
+
 	// 背景スプライト生成
 	//spriteBG = Sprite::Create(1, { 0.0f,0.0f });
-	sprite[0] = Sprite::Create(2, { 0.0f,0.0f });
+	for (int i = 0; i < _countof(sprite); i++)
+	{
+		sprite[i] = Sprite::Create((12 + i), { 0.0f,0.0f });
+	}
+	for (int i = 0; i < _countof(spriteNum); i++)
+	{
+		spriteNum[i] = Sprite::Create(i, { 0.0f,0.0f });
+	}
+	/*sprite[0] = Sprite::Create(2, { 0.0f,0.0f });
 	sprite[1] = Sprite::Create(3, { 0.0f,0.0f });
 	sprite[2] = Sprite::Create(4, { 0.0f,0.0f });
 	sprite[3] = Sprite::Create(5, { 0.0f,0.0f });
 	sprite[4] = Sprite::Create(6, { 0.0f,0.0f });
-	sprite[5] = Sprite::Create(7, { 0.0f,0.0f });
+	sprite[5] = Sprite::Create(7, { 0.0f,0.0f });*/
 	sprite[0]->SetSize({ 16.0f,16.0f });
 	sprite[0]->SetPosition({ (WinApp::window_width / 2) - 8,(WinApp::window_height / 2) - 8 });
 	sprite[3]->SetSize({ 64.0f,64.0f });
 	sprite[4]->SetSize({ 32.0f,64.0f });
 	sprite[5]->SetSize({ 32.0f,64.0f });
+	spriteNum[0]->SetPosition({ WinApp::window_width - 124,WinApp::window_height - 96 });
+	spriteNum[1]->SetPosition({ WinApp::window_width - 92,WinApp::window_height - 96 });
 	sprite[3]->SetPosition({ (WinApp::window_width / 2) - 32,WinApp::window_height - 160 });
 	sprite[4]->SetPosition({ (WinApp::window_width / 2) - 272,WinApp::window_height - 160 });
 	sprite[5]->SetPosition({ (WinApp::window_width / 2) + 208,WinApp::window_height - 160 });
-	spriteMagazineUI = Sprite::Create(8, { 0.0f,0.0f });
+	spriteMagazineUI = Sprite::Create(18, { 0.0f,0.0f });
 	spriteMagazineUI->SetSize({ 256.0f,128.0f });
 	spriteMagazineUI->SetPosition({ WinApp::window_width - 256,WinApp::window_height - 128 });
 	// パーティクルマネージャ生成
@@ -376,9 +432,39 @@ void GameScene::Update()
 			bulCount++;
 		}
 
-		if (input->TriggerKey(DIK_R))
+		lastBul = 50 - bulCount;
+		spriteNum[0]->ChangeTex(lastBul / 10);
+		spriteNum[1]->ChangeTex(lastBul % 10);
+
+		//リロード
+		if ((input->TriggerKey(DIK_R) && timing > 55)
+			|| (input->TriggerKey(DIK_R) && timing < 5))
+		{
+			reloadCount = 30;
+			justTiming = true;
+			isReload = true;
+		}
+		else if (input->TriggerKey(DIK_R))
+		{
+			reloadCount = 30;
+			isReload = true;
+		}
+
+		if (reloadCount > 0 && isReload == true)
+		{
+			reloadCount--;
+		}
+
+		if (reloadCount == 0 && isReload == true && justTiming == true)
 		{
 			bulCount = 0;
+			isReload = false;
+			justTiming = false;
+		}
+		else if (reloadCount == 0 && isReload == true)
+		{
+			bulCount = 30;
+			isReload = false;
 		}
 
 		if (bullet[bulCount - 1].bulFlag == true)
@@ -413,6 +499,11 @@ void GameScene::Update()
 			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, mousePos.x);
 			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, mousePos.x);
 		}
+		/*if (input->PushKey(DIK_UP))
+		{
+			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, +1);
+			CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, +1);
+		}*/
 		/*if (input->PushKey(DIK_DOWN))
 		{
 			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, -1);
@@ -422,6 +513,11 @@ void GameScene::Update()
 		{
 			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, +1);
 			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, +1);
+		}*/
+		/*if (input->PushKey(DIK_LEFT))
+		{
+			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, -1);
+			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, -1);
 		}*/
 
 		// ジャンプ
@@ -647,6 +743,8 @@ void GameScene::Draw()
 		sprite[4]->Draw();
 		sprite[5]->Draw();
 		spriteMagazineUI->Draw();
+		spriteNum[0]->Draw();
+		spriteNum[1]->Draw();
 	}
 
 	// スプライト描画後処理

@@ -100,6 +100,8 @@ public: // メンバ関数
 	// テクスチャ範囲セット
 	void SetTextureRect(XMFLOAT2 texBase, XMFLOAT2 texSize);
 
+	void ChangeTex(int texNumber);
+
 	// 描画
 	void Draw();
 
