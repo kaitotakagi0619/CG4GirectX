@@ -9,7 +9,6 @@
 #include "ParticleManager.h"
 #include "DebugText.h"
 #include "DebugCamera.h"
-#include "Audio.h"
 #include "Light.h"
 #include "CollisionPrimitive.h"
 #include "FbxLoader.h"
@@ -31,7 +30,7 @@ private: // エイリアス
 private: // 静的メンバ変数
 	static const int debugTextTexNumber = 10;
 
-	struct EnemyData
+	struct CameraData
 	{
 		XMFLOAT3 e_pos; //座標
 		XMFLOAT3 old_e_pos; //1フレーム前の座標
@@ -55,8 +54,6 @@ private: // 静的メンバ変数
 		bool is_add; //加算するか
 
 		bool is_fall;
-
-		int HP;
 	};
 
 public: // メンバ関数
@@ -94,8 +91,9 @@ public: // メンバ関数
 private: // メンバ変数
 	DirectXCommon* dxCommon = nullptr;
 	Input* input = nullptr;
-	Audio* audio = nullptr;
 	DebugText debugText;
+
+	const int enemyBul = 50;
 
 	struct Bullet
 	{
@@ -107,6 +105,16 @@ private: // メンバ変数
 	};
 	Bullet bullet[50];
 
+	struct EnemyBullet
+	{
+		XMFLOAT3 Pos;
+		XMFLOAT3 Size;
+		XMFLOAT3 Rotation;
+		bool bulFlag = false;
+		bool bulShotFlag = false;
+	};
+	EnemyBullet eBullet[50];
+
 	enum Scene
 	{
 		Title, Game, Win, Lose,
@@ -114,22 +122,16 @@ private: // メンバ変数
 	int SceneNum = Title;
 
 	int bulCount = 30;
-	/*bool bulFlag = false;
-	bool bulShotFlag = false;*/
-	bool waveFlag = false;
-	bool waveFlag2 = false;
-	bool waveShotFlag = false;
-	bool waveShotFlag2 = false;
-	bool plBulFlag = false;
-	bool plBulShotFlag = false;
+	int enemyBulCount = 20;
 	XMFLOAT3 plVelocity = { 0,0,0 };
 	XMFLOAT3 virVelocity = { 0,0,0 };
-	float enemyVec = 0.1f;
 	bool enemyAlive = false;
 	int enemyTimer = 0;
 	int timing = 60;
 	bool isJump = false;
 	bool isJustJump = false;
+	bool isAlive = true;
+	int hitTimer = 0;
 	float jCount = 0.6;
 	const float jCountMax = 0.5;
 	const float jCountMin = 0.3;
@@ -140,11 +142,27 @@ private: // メンバ変数
 	XMFLOAT3 virCameraPos = { 0,0,0 };
 	XMFLOAT3 centerPos = { 0, 2, 50 };
 	XMFLOAT2 mousePos = { 0,0 };
-	EnemyData enemy_data;
-	int lastBul = 0;
-	int reloadCount = 0;
+	CameraData camera_data;
 	bool justTiming = false;
+	//残段数カウント用変数
+	int lastBul = 0;
+	//リロード関係
+	int reloadCount = 0;
 	bool isReload = false;
+
+	int enemyAttackCounter = 0;
+
+	int selectAttack = 0;
+	bool enemySinpleAttack = false;
+	bool enemyTripleAttack = false;
+	bool enemyHomingAttack = false;
+	bool enemyIsAttack = false;
+
+	int enemyMove = 0;
+	bool isPlus = true;
+
+	int firstBossHP = 0;
+	int playerHP = 0;
 
 
 
@@ -157,6 +175,8 @@ private: // メンバ変数
 	Sprite* sprite[6] = { nullptr };
 	Sprite* spriteNum[2] = { nullptr };
 	Sprite* spriteMagazineUI = nullptr;
+	Sprite* spritebossHP = nullptr;
+	Sprite* spritebossHPFrame = nullptr;
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
 
@@ -173,7 +193,8 @@ private: // メンバ変数
 	Object3d* objFighter = nullptr;
 	Object3d* objFighter2 = nullptr;
 	Object3d* objFighter3 = nullptr;
-	Object3d* objSphere[50] = { nullptr };
+	Object3d* objBul[50] = { nullptr };
+	Object3d* objEnemyBul[50] = { nullptr };
 	Object3d* bossEnemy = nullptr;
 	Object3d* objCity = nullptr;
 
