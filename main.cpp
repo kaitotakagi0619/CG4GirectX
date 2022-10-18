@@ -35,12 +35,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		assert(0);
 		return 1;
 	}
-	// オーディオの初期化
-	audio = new Audio();
-	if (!audio->Initialize()) {
-		assert(0);
-		return 1;
-	}
+
+	//オーディオの初期化
+	audio = Audio::GetInstance();
+	audio->Initialize();
+
 	// スプライト静的初期化
 	if (!Sprite::StaticInitialize(dxCommon->GetDevice(), WinApp::window_width, WinApp::window_height)) {
 		assert(0);
@@ -63,7 +62,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	// ゲームシーンの初期化
 	gameScene = new GameScene();
-	gameScene->Initialize(dxCommon, input, audio);
+	gameScene->Initialize(dxCommon, input);
 
 	// メインループ
 	while (true)
@@ -89,10 +88,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 	// 各種解放
 	safe_delete(gameScene);
-	safe_delete(audio);
+	//safe_delete(audio);
 	safe_delete(input);
 	safe_delete(dxCommon);
 	safe_delete(postEffect);
+	//オーディオ開放
+	audio->Finalize();
 	FbxLoader::GetInstance()->Finalize();
 
 	// ゲームウィンドウの破棄

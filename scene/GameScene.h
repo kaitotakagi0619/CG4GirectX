@@ -55,6 +55,8 @@ private: // 静的メンバ変数
 		bool is_add; //加算するか
 
 		bool is_fall;
+
+		int HP;
 	};
 
 public: // メンバ関数
@@ -66,7 +68,7 @@ public: // メンバ関数
 	~GameScene();
 
 	// 初期化
-	void Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio);
+	void Initialize(DirectXCommon* dxCommon, Input* input);
 
 	// 毎フレーム処理
 	void Update();

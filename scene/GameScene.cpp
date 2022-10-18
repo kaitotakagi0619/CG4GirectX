@@ -41,7 +41,6 @@ GameScene::~GameScene()
 	//機能のdelete
 	//safe_delete(dxCommon);
 	//safe_delete(input);
-	//safe_delete(audio);
 	safe_delete(light);
 	safe_delete(particleMan);
 	safe_delete(camera);
@@ -58,17 +57,16 @@ GameScene::~GameScene()
 	safe_delete(fbxObject1);
 }
 
-void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
+void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 {
+	Audio::GetInstance()->LoadWave("rock.wav");
 	ShowCursor(FALSE);
 	// nullptrチェック
 	assert(dxCommon);
 	assert(input);
-	assert(audio);
 
 	this->dxCommon = dxCommon;
 	this->input = input;
-	this->audio = audio;
 
 	// カメラ生成
 	camera = new Camera(WinApp::window_width, WinApp::window_height);
@@ -245,8 +243,6 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 		objSphere[i]->SetScale({ 0.2,0.2,0.2 });
 	}
 
-	audio->PlayWave("Resources/rock.wav", 0.1f);
-
 	// カメラ注視点をセット
 	camera->SetTarget({ 0, 0, 0 });
 	camera->SetEye({ 0,0,0 });
@@ -269,6 +265,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 void GameScene::Update()
 {
 
+	Audio::GetInstance()->PlayWave("rock.wav", 0.03, true);
 
 	CreateLight();
 	//各種変数関係
@@ -457,7 +454,7 @@ void GameScene::Update()
 
 		if (reloadCount == 0 && isReload == true && justTiming == true)
 		{
-			bulCount = 0;
+			bulCount = 20;
 			isReload = false;
 			justTiming = false;
 		}
