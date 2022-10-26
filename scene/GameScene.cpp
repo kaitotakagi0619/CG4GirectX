@@ -28,6 +28,7 @@ GameScene::~GameScene()
 	safe_delete(spriteMagazineUI);
 	safe_delete(spritebossHP);
 	safe_delete(spritebossHPFrame);
+	safe_delete(reloadText);
 
 	//オブジェクトのdelete
 	safe_delete(objSkydome);
@@ -147,7 +148,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
-	if (!Sprite::LoadTexture(12, L"Resources/pointer.png")) {
+	if (!Sprite::LoadTexture(12, L"Resources/reticle.png")) {
 		assert(0);
 		return;
 	}
@@ -179,33 +180,45 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
+	if (!Sprite::LoadTexture(20, L"Resources/reloadText.png")) {
+		assert(0);
+		return;
+	}
 
 	// スプライト生成
 	for (int i = 0; i < _countof(sprite); i++)
 	{
 		sprite[i] = Sprite::Create((12 + i), { 0.0f,0.0f });
 	}
-	for (int i = 0; i < _countof(spriteNum); i++)
-	{
-		spriteNum[i] = Sprite::Create(i, { 0.0f,0.0f });
-	}
+	spriteNum[0] = Sprite::Create(0, { 0.0f,0.0f });
+	spriteNum[1] = Sprite::Create(1, { 0.0f,0.0f });
+	spriteNum[2] = Sprite::Create(2, { 0.0f,0.0f });
+	spriteNum[3] = Sprite::Create(3, { 0.0f,0.0f });
 	spriteMagazineUI = Sprite::Create(18, { 0.0f,0.0f });
 	spritebossHP = Sprite::Create(11, { 0.0f,0.0f });
 	spritebossHPFrame = Sprite::Create(19, { 0.0f,0.0f });
+	reloadText = Sprite::Create(20, { 0.0f,0.0f });
 
 	//スプライトの初期変更
-	sprite[0]->SetSize({ 16.0f,16.0f });
-	sprite[0]->SetPosition({ (WinApp::window_width / 2) - 8,(WinApp::window_height / 2) - 8 });
+	sprite[0]->SetSize({ 64.0f,64.0f });
+	sprite[0]->SetPosition({ spritePos.center.x - 32,spritePos.center.y - 32 });
 	sprite[3]->SetSize({ 64.0f,64.0f });
 	sprite[4]->SetSize({ 32.0f,64.0f });
 	sprite[5]->SetSize({ 32.0f,64.0f });
-	spriteNum[0]->SetPosition({ WinApp::window_width - 124,WinApp::window_height - 96 });
-	spriteNum[1]->SetPosition({ WinApp::window_width - 92,WinApp::window_height - 96 });
-	sprite[3]->SetPosition({ (WinApp::window_width / 2) - 32,WinApp::window_height - 160 });
-	sprite[4]->SetPosition({ (WinApp::window_width / 2) - 272,WinApp::window_height - 160 });
-	sprite[5]->SetPosition({ (WinApp::window_width / 2) + 208,WinApp::window_height - 160 });
+	spriteNum[0]->SetSize({ 24,48 });
+	spriteNum[1]->SetSize({ 24,48 });
+	spriteNum[2]->SetSize({ 24,48 });
+	spriteNum[3]->SetSize({ 24,48 });
+	spriteNum[0]->SetPosition({ WinApp::window_width - 174,WinApp::window_height - 112 });
+	spriteNum[1]->SetPosition({ WinApp::window_width - 150,WinApp::window_height - 112 });
+	spriteNum[2]->SetPosition({ WinApp::window_width - 104,WinApp::window_height - 64 });
+	spriteNum[3]->SetPosition({ WinApp::window_width - 80,WinApp::window_height - 64 });
+	sprite[3]->SetPosition({ spritePos.center.x - 32,WinApp::window_height - 160 });
+	sprite[4]->SetPosition({ spritePos.center.x - 272,WinApp::window_height - 160 });
+	sprite[5]->SetPosition({ spritePos.center.x + 208,WinApp::window_height - 160 });
 	spriteMagazineUI->SetSize({ 256.0f,128.0f });
 	spriteMagazineUI->SetPosition({ WinApp::window_width - 256,WinApp::window_height - 128 });
+	reloadText->SetPosition({ WinApp::window_width - 124,WinApp::window_height - 96 });
 
 	spritebossHP->SetPosition({ 303 , 47 });
 	spritebossHP->SetSize({ 694 , 20 });
@@ -221,13 +234,13 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	// テクスチャ2番に読み込み
 
 	// モデル読み込み
-	modelSkydome = ReadModel::CreateFromOBJ("skydome");
-	modelGround = ReadModel::CreateFromOBJ("ground");
-	modelFighter = ReadModel::CreateFromOBJ("chr_sword");
+	modelSkydome =	ReadModel::CreateFromOBJ("skydome");
+	modelGround =	ReadModel::CreateFromOBJ("ground");
+	modelFighter =	ReadModel::CreateFromOBJ("chr_sword");
 	modelFighter2 = ReadModel::CreateFromOBJ("chr_sword");
-	modelSphere = ReadModel::CreateFromOBJ("sphere2", true);
-	modelCity = ReadModel::CreateFromOBJ("city", true);
-	modelcowgirl = ReadModel::CreateFromOBJ("cowgirl", true);
+	modelSphere =	ReadModel::CreateFromOBJ("sphere2", true);
+	modelCity =		ReadModel::CreateFromOBJ("city", true);
+	modelcowgirl =	ReadModel::CreateFromOBJ("cowgirl", true);
 
 	// 3Dオブジェクト生成
 	objSkydome = Object3d::Create(modelSkydome);
@@ -298,7 +311,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 void GameScene::Update()
 {
-
+	SetCursorPos(640,400);
 	CreateLight();
 	//各種変数関係
 	Input::MouseMove mouseMove = input->GetMouseMove();
@@ -462,7 +475,7 @@ void GameScene::Update()
 
 		//弾を撃つ
 		// -----------------------------------------//
-		if (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false)
+		if (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount < 50)
 		{
 			bullet[bulCount].bulFlag = true;
 			bulCount++;
@@ -471,6 +484,8 @@ void GameScene::Update()
 		lastBul = 50 - bulCount;
 		spriteNum[0]->ChangeTex(lastBul / 10);
 		spriteNum[1]->ChangeTex(lastBul % 10);
+		spriteNum[2]->ChangeTex(maxMagazine / 10);
+		spriteNum[3]->ChangeTex(maxMagazine % 10);
 
 		//リロード
 		if ((input->TriggerKey(DIK_R) && timing > 55)
@@ -483,6 +498,7 @@ void GameScene::Update()
 		else if (input->TriggerKey(DIK_R))
 		{
 			reloadCount = 30;
+			maxMagazine = 20;
 			isReload = true;
 		}
 
@@ -494,6 +510,7 @@ void GameScene::Update()
 		if (reloadCount == 0 && isReload == true && justTiming == true)
 		{
 			bulCount = 20;
+			maxMagazine = 30;
 			isReload = false;
 			justTiming = false;
 		}
@@ -969,10 +986,16 @@ void GameScene::Draw()
 		spriteMagazineUI->Draw();
 		spriteNum[0]->Draw();
 		spriteNum[1]->Draw();
+		spriteNum[2]->Draw();
+		spriteNum[3]->Draw();
 		if (enemyAlive == 1)
 		{
 			spritebossHPFrame->Draw();
 			spritebossHP->Draw();
+		}
+		if (bulCount == 50)
+		{
+			reloadText->Draw();
 		}
 	}
 

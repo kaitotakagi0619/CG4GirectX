@@ -5,9 +5,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Collision">
-      <UniqueIdentifier>{4eae9288-3b91-4c46-9074-daa71f753f8d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="2d">
       <UniqueIdentifier>{b3f4fcc2-6bb1-4454-8e89-b3c3d9032d97}</UniqueIdentifier>
     </Filter>
@@ -39,11 +36,14 @@
     <Filter Include="fbx">
       <UniqueIdentifier>{d098ff42-4cd4-4af4-bd2c-a8b4c354869d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3d\mapchip">
-      <UniqueIdentifier>{6f24b461-ef77-4f9a-8050-5ac9346ae6ce}</UniqueIdentifier>
-    </Filter>
     <Filter Include="imgui">
       <UniqueIdentifier>{b49acc44-ae3f-45fe-b072-96f6c431d73f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Camera\Collision">
+      <UniqueIdentifier>{4eae9288-3b91-4c46-9074-daa71f753f8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2d\mapchip">
+      <UniqueIdentifier>{6f24b461-ef77-4f9a-8050-5ac9346ae6ce}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -51,10 +51,10 @@
       <Filter>main</Filter>
     </ClCompile>
     <ClCompile Include="Collision\Collision.cpp">
-      <Filter>Collision</Filter>
+      <Filter>Camera\Collision</Filter>
     </ClCompile>
     <ClCompile Include="Collision\CollisionPrimitive.cpp">
-      <Filter>Collision</Filter>
+      <Filter>Camera\Collision</Filter>
     </ClCompile>
     <ClCompile Include="2d\DebugText.cpp">
       <Filter>2d</Filter>
@@ -95,9 +95,6 @@
     <ClCompile Include="input\Input.cpp">
       <Filter>Base</Filter>
     </ClCompile>
-    <ClCompile Include="scene\GameScene.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
     <ClCompile Include="Light\Light.cpp">
       <Filter>Light</Filter>
     </ClCompile>
@@ -108,7 +105,7 @@
       <Filter>fbx</Filter>
     </ClCompile>
     <ClCompile Include="mapchip\Mapchip.cpp">
-      <Filter>3d\mapchip</Filter>
+      <Filter>2d\mapchip</Filter>
     </ClCompile>
     <ClCompile Include="fbx\FbxObject3d.cpp">
       <Filter>fbx</Filter>
@@ -143,13 +140,16 @@
     <ClCompile Include="FpsCamera.cpp">
       <Filter>Camera</Filter>
     </ClCompile>
+    <ClCompile Include="scene\GameScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Collision\Collision.h">
-      <Filter>Collision</Filter>
+      <Filter>Camera\Collision</Filter>
     </ClInclude>
     <ClInclude Include="Collision\CollisionPrimitive.h">
-      <Filter>Collision</Filter>
+      <Filter>Camera\Collision</Filter>
     </ClInclude>
     <ClInclude Include="2d\DebugText.h">
       <Filter>2d</Filter>
@@ -206,7 +206,7 @@
       <Filter>fbx</Filter>
     </ClInclude>
     <ClInclude Include="mapchip\Mapchip.h">
-      <Filter>3d\mapchip</Filter>
+      <Filter>2d\mapchip</Filter>
     </ClInclude>
     <ClInclude Include="fbx\FbxModel.h">
       <Filter>fbx</Filter>

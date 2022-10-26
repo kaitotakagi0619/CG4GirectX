@@ -115,6 +115,12 @@ private: // メンバ変数
 	};
 	EnemyBullet eBullet[50];
 
+	struct SpritePos
+	{
+		const XMFLOAT2 center = { (WinApp::window_width / 2),(WinApp::window_height / 2) };
+	};
+	SpritePos spritePos;
+
 	enum Scene
 	{
 		Title, Game, Win, Lose,
@@ -149,6 +155,7 @@ private: // メンバ変数
 	//リロード関係
 	int reloadCount = 0;
 	bool isReload = false;
+	int maxMagazine = 20;
 
 	int enemyAttackCounter = 0;
 
@@ -173,10 +180,11 @@ private: // メンバ変数
 	Camera* camera = nullptr;
 	//Sprite* spriteBG = nullptr;
 	Sprite* sprite[6] = { nullptr };
-	Sprite* spriteNum[2] = { nullptr };
+	Sprite* spriteNum[4] = { nullptr };
 	Sprite* spriteMagazineUI = nullptr;
 	Sprite* spritebossHP = nullptr;
 	Sprite* spritebossHPFrame = nullptr;
+	Sprite* reloadText = nullptr;
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
 
