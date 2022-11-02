@@ -40,6 +40,13 @@ GameScene::~GameScene()
 	{
 		safe_delete(objEnemyBul[i]);
 	}
+	for (int i = 0; i < map_max_x; i++)
+	{
+		for (int j = 0; j < map_max_y; j++)
+		{
+			safe_delete(objBlock[i][j]);
+		}
+	}
 	safe_delete(objGround);
 	safe_delete(objFighter);
 	safe_delete(objFighter2);
@@ -60,6 +67,7 @@ GameScene::~GameScene()
 	safe_delete(modelFighter2);
 	safe_delete(modelSphere);
 	safe_delete(modelCity);
+	safe_delete(modelBox);
 
 	//fbxのdelete
 	safe_delete(fbxModel1);
@@ -68,7 +76,7 @@ GameScene::~GameScene()
 
 void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 {
-	Audio::GetInstance()->LoadWave("rock.wav");
+	Audio::GetInstance()->LoadWave("BGM/bgm.wav");
 	Audio::GetInstance()->LoadWave("SE/jump.wav");
 	Audio::GetInstance()->LoadWave("SE/enter.wav");
 	Audio::GetInstance()->LoadWave("SE/damage.wav");
@@ -218,7 +226,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	sprite[5]->SetPosition({ spritePos.center.x + 208,WinApp::window_height - 160 });
 	spriteMagazineUI->SetSize({ 256.0f,128.0f });
 	spriteMagazineUI->SetPosition({ WinApp::window_width - 256,WinApp::window_height - 128 });
-	reloadText->SetPosition({ WinApp::window_width - 124,WinApp::window_height - 96 });
+	reloadText->SetPosition({ WinApp::window_width / 2 - 80,WinApp::window_height / 2 + 80 });
 
 	spritebossHP->SetPosition({ 303 , 47 });
 	spritebossHP->SetSize({ 694 , 20 });
@@ -241,6 +249,9 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	modelSphere =	ReadModel::CreateFromOBJ("sphere2", true);
 	modelCity =		ReadModel::CreateFromOBJ("city", true);
 	modelcowgirl =	ReadModel::CreateFromOBJ("cowgirl", true);
+	modelBox =		ReadModel::CreateFromOBJ("block",true);
+
+	Mapchip::CsvToVector(map, "Resources/csv/map1.csv");//mapNum=0
 
 	// 3Dオブジェクト生成
 	objSkydome = Object3d::Create(modelSkydome);
@@ -250,6 +261,17 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	objFighter3 = Object3d::Create(modelFighter2);
 	objCity = Object3d::Create(modelCity);
 	bossEnemy = Object3d::Create(modelcowgirl);
+
+	//マップチップ用のオブジェクトの初期化
+	for (int y = 0; y < map_max_y; y++)
+	{
+		for (int x = 0; x < map_max_x; x++)
+		{
+			objBlock[y][x] = Object3d::Create(modelBox);
+			objBlock[y][x]->SetScale({ 0.2f,0.2f,0.2f });
+			objBlock[y][x]->SetPosition({ 1000.0f,1000.0f,0.0f });
+		}
+	}
 
 	objFighter->SetPosition({ 0,2,30 });
 	objFighter2->SetPosition({ 0,12,30 });
@@ -314,6 +336,14 @@ void GameScene::Update()
 	SetCursorPos(640,400);
 	CreateLight();
 	//各種変数関係
+	MapCreate(0);
+	for (int y = 0; y < map_max_y; y++)
+	{
+		for (int x = 0; x < map_max_x; x++)
+		{
+			objBlock[y][x]->Update();
+		}
+	}
 	Input::MouseMove mouseMove = input->GetMouseMove();
 	mousePos = { (float)mouseMove.lX / 50,(float)mouseMove.lY / 50};
 	playerPos = objFighter->GetPosition();
@@ -348,9 +378,9 @@ void GameScene::Update()
 
 	if (SceneNum == Game)
 	{
+		Audio::GetInstance()->PlayWave("BGM/bgm.wav", 0.03, true);
 		Audio::GetInstance()->PlayWave("SE/enter.wav", 0.03, false);
-		Audio::GetInstance()->PlayWave("rock.wav", 0.03, true);
-		if (timing > 0)
+		if (timing > 1)
 		{
 			timing--;
 		}
@@ -488,14 +518,17 @@ void GameScene::Update()
 		spriteNum[3]->ChangeTex(maxMagazine % 10);
 
 		//リロード
-		if ((input->TriggerKey(DIK_R) && timing > 55)
-			|| (input->TriggerKey(DIK_R) && timing < 5))
+		if ((input->TriggerKey(DIK_R) && timing > 55 && isReload == false)
+			|| (input->TriggerKey(DIK_R) && timing < 5 && isReload == false)
+			|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing > 55 && isReload == false)
+			|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing < 5 && isReload == false))
 		{
 			reloadCount = 30;
 			justTiming = true;
 			isReload = true;
 		}
-		else if (input->TriggerKey(DIK_R))
+		else if ((input->TriggerKey(DIK_R) && isReload == false)
+			|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isReload == false))
 		{
 			reloadCount = 30;
 			maxMagazine = 20;
@@ -939,7 +972,7 @@ void GameScene::Draw()
 	objSkydome->Draw();
 	// 3Dオブジェクトの描画
 	//objGround->Draw();
-	objCity->Draw();
+	//objCity->Draw();
 	//objFighter->Draw();
 	if (enemyAlive == true)
 	{
@@ -953,6 +986,14 @@ void GameScene::Draw()
 	for (int i = 0; i < _countof(objEnemyBul); i++)
 	{
 		objEnemyBul[i]->Draw();
+	}
+	//マップチップの描画
+	for (int y = 0; y < map_max_y; y++)
+	{
+		for (int x = 0; x < map_max_x; x++)
+		{
+			objBlock[y][x]->Draw();
+		}
 	}
 	Object3d::PostDraw();
 
@@ -1101,4 +1142,107 @@ void GameScene::CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const
 
 	pos.z = (cosf(3.14 / 180.0f * angleZ) * r) + center_pos.z;//円運動の処理
 	pos.x = (sinf(3.14 / 180.0f * angleX) * r) + center_pos.x;//円運動の処理
+}
+
+void GameScene::MapCreate(int mapNumber)
+{
+	for (int y = 0; y < map_max_y; y++) {//(yが26)
+		for (int x = 0; x < map_max_x; x++) {//(xが26)
+
+			if (Mapchip::GetChipNum(x, y, map[mapNumber]) == Ground)
+			{
+				//位置と大きさの変更(今は大きさは変更しないで)
+				//objBlock[y][x]->SetScale({ LAND_SCALE, LAND_SCALE, LAND_SCALE });
+				objBlock[y][x]->SetPosition({ x * LAND_SCALE - 13,   2 , -y * LAND_SCALE + 50 });
+			}
+			else
+			{
+				objBlock[y][x]->SetPosition({ 1000, 1000, 0 });
+			}
+		}
+	}
+}
+
+bool GameScene::MapCollide(XMFLOAT3& pos, float radiusX, float radiusZ, float& add, int mapNumber, const XMFLOAT3 old_pos, bool is_jump)
+{
+	//マップチップ
+	//X, Z
+	float x = 0;
+	float z = 0;
+	//Radius
+	float r_x = 0;
+	float r_z = 0;
+
+	//フラグ
+	bool is_hit = false;
+
+	//判定
+	int max_x = static_cast<int>((pos.x + radiusX + LAND_SCALE / 2) / LAND_SCALE);
+	int min_x = static_cast<int>((pos.x - radiusX + LAND_SCALE / 2) / LAND_SCALE);
+	int max_z = -static_cast<int>((pos.z - radiusZ + LAND_SCALE / 2) / LAND_SCALE - 1);
+	int min_z = -static_cast<int>((pos.z + radiusZ + LAND_SCALE / 2) / LAND_SCALE - 1);
+
+	for (int h = min_z; h <= max_z; h++)
+	{
+		if (h < 0)
+		{
+			continue;
+		}
+		for (int w = min_x; w <= max_x; w++)
+		{
+			if (w < 0)
+			{
+				continue;
+			}
+			if (Mapchip::GetChipNum(w, h, map[mapNumber]) == Ground)
+			{
+				x = objBlock[h][w]->GetPosition().x;
+				z = objBlock[h][w]->GetPosition().z;
+				r_x = 2.5f * objBlock[h][w]->GetScale().x;
+				r_z = 2.5f * objBlock[h][w]->GetScale().z;
+
+				if (pos.x <= x + r_x && x - r_x <= pos.x)
+				{
+					if (z + r_z + radiusZ > pos.z && z < old_pos.z)
+					{
+						pos.z = z + r_z + radiusZ;
+						is_hit = true;
+					}
+					else if (z - r_z - radiusZ < pos.z && z > old_pos.z)
+					{
+						pos.z = z - r_z - radiusZ;
+						if (is_jump == false)
+						{
+							is_hit = true;
+						}
+						else
+						{
+							add = 0;
+						}
+					}
+				}
+				if (pos.z <= z + r_z && z - r_z <= pos.z)
+				{
+					if (x + r_x + radiusX > pos.x && x < old_pos.x)
+					{
+						pos.x = x + r_x + radiusX;
+						if (is_jump == false)
+						{
+							is_hit = true;
+						}
+					}
+					else if (x - r_x - radiusX < pos.x && x > old_pos.x)
+					{
+						pos.x = x - r_x - radiusX;
+						if (is_jump == false)
+						{
+							is_hit = true;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return is_hit;
 }

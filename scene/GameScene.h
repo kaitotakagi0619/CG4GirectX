@@ -83,15 +83,38 @@ public: // メンバ関数
 
 	void CharactorMove(XMFLOAT3 pos);
 
+	//カメラの動きを制御する関数
 	void CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, float& angleZ, float& angleY, const float add);
 
 	void CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, float& angleZ, float& angleX, const float add);
+
+	//マップチップ1つの大きさ
+	const float LAND_SCALE = 1.0f;
+
+	//マップチップの番号
+	enum MapNumber
+	{
+		None, Ground
+	};
+
+	/// <summary>
+	/// //マップチップ生成
+	/// </summary>
+	void MapCreate(int mapNumber);
+
+	/// <summary>
+	/// //マップチップ当たり判定
+	/// </summary>
+	bool MapCollide(XMFLOAT3& pos, float radiusX, float radiusZ, float& add, int mapNumber, const XMFLOAT3 old_pos, bool is_jump = false);
 
 
 private: // メンバ変数
 	DirectXCommon* dxCommon = nullptr;
 	Input* input = nullptr;
 	DebugText debugText;
+
+	std::vector<std::vector<int>> map;
+	Object3d* objBlock[map_max_y][map_max_x]; //ステージブロック
 
 	const int enemyBul = 50;
 
@@ -133,7 +156,7 @@ private: // メンバ変数
 	XMFLOAT3 virVelocity = { 0,0,0 };
 	bool enemyAlive = false;
 	int enemyTimer = 0;
-	int timing = 60;
+	int timing = 75;
 	bool isJump = false;
 	bool isJustJump = false;
 	bool isAlive = true;
@@ -195,6 +218,7 @@ private: // メンバ変数
 	ReadModel* modelSphere = nullptr;
 	ReadModel* modelCity = nullptr;
 	ReadModel* modelcowgirl = nullptr;
+	ReadModel* modelBox = nullptr;
 
 	Object3d* objSkydome = nullptr;
 	Object3d* objGround = nullptr;
