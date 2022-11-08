@@ -105,7 +105,7 @@ public: // メンバ関数
 	/// <summary>
 	/// //マップチップ当たり判定
 	/// </summary>
-	bool MapCollide(XMFLOAT3& pos, float radiusX, float radiusZ, float& add, int mapNumber, const XMFLOAT3 old_pos, bool is_jump = false);
+	bool MapCollide(XMFLOAT3& playerPos,const XMFLOAT3& blockPos);
 
 
 private: // メンバ変数
@@ -165,10 +165,14 @@ private: // メンバ変数
 	const float jCountMax = 0.5;
 	const float jCountMin = 0.3;
 	XMFLOAT3 playerPos = { 0,0,0 };
+	XMFLOAT3 oldPlayerPos = { 0,0,0 };
+	bool isHit = false;
 	XMFLOAT3 bossPos = { 0,0,0 };
 	XMFLOAT3 playerScale = { 0,0,0 };
 	XMFLOAT3 targetCameraPos = { 0,0,0 };
+	XMFLOAT3 oldTargetCameraPos = { 0,0,0 };
 	XMFLOAT3 virCameraPos = { 0,0,0 };
+	XMFLOAT3 oldVirCameraPos = { 0,0,0 };
 	XMFLOAT3 centerPos = { 0, 2, 50 };
 	XMFLOAT2 mousePos = { 0,0 };
 	CameraData camera_data;
@@ -179,6 +183,9 @@ private: // メンバ変数
 	int reloadCount = 0;
 	bool isReload = false;
 	int maxMagazine = 20;
+
+	float p_x_radius;
+	float p_z_radius;
 
 	int enemyAttackCounter = 0;
 

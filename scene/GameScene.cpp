@@ -353,6 +353,8 @@ void GameScene::Update()
 	virCameraPos = objFighter3->GetPosition();
 	centerPos = { 0, 2, 50 };
 
+	p_x_radius = objFighter->GetScale().x;
+	p_z_radius = objFighter->GetScale().z;
 
 	for (int i = 0; i < _countof(objBul); i++)
 	{
@@ -378,6 +380,9 @@ void GameScene::Update()
 
 	if (SceneNum == Game)
 	{
+		oldPlayerPos = playerPos;
+		oldTargetCameraPos = targetCameraPos;
+		oldVirCameraPos = virCameraPos;
 		Audio::GetInstance()->PlayWave("BGM/bgm.wav", 0.03, true);
 		Audio::GetInstance()->PlayWave("SE/enter.wav", 0.03, false);
 		if (timing > 1)
@@ -654,7 +659,25 @@ void GameScene::Update()
 			}
 		}
 
+		for (int y = 0; y < map_max_y; y++)
+		{
+			for (int x = 0; x < map_max_x; x++)
+			{
+				if (MapCollide(playerPos, objBlock[y][x]->GetPosition()))
+				{
+					isHit = true;
+				}
+			}
+		}
 
+		if (isHit == true)
+		{
+			playerPos.x = oldPlayerPos.x;
+			playerPos.z = oldPlayerPos.z;
+			targetCameraPos = oldTargetCameraPos;
+			virCameraPos = oldTargetCameraPos;
+			isHit = false;
+		}
 		objFighter->SetPosition(playerPos);
 		objFighter2->SetPosition(targetCameraPos);
 		objFighter3->SetPosition(virCameraPos);
@@ -830,6 +853,17 @@ void GameScene::Update()
 			{
 				eBullet[i].Pos = { +1000,-10,1000 };
 				eBullet[i].bulShotFlag = false;
+			}
+			for (int y = 0; y < map_max_y; y++)
+			{
+				for (int x = 0; x < map_max_x; x++)
+				{
+					if (MapCollide(eBullet[i].Pos, objBlock[y][x]->GetPosition()))
+					{
+						eBullet[i].Pos = { +1000,-10,1000 };
+						eBullet[i].bulShotFlag = false;
+					}
+				}
 			}
 		}
 
@@ -1163,86 +1197,17 @@ void GameScene::MapCreate(int mapNumber)
 	}
 }
 
-bool GameScene::MapCollide(XMFLOAT3& pos, float radiusX, float radiusZ, float& add, int mapNumber, const XMFLOAT3 old_pos, bool is_jump)
+bool GameScene::MapCollide(XMFLOAT3& playerPos,const XMFLOAT3& blockPos)
 {
-	//マップチップ
-	//X, Z
-	float x = 0;
-	float z = 0;
-	//Radius
-	float r_x = 0;
-	float r_z = 0;
-
-	//フラグ
-	bool is_hit = false;
-
-	//判定
-	int max_x = static_cast<int>((pos.x + radiusX + LAND_SCALE / 2) / LAND_SCALE);
-	int min_x = static_cast<int>((pos.x - radiusX + LAND_SCALE / 2) / LAND_SCALE);
-	int max_z = -static_cast<int>((pos.z - radiusZ + LAND_SCALE / 2) / LAND_SCALE - 1);
-	int min_z = -static_cast<int>((pos.z + radiusZ + LAND_SCALE / 2) / LAND_SCALE - 1);
-
-	for (int h = min_z; h <= max_z; h++)
+	if ((playerPos.x - (playerScale.x / 2) < blockPos.x + (LAND_SCALE / 2))
+		&& (playerPos.x + (playerScale.x / 2) > blockPos.x - (LAND_SCALE / 2))
+		&& (playerPos.z - (playerScale.z / 2) < blockPos.z + (LAND_SCALE / 2))
+		&& (playerPos.z + (playerScale.z / 2) > blockPos.z - (LAND_SCALE / 2)))
 	{
-		if (h < 0)
-		{
-			continue;
-		}
-		for (int w = min_x; w <= max_x; w++)
-		{
-			if (w < 0)
-			{
-				continue;
-			}
-			if (Mapchip::GetChipNum(w, h, map[mapNumber]) == Ground)
-			{
-				x = objBlock[h][w]->GetPosition().x;
-				z = objBlock[h][w]->GetPosition().z;
-				r_x = 2.5f * objBlock[h][w]->GetScale().x;
-				r_z = 2.5f * objBlock[h][w]->GetScale().z;
-
-				if (pos.x <= x + r_x && x - r_x <= pos.x)
-				{
-					if (z + r_z + radiusZ > pos.z && z < old_pos.z)
-					{
-						pos.z = z + r_z + radiusZ;
-						is_hit = true;
-					}
-					else if (z - r_z - radiusZ < pos.z && z > old_pos.z)
-					{
-						pos.z = z - r_z - radiusZ;
-						if (is_jump == false)
-						{
-							is_hit = true;
-						}
-						else
-						{
-							add = 0;
-						}
-					}
-				}
-				if (pos.z <= z + r_z && z - r_z <= pos.z)
-				{
-					if (x + r_x + radiusX > pos.x && x < old_pos.x)
-					{
-						pos.x = x + r_x + radiusX;
-						if (is_jump == false)
-						{
-							is_hit = true;
-						}
-					}
-					else if (x - r_x - radiusX < pos.x && x > old_pos.x)
-					{
-						pos.x = x - r_x - radiusX;
-						if (is_jump == false)
-						{
-							is_hit = true;
-						}
-					}
-				}
-			}
-		}
+		return true;
 	}
-
-	return is_hit;
+	else
+	{
+	return false;
+	}
 }
