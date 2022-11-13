@@ -199,7 +199,7 @@ private: // メンバ変数
 	bool isPlus = true;
 
 	int firstBossHP = 0;
-	int playerHP = 4;
+	int playerHP = 1;
 
 
 

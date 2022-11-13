@@ -88,6 +88,9 @@ public: // メンバ関数
 	// サイズセット
 	void SetSize(XMFLOAT2 size);
 
+	// カラーセット
+	void SetColor(XMFLOAT4 color);
+
 	// アンカーポイントセット
 	void SetAnchorPoint(XMFLOAT2 anchorpoint);
 
@@ -139,4 +142,3 @@ private: // メンバ関数
 	// 頂点データ転送
 	void TransferVertices();
 };
-

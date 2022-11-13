@@ -418,147 +418,149 @@ void GameScene::Update()
 		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height - 160});
 
 		//sprite[0]->SetPosition({ mousePos.x,mousePos.y });
-
-		//移動用velocity計算
-		if (input->PushKey(DIK_LSHIFT))
+		if (isAlive == true)
 		{
-			plVelocity.x = (targetCameraPos.x - playerPos.x) * 2;
-			plVelocity.y = (targetCameraPos.y - playerPos.y) * 2;
-			plVelocity.z = (targetCameraPos.z - playerPos.z) * 2;
+			//移動用velocity計算
+			if (input->PushKey(DIK_LSHIFT))
+			{
+				plVelocity.x = (targetCameraPos.x - playerPos.x) * 2;
+				plVelocity.y = (targetCameraPos.y - playerPos.y) * 2;
+				plVelocity.z = (targetCameraPos.z - playerPos.z) * 2;
 
-			virVelocity.x = (virCameraPos.x - playerPos.x) * 2;
-			virVelocity.y = (virCameraPos.y - playerPos.y) * 2;
-			virVelocity.z = (virCameraPos.z - playerPos.z) * 2;
-		}
-		else
-		{
-			plVelocity.x = targetCameraPos.x - playerPos.x;
-			plVelocity.y = targetCameraPos.y - playerPos.y;
-			plVelocity.z = targetCameraPos.z - playerPos.z;
+				virVelocity.x = (virCameraPos.x - playerPos.x) * 2;
+				virVelocity.y = (virCameraPos.y - playerPos.y) * 2;
+				virVelocity.z = (virCameraPos.z - playerPos.z) * 2;
+			}
+			else
+			{
+				plVelocity.x = targetCameraPos.x - playerPos.x;
+				plVelocity.y = targetCameraPos.y - playerPos.y;
+				plVelocity.z = targetCameraPos.z - playerPos.z;
 
-			virVelocity.x = virCameraPos.x - playerPos.x;
-			virVelocity.y = virCameraPos.y - playerPos.y;
-			virVelocity.z = virCameraPos.z - playerPos.z;
-		}
+				virVelocity.x = virCameraPos.x - playerPos.x;
+				virVelocity.y = virCameraPos.y - playerPos.y;
+				virVelocity.z = virCameraPos.z - playerPos.z;
+			}
 
-		// 移動後の座標を計算
-		//タイミングよく移動すると加速
-		// -----------------------------------------//
-		if ((input->TriggerKey(DIK_W) && timing > 55)
-			|| (input->TriggerKey(DIK_W) && timing < 5))
-		{
-			playerPos.x += (plVelocity.x / 10);
-			playerPos.z += (plVelocity.z / 10);
-			targetCameraPos.x += (plVelocity.x / 10);
-			targetCameraPos.z += (plVelocity.z / 10);
-			virCameraPos.x += (plVelocity.x / 10);
-			virCameraPos.z += (plVelocity.z / 10);
-		}
-		else if (input->PushKey(DIK_W))
-		{
-			playerPos.x += (plVelocity.x / 100);
-			playerPos.z += (plVelocity.z / 100);
-			targetCameraPos.x += (plVelocity.x / 100);
-			targetCameraPos.z += (plVelocity.z / 100);
-			virCameraPos.x += (plVelocity.x / 100);
-			virCameraPos.z += (plVelocity.z / 100);
-		}
-
-
-		if ((input->TriggerKey(DIK_S) && timing > 55)
-			|| (input->TriggerKey(DIK_S) && timing < 5))
-		{
-			playerPos.x -= (plVelocity.x / 10);
-			playerPos.z -= (plVelocity.z / 10);
-			targetCameraPos.x -= (plVelocity.x / 10);
-			targetCameraPos.z -= (plVelocity.z / 10);
-			virCameraPos.x -= (plVelocity.x / 10);
-			virCameraPos.z -= (plVelocity.z / 10);
-		}
-		else if (input->PushKey(DIK_S))
-		{
-			playerPos.x -= (plVelocity.x / 100);
-			playerPos.z -= (plVelocity.z / 100);
-			targetCameraPos.x -= (plVelocity.x / 100);
-			targetCameraPos.z -= (plVelocity.z / 100);
-			virCameraPos.x -= (plVelocity.x / 100);
-			virCameraPos.z -= (plVelocity.z / 100);
-		}
+			// 移動後の座標を計算
+			//タイミングよく移動すると加速
+			// -----------------------------------------//
+			if ((input->TriggerKey(DIK_W) && timing > 55)
+				|| (input->TriggerKey(DIK_W) && timing < 5))
+			{
+				playerPos.x += (plVelocity.x / 10);
+				playerPos.z += (plVelocity.z / 10);
+				targetCameraPos.x += (plVelocity.x / 10);
+				targetCameraPos.z += (plVelocity.z / 10);
+				virCameraPos.x += (plVelocity.x / 10);
+				virCameraPos.z += (plVelocity.z / 10);
+			}
+			else if (input->PushKey(DIK_W))
+			{
+				playerPos.x += (plVelocity.x / 100);
+				playerPos.z += (plVelocity.z / 100);
+				targetCameraPos.x += (plVelocity.x / 100);
+				targetCameraPos.z += (plVelocity.z / 100);
+				virCameraPos.x += (plVelocity.x / 100);
+				virCameraPos.z += (plVelocity.z / 100);
+			}
 
 
-		if ((input->TriggerKey(DIK_A) && timing > 55)
-			|| (input->TriggerKey(DIK_A) && timing < 5))
-		{
-			playerPos.x -= (virVelocity.x / 10);
-			playerPos.z -= (virVelocity.z / 10);
-			targetCameraPos.x -= (virVelocity.x / 10);
-			targetCameraPos.z -= (virVelocity.z / 10);
-			virCameraPos.x -= (virVelocity.x / 10);
-			virCameraPos.z -= (virVelocity.z / 10);
-		}
-		else if (input->PushKey(DIK_A))
-		{
-			playerPos.x -= (virVelocity.x / 100);
-			playerPos.z -= (virVelocity.z / 100);
-			targetCameraPos.x -= (virVelocity.x / 100);
-			targetCameraPos.z -= (virVelocity.z / 100);
-			virCameraPos.x -= (virVelocity.x / 100);
-			virCameraPos.z -= (virVelocity.z / 100);
-		}
+			if ((input->TriggerKey(DIK_S) && timing > 55)
+				|| (input->TriggerKey(DIK_S) && timing < 5))
+			{
+				playerPos.x -= (plVelocity.x / 10);
+				playerPos.z -= (plVelocity.z / 10);
+				targetCameraPos.x -= (plVelocity.x / 10);
+				targetCameraPos.z -= (plVelocity.z / 10);
+				virCameraPos.x -= (plVelocity.x / 10);
+				virCameraPos.z -= (plVelocity.z / 10);
+			}
+			else if (input->PushKey(DIK_S))
+			{
+				playerPos.x -= (plVelocity.x / 100);
+				playerPos.z -= (plVelocity.z / 100);
+				targetCameraPos.x -= (plVelocity.x / 100);
+				targetCameraPos.z -= (plVelocity.z / 100);
+				virCameraPos.x -= (plVelocity.x / 100);
+				virCameraPos.z -= (plVelocity.z / 100);
+			}
 
 
-		if ((input->TriggerKey(DIK_D) && timing > 55)
-			|| (input->TriggerKey(DIK_D) && timing < 5))
-		{
-			playerPos.x += (virVelocity.x / 10);
-			playerPos.z += (virVelocity.z / 10);
-			targetCameraPos.x += (virVelocity.x / 10);
-			targetCameraPos.z += (virVelocity.z / 10);
-			virCameraPos.x += (virVelocity.x / 10);
-			virCameraPos.z += (virVelocity.z / 10);
-		}
-		else if (input->PushKey(DIK_D))
-		{
-			playerPos.x += (virVelocity.x / 100);
-			playerPos.z += (virVelocity.z / 100);
-			targetCameraPos.x += (virVelocity.x / 100);
-			targetCameraPos.z += (virVelocity.z / 100);
-			virCameraPos.x += (virVelocity.x / 100);
-			virCameraPos.z += (virVelocity.z / 100);
-		}
-		// -----------------------------------------//
+			if ((input->TriggerKey(DIK_A) && timing > 55)
+				|| (input->TriggerKey(DIK_A) && timing < 5))
+			{
+				playerPos.x -= (virVelocity.x / 10);
+				playerPos.z -= (virVelocity.z / 10);
+				targetCameraPos.x -= (virVelocity.x / 10);
+				targetCameraPos.z -= (virVelocity.z / 10);
+				virCameraPos.x -= (virVelocity.x / 10);
+				virCameraPos.z -= (virVelocity.z / 10);
+			}
+			else if (input->PushKey(DIK_A))
+			{
+				playerPos.x -= (virVelocity.x / 100);
+				playerPos.z -= (virVelocity.z / 100);
+				targetCameraPos.x -= (virVelocity.x / 100);
+				targetCameraPos.z -= (virVelocity.z / 100);
+				virCameraPos.x -= (virVelocity.x / 100);
+				virCameraPos.z -= (virVelocity.z / 100);
+			}
 
-		//弾を撃つ
-		// -----------------------------------------//
-		if (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount < 50)
-		{
-			bullet[bulCount].bulFlag = true;
-			bulCount++;
+
+			if ((input->TriggerKey(DIK_D) && timing > 55)
+				|| (input->TriggerKey(DIK_D) && timing < 5))
+			{
+				playerPos.x += (virVelocity.x / 10);
+				playerPos.z += (virVelocity.z / 10);
+				targetCameraPos.x += (virVelocity.x / 10);
+				targetCameraPos.z += (virVelocity.z / 10);
+				virCameraPos.x += (virVelocity.x / 10);
+				virCameraPos.z += (virVelocity.z / 10);
+			}
+			else if (input->PushKey(DIK_D))
+			{
+				playerPos.x += (virVelocity.x / 100);
+				playerPos.z += (virVelocity.z / 100);
+				targetCameraPos.x += (virVelocity.x / 100);
+				targetCameraPos.z += (virVelocity.z / 100);
+				virCameraPos.x += (virVelocity.x / 100);
+				virCameraPos.z += (virVelocity.z / 100);
+			}
+			// -----------------------------------------//
+
+			//弾を撃つ
+			// -----------------------------------------//
+			if (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount < 50)
+			{
+				bullet[bulCount].bulFlag = true;
+				bulCount++;
+			}
+			lastBul = 50 - bulCount;
+			spriteNum[0]->ChangeTex(lastBul / 10);
+			spriteNum[1]->ChangeTex(lastBul % 10);
+			spriteNum[2]->ChangeTex(maxMagazine / 10);
+			spriteNum[3]->ChangeTex(maxMagazine % 10);
+
+			//リロード
+			if ((input->TriggerKey(DIK_R) && timing > 55 && isReload == false)
+				|| (input->TriggerKey(DIK_R) && timing < 5 && isReload == false)
+				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing > 55 && isReload == false)
+				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing < 5 && isReload == false))
+			{
+				reloadCount = 30;
+				justTiming = true;
+				isReload = true;
+			}
+			else if ((input->TriggerKey(DIK_R) && isReload == false)
+				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isReload == false))
+			{
+				reloadCount = 30;
+				maxMagazine = 20;
+				isReload = true;
+			}
 		}
 
-		lastBul = 50 - bulCount;
-		spriteNum[0]->ChangeTex(lastBul / 10);
-		spriteNum[1]->ChangeTex(lastBul % 10);
-		spriteNum[2]->ChangeTex(maxMagazine / 10);
-		spriteNum[3]->ChangeTex(maxMagazine % 10);
-
-		//リロード
-		if ((input->TriggerKey(DIK_R) && timing > 55 && isReload == false)
-		|| (input->TriggerKey(DIK_R) && timing < 5 && isReload == false)
-			|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing > 55 && isReload == false)
-			|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing < 5 && isReload == false))
-		{
-			reloadCount = 30;
-			justTiming = true;
-			isReload = true;
-		}
-		else if ((input->TriggerKey(DIK_R) && isReload == false)
-			|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isReload == false))
-		{
-			reloadCount = 30;
-			maxMagazine = 20;
-			isReload = true;
-		}
 
 		if (reloadCount > 0 && isReload == true)
 		{
@@ -603,49 +605,52 @@ void GameScene::Update()
 			}
 		}
 
-		if (camera_data.angleY < 90 && mousePos.y < 0 || camera_data.angleY > -90 && mousePos.y > 0)
+		if (isAlive == true)
 		{
-			CircularMotionUD(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleY, -mousePos.y);
-			CircularMotionUD(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleY, -mousePos.y);
-		}
-		if (mousePos.x != 0)
-		{
-			CircularMotionLR(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleX, mousePos.x);
-			CircularMotionLR(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleX, mousePos.x);
-		}
-		/*if (input->PushKey(DIK_UP))
-		{
-			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, +1);
-			CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, +1);
-		}*/
-		/*if (input->PushKey(DIK_DOWN))
-		{
-			CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, -1);
-			CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, -1);
-		}*/
-		/*if (input->PushKey(DIK_RIGHT))
-		{
-			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, +1);
-			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, +1);
-		}*/
-		/*if (input->PushKey(DIK_LEFT))
-		{
-			CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, -1);
-			CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, -1);
-		}*/
-
-		// ジャンプ
-		if (input->TriggerKey(DIK_SPACE) && isJump == false && isJustJump == false)
-		{
-			if (timing > 55 || timing < 5)
+			if (camera_data.angleY < 90 && mousePos.y < 0 || camera_data.angleY > -90 && mousePos.y > 0)
 			{
-				isJustJump = true;
-				jCount = jCountMax;
+				CircularMotionUD(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleY, -mousePos.y);
+				CircularMotionUD(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleY, -mousePos.y);
 			}
-			else
+			if (mousePos.x != 0)
 			{
-				isJump = true;
-				jCount = jCountMin;
+				CircularMotionLR(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleX, mousePos.x);
+				CircularMotionLR(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleX, mousePos.x);
+			}
+			/*if (input->PushKey(DIK_UP))
+			{
+				CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, +1);
+				CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, +1);
+			}*/
+			/*if (input->PushKey(DIK_DOWN))
+			{
+				CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, -1);
+				CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, -1);
+			}*/
+			/*if (input->PushKey(DIK_RIGHT))
+			{
+				CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, +1);
+				CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, +1);
+			}*/
+			/*if (input->PushKey(DIK_LEFT))
+			{
+				CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, -1);
+				CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, -1);
+			}*/
+
+			// ジャンプ
+			if (input->TriggerKey(DIK_SPACE) && isJump == false && isJustJump == false)
+			{
+				if (timing > 55 || timing < 5)
+				{
+					isJustJump = true;
+					jCount = jCountMax;
+				}
+				else
+				{
+					isJump = true;
+					jCount = jCountMin;
+				}
 			}
 		}
 		if (isJump == true)
@@ -690,12 +695,12 @@ void GameScene::Update()
 			}
 		}
 
-		if (isHit == true)
+		if (isHit == true && isAlive == true)
 		{
 			playerPos.x = oldPlayerPos.x;
 			playerPos.z = oldPlayerPos.z;
 			targetCameraPos = oldTargetCameraPos;
-			virCameraPos = oldTargetCameraPos;
+			virCameraPos = oldVirCameraPos;
 			isHit = false;
 		}
 		objFighter->SetPosition(playerPos);
@@ -911,6 +916,18 @@ void GameScene::Update()
 				}
 			}
 		}
+
+		if (playerHP <= 0)
+		{
+			isAlive = false;
+		}
+
+		if (isAlive == false)
+		{
+			targetCameraPos.y -= 0.2;
+			objFighter2->SetPosition(targetCameraPos);
+		}
+
 		if (hitTimer > 0)
 		{
 			hitTimer--;
@@ -936,50 +953,6 @@ void GameScene::Update()
 
 		fbxObject1->AnimationFlag = true;
 	}
-
-	/*else if (SceneNum == Win || SceneNum == Lose)
-	{
-		camera->SetEye({ 0,0,-50 });
-		camera->SetTarget({ 0, 0, 0 });
-		camera->Update();
-		if (input->TriggerKey(DIK_RETURN))
-		{
-			SceneNum = Title;
-			objFighter->SetPosition({ 0,1,30 });
-			objFighter2->SetPosition({ 0,1,50 });
-			objFighter2->SetRotation({ 0,180,0 });
-			objFighter3->SetPosition({ 0,1,50 });
-			objFighter3->SetRotation({ 0,180,0 });
-			playerPos = objFighter->GetPosition();
-			playerScale = objFighter->GetScale();
-			targetCameraPos = objFighter2->GetPosition();
-			virCameraPos = objFighter3->GetPosition();
-			bulCount = 30;
-			for (int i = 0; i < _countof(objBul); i++)
-			{
-				bullet[i].bulFlag = false;
-				bullet[i].bulShotFlag = false;
-			}
-			enemyAlive = true;
-			for (int i = 0; i < _countof(objBul); i++)
-			{
-				objBul[i]->SetPosition({ +1000,-10,1000 });
-				bullet[i].Pos = objBul[i]->GetPosition();
-				bullet[i].Size = objBul[i]->GetScale();
-			}
-			for (int i = 0; i < _countof(objEnemyBul); i++)
-			{
-				eBullet[i].bulFlag = false;
-				eBullet[i].bulShotFlag = false;
-			}
-			for (int i = 0; i < _countof(objEnemyBul); i++)
-			{
-				objEnemyBul[i]->SetPosition({ +1000,-10,1000 });
-				eBullet[i].Pos = objEnemyBul[i]->GetPosition();
-				eBullet[i].Size = objEnemyBul[i]->GetScale();
-			}
-		}
-	}*/
 
 	particleMan->Update();
 
@@ -1031,7 +1004,7 @@ void GameScene::Draw()
 	// 3Dオブジェクトの描画
 	//objGround->Draw();
 	//objCity->Draw();
-	//objFighter->Draw();
+	objFighter2->Draw();
 	if (enemyAlive == true)
 	{
 		//objFighter2->Draw();
