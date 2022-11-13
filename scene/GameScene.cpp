@@ -25,6 +25,10 @@ GameScene::~GameScene()
 	{
 		safe_delete(spriteNum[i]);
 	}
+	for (int i = 0; i < _countof(spriteLife); i++)
+	{
+		safe_delete(spriteLife[i]);
+	}
 	safe_delete(spriteMagazineUI);
 	safe_delete(spritebossHP);
 	safe_delete(spritebossHPFrame);
@@ -192,6 +196,10 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
+	if (!Sprite::LoadTexture(21, L"Resources/life.png")) {
+		assert(0);
+		return;
+	}
 
 	// スプライト生成
 	for (int i = 0; i < _countof(sprite); i++)
@@ -206,6 +214,18 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	spritebossHP = Sprite::Create(11, { 0.0f,0.0f });
 	spritebossHPFrame = Sprite::Create(19, { 0.0f,0.0f });
 	reloadText = Sprite::Create(20, { 0.0f,0.0f });
+	for (int i = 0; i < _countof(spriteLife); i++)
+	{
+		spriteLife[i] = Sprite::Create(21, { 0.0f,0.0f});
+	}
+	for (int i = 0; i < _countof(spriteLife); i++)
+	{
+		spriteLife[i]->SetSize({ 64,32 });
+	}
+	for (int i = 0; i < _countof(spriteLife); i++)
+	{
+		spriteLife[i]->SetPosition({ 100.0f + (i * 60),600.0f });
+	}
 
 	//スプライトの初期変更
 	sprite[0]->SetSize({ 64.0f,64.0f });
@@ -524,7 +544,7 @@ void GameScene::Update()
 
 		//リロード
 		if ((input->TriggerKey(DIK_R) && timing > 55 && isReload == false)
-			|| (input->TriggerKey(DIK_R) && timing < 5 && isReload == false)
+		|| (input->TriggerKey(DIK_R) && timing < 5 && isReload == false)
 			|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing > 55 && isReload == false)
 			|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing < 5 && isReload == false))
 		{
@@ -866,6 +886,9 @@ void GameScene::Update()
 				}
 			}
 		}
+		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
+		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
+		camera->Update();
 
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
@@ -879,6 +902,7 @@ void GameScene::Update()
 				{
 					hitTimer = 20;
 					playerPos.z -= 2;
+					playerHP--;
 					objEnemyBul[i]->SetPosition({ +1000,-10,1000 });
 					eBullet[i].Pos = objEnemyBul[i]->GetPosition();
 					eBullet[i].Size = objEnemyBul[i]->GetScale();
@@ -1063,6 +1087,10 @@ void GameScene::Draw()
 		spriteNum[1]->Draw();
 		spriteNum[2]->Draw();
 		spriteNum[3]->Draw();
+		for (int i = 0; i < playerHP; i++)
+		{
+			spriteLife[i]->Draw();
+		}
 		if (enemyAlive == 1)
 		{
 			spritebossHPFrame->Draw();

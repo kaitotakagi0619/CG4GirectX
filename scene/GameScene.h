@@ -199,7 +199,7 @@ private: // メンバ変数
 	bool isPlus = true;
 
 	int firstBossHP = 0;
-	int playerHP = 0;
+	int playerHP = 4;
 
 
 
@@ -211,6 +211,7 @@ private: // メンバ変数
 	//Sprite* spriteBG = nullptr;
 	Sprite* sprite[6] = { nullptr };
 	Sprite* spriteNum[4] = { nullptr };
+	Sprite* spriteLife[4] = { nullptr };
 	Sprite* spriteMagazineUI = nullptr;
 	Sprite* spritebossHP = nullptr;
 	Sprite* spritebossHPFrame = nullptr;
