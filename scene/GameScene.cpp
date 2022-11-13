@@ -33,6 +33,7 @@ GameScene::~GameScene()
 	safe_delete(spritebossHP);
 	safe_delete(spritebossHPFrame);
 	safe_delete(reloadText);
+	safe_delete(diedText);
 
 	//オブジェクトのdelete
 	safe_delete(objSkydome);
@@ -200,6 +201,10 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
+	if (!Sprite::LoadTexture(22, L"Resources/youdied.png")) {
+		assert(0);
+		return;
+	}
 
 	// スプライト生成
 	for (int i = 0; i < _countof(sprite); i++)
@@ -214,6 +219,9 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	spritebossHP = Sprite::Create(11, { 0.0f,0.0f });
 	spritebossHPFrame = Sprite::Create(19, { 0.0f,0.0f });
 	reloadText = Sprite::Create(20, { 0.0f,0.0f });
+	diedText = Sprite::Create(22, { 0.0f,0.0f });
+	diedText->SetPosition({ WinApp::window_width  / 2 - 254,WinApp::window_height / 2 - 38 });
+	diedText->SetColor(color);
 	for (int i = 0; i < _countof(spriteLife); i++)
 	{
 		spriteLife[i] = Sprite::Create(21, { 0.0f,0.0f});
@@ -926,6 +934,15 @@ void GameScene::Update()
 		{
 			targetCameraPos.y -= 0.2;
 			objFighter2->SetPosition(targetCameraPos);
+			if (color.w < 1.0f)
+			{
+				color.w += 0.01;
+			}
+			diedText->SetColor(color);
+			if (color.w >= 1.0f)
+			{
+				SceneNum = Title;
+			}
 		}
 
 		if (hitTimer > 0)
@@ -1072,6 +1089,10 @@ void GameScene::Draw()
 		if (bulCount == 50)
 		{
 			reloadText->Draw();
+		}
+		if (isAlive == false)
+		{
+			diedText->Draw();
 		}
 	}
 

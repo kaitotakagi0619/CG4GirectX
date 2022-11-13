@@ -175,6 +175,7 @@ private: // メンバ変数
 	XMFLOAT3 oldVirCameraPos = { 0,0,0 };
 	XMFLOAT3 centerPos = { 0, 2, 50 };
 	XMFLOAT2 mousePos = { 0,0 };
+	XMFLOAT4 color = { 1,1,1,0 };
 	CameraData camera_data;
 	bool justTiming = false;
 	//残段数カウント用変数
@@ -216,6 +217,7 @@ private: // メンバ変数
 	Sprite* spritebossHP = nullptr;
 	Sprite* spritebossHPFrame = nullptr;
 	Sprite* reloadText = nullptr;
+	Sprite* diedText = nullptr;
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
 
