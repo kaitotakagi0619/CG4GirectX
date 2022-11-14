@@ -150,32 +150,32 @@ private: // メンバ変数
 	};
 	int SceneNum = Title;
 
-	int bulCount = 30;
-	int enemyBulCount = 20;
+	int		 bulCount = 30;
+	int		 enemyBulCount = 20;
 	XMFLOAT3 plVelocity = { 0,0,0 };
 	XMFLOAT3 virVelocity = { 0,0,0 };
-	bool enemyAlive = false;
-	int enemyTimer = 0;
-	int timing = 75;
-	bool isJump = false;
-	bool isJustJump = false;
-	bool isAlive = true;
-	int hitTimer = 0;
-	float jCount = 0.6;
+	bool	 enemyAlive = false;
+	int      enemyTimer = 0;
+	int		 timing = 75;
+	bool	 isJump = false;
+	bool	 isJustJump = false;
+	bool	 isAlive = true;
+	int		 hitTimer = 0;
+	float	 jCount = 0.6;
 	const float jCountMax = 0.5;
 	const float jCountMin = 0.3;
-	XMFLOAT3 playerPos = { 0,0,0 };
-	XMFLOAT3 oldPlayerPos = { 0,0,0 };
-	bool isHit = false;
-	XMFLOAT3 bossPos = { 0,0,0 };
-	XMFLOAT3 playerScale = { 0,0,0 };
-	XMFLOAT3 targetCameraPos = { 0,0,0 };
-	XMFLOAT3 oldTargetCameraPos = { 0,0,0 };
-	XMFLOAT3 virCameraPos = { 0,0,0 };
-	XMFLOAT3 oldVirCameraPos = { 0,0,0 };
-	XMFLOAT3 centerPos = { 0, 2, 50 };
-	XMFLOAT2 mousePos = { 0,0 };
-	XMFLOAT4 color = { 1,1,1,0 };
+	XMFLOAT3	playerPos = { 0,0,0 };
+	XMFLOAT3	oldPlayerPos = { 0,0,0 };
+	bool		isHit = false;
+	XMFLOAT3	bossPos = { 0,0,0 };
+	XMFLOAT3	playerScale = { 0,0,0 };
+	XMFLOAT3	targetCameraPos = { 0,0,0 };
+	XMFLOAT3	oldTargetCameraPos = { 0,0,0 };
+	XMFLOAT3	virCameraPos = { 0,0,0 };
+	XMFLOAT3	oldVirCameraPos = { 0,0,0 };
+	XMFLOAT3	centerPos = { 0, 2, 50 };
+	XMFLOAT2	mousePos = { 0,0 };
+	XMFLOAT4	color = { 1,1,1,0 };
 	CameraData camera_data;
 	bool justTiming = false;
 	//残段数カウント用変数
@@ -188,19 +188,19 @@ private: // メンバ変数
 	float p_x_radius;
 	float p_z_radius;
 
-	int enemyAttackCounter = 0;
+	int  enemyAttackCounter = 0;
 
-	int selectAttack = 0;
+	int  selectAttack = 0;
 	bool enemySinpleAttack = false;
 	bool enemyTripleAttack = false;
 	bool enemyHomingAttack = false;
 	bool enemyIsAttack = false;
 
-	int enemyMove = 0;
+	int  enemyMove = 0;
 	bool isPlus = true;
 
-	int firstBossHP = 0;
-	int playerHP = 1;
+	int  firstBossHP = 0;
+	int  playerHP = 1;
 
 
 

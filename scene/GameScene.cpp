@@ -396,6 +396,78 @@ void GameScene::Update()
 	}
 	if (SceneNum == Title)
 	{
+		objFighter->SetPosition({ 0,2,30 });
+		objFighter2->SetPosition({ 0,12,30 });
+		objFighter3->SetPosition({ 0,12,30 });
+		bossEnemy->SetPosition({ 0,2, 40 });
+
+
+		//カメラデータ
+		camera_data.angleX = 0;
+		camera_data.angleY = 0;
+		camera_data.angleZ = 0;
+
+		//横にいるので(90,0,90にすること)
+		camera_data.virangleX = 90;
+		camera_data.virangleY = 0;
+		camera_data.virangleZ = 90;
+
+		objFighter2->SetRotation({ 0,180,0 });
+		objFighter3->SetRotation({ 0,180,0 });
+		bossEnemy->SetRotation({ 0,180,0 });
+
+		for (int i = 0; i < _countof(objBul); i++)
+		{
+			objBul[i]->SetPosition({ +1000,-10,1000 });
+			objBul[i]->SetScale({ 0.2,0.2,0.2 });
+		}
+
+		for (int i = 0; i < _countof(objEnemyBul); i++)
+		{
+			objEnemyBul[i]->SetPosition({ +1000,-10,1000 });
+			objEnemyBul[i]->SetScale({ 0.5,0.5,0.5 });
+		}
+		mousePos = { (float)mouseMove.lX / 50,(float)mouseMove.lY / 50 };
+		playerPos = objFighter->GetPosition();
+		bossPos = bossEnemy->GetPosition();
+		playerScale = objFighter->GetScale();
+		targetCameraPos = objFighter2->GetPosition();
+		virCameraPos = objFighter3->GetPosition();
+		centerPos = { 0, 2, 50 };
+		bulCount = 30;
+		enemyBulCount = 20;
+		plVelocity = { 0,0,0 };
+		virVelocity = { 0,0,0 };
+		enemyAlive = false;
+		enemyTimer = 0;
+		timing = 75;
+		isJump = false;
+		isJustJump = false;
+		isAlive = true;
+		hitTimer = 0;
+		jCount = 0.6;
+		isHit = false;
+		centerPos = { 0, 2, 50 };
+		color = { 1,1,1,0 };
+		justTiming = false;
+		lastBul = 0;
+		reloadCount = 0;
+		isReload = false;
+		maxMagazine = 20;
+		enemyAttackCounter = 0;
+
+		selectAttack = 0;
+		enemySinpleAttack = false;
+		enemyTripleAttack = false;
+		enemyHomingAttack = false;
+		enemyIsAttack = false;
+
+		enemyMove = 0;
+		isPlus = true;
+
+		firstBossHP = 20;
+		playerHP = 4;
+
 		if (input->TriggerKey(DIK_RETURN))
 		{
 			SceneNum = Game;
