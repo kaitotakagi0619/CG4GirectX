@@ -14,6 +14,7 @@
 #include "FbxLoader.h"
 #include "FbxObject3d.h"
 #include "Mapchip.h"
+#include "Ease.h"
 
 // ゲームシーン
 class GameScene
@@ -97,6 +98,11 @@ public: // メンバ関数
 		None, Ground
 	};
 
+	enum BossAttack
+	{
+		Single, Side, Homing
+	};
+
 	/// <summary>
 	/// //マップチップ生成
 	/// </summary>
@@ -105,7 +111,7 @@ public: // メンバ関数
 	/// <summary>
 	/// //マップチップ当たり判定
 	/// </summary>
-	bool MapCollide(XMFLOAT3& playerPos,const XMFLOAT3& blockPos);
+	bool MapCollide(XMFLOAT3& playerPos, const XMFLOAT3& blockPos);
 
 
 private: // メンバ変数
@@ -135,6 +141,7 @@ private: // メンバ変数
 		XMFLOAT3 Rotation;
 		bool bulFlag = false;
 		bool bulShotFlag = false;
+		int type = 0;
 	};
 	EnemyBullet eBullet[50];
 
@@ -154,7 +161,8 @@ private: // メンバ変数
 	int		 enemyBulCount = 20;
 	XMFLOAT3 plVelocity = { 0,0,0 };
 	XMFLOAT3 virVelocity = { 0,0,0 };
-	bool	 enemyAlive = false;
+	bool	 bossAlive = true;
+	bool	 oldBossAlive = true;
 	int      enemyTimer = 0;
 	int		 timing = 75;
 	bool	 isJump = false;
@@ -202,10 +210,33 @@ private: // メンバ変数
 	int  firstBossHP = 0;
 	int  playerHP = 1;
 
+	int bossAttack = 0;
+
+	//イージング用
+	const float  maxTime = 180.0f;//全体時間
+	//イージングの進行度用
+	float nowCount = 0.0f;
+	float timeRate = 0.0f;
+	bool isEase = false;
+
+	const float titleFirstEyeY = 20;
+	const float titleFirstEyeZ = -30;
+
+	XMFLOAT3 titleEye = { 0,20,-30 };
+	XMFLOAT3 titleTarget = { 0,2, 40 };
+
+	XMFLOAT3 partVelocity = { 0,0,0 };
+
+	int partVelocityx[50] = { 0 };
+	int partVelocityy[50] = { 0 };
+	int partVelocityz[50] = { 0 };
+	XMFLOAT3 partPos[50] = {};
+
+	int clearTimer = 0;
 
 
 	XMFLOAT3 cameraPos = { 0,0,0 };
-	float cameraPosZ = 30.0f;
+	float	 cameraPosZ = 30.0f;
 
 	// ゲームシーン用
 	Camera* camera = nullptr;
@@ -229,6 +260,7 @@ private: // メンバ変数
 	ReadModel* modelCity = nullptr;
 	ReadModel* modelcowgirl = nullptr;
 	ReadModel* modelBox = nullptr;
+	ReadModel* modelFire = nullptr;
 
 	Object3d* objSkydome = nullptr;
 	Object3d* objGround = nullptr;
@@ -237,6 +269,7 @@ private: // メンバ変数
 	Object3d* objFighter3 = nullptr;
 	Object3d* objBul[50] = { nullptr };
 	Object3d* objEnemyBul[50] = { nullptr };
+	Object3d* particleObject[50] = { nullptr };
 	Object3d* bossEnemy = nullptr;
 	Object3d* objCity = nullptr;
 

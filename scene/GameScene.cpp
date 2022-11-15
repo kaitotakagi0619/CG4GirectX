@@ -45,6 +45,10 @@ GameScene::~GameScene()
 	{
 		safe_delete(objEnemyBul[i]);
 	}
+	for (int i = 0; i < _countof(particleObject); i++)
+	{
+		safe_delete(particleObject[i]);
+	}
 	for (int i = 0; i < map_max_x; i++)
 	{
 		for (int j = 0; j < map_max_y; j++)
@@ -73,6 +77,7 @@ GameScene::~GameScene()
 	safe_delete(modelSphere);
 	safe_delete(modelCity);
 	safe_delete(modelBox);
+	safe_delete(modelFire);
 
 	//fbxのdelete
 	safe_delete(fbxModel1);
@@ -278,6 +283,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	modelCity =		ReadModel::CreateFromOBJ("city", true);
 	modelcowgirl =	ReadModel::CreateFromOBJ("cowgirl", true);
 	modelBox =		ReadModel::CreateFromOBJ("block",true);
+	modelFire =		ReadModel::CreateFromOBJ("fire",true);
 
 	Mapchip::CsvToVector(map, "Resources/csv/map1.csv");//mapNum=0
 
@@ -299,6 +305,13 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 			objBlock[y][x]->SetScale({ 0.2f,0.2f,0.2f });
 			objBlock[y][x]->SetPosition({ 1000.0f,1000.0f,0.0f });
 		}
+	}
+
+	for (int i = 0; i < _countof(particleObject); i++)
+	{
+		particleObject[i] = Object3d::Create(modelFire);;
+		particleObject[i]->SetScale({0.2f,0.2f,0.2f});
+		particleObject[i]->SetPosition({ 1000.0f,1000.0f,0.0f });
 	}
 
 	objFighter->SetPosition({ 0,2,30 });
@@ -394,6 +407,7 @@ void GameScene::Update()
 		eBullet[i].Pos = objEnemyBul[i]->GetPosition();
 		eBullet[i].Size = objEnemyBul[i]->GetScale();
 	}
+	//タイトルシーン
 	if (SceneNum == Title)
 	{
 		objFighter->SetPosition({ 0,2,30 });
@@ -438,7 +452,7 @@ void GameScene::Update()
 		enemyBulCount = 20;
 		plVelocity = { 0,0,0 };
 		virVelocity = { 0,0,0 };
-		enemyAlive = false;
+		bossAlive = true;
 		enemyTimer = 0;
 		timing = 75;
 		isJump = false;
@@ -456,6 +470,8 @@ void GameScene::Update()
 		maxMagazine = 20;
 		enemyAttackCounter = 0;
 
+		clearTimer = 0;
+
 		selectAttack = 0;
 		enemySinpleAttack = false;
 		enemyTripleAttack = false;
@@ -468,14 +484,39 @@ void GameScene::Update()
 		firstBossHP = 20;
 		playerHP = 4;
 
+
 		if (input->TriggerKey(DIK_RETURN))
 		{
-			SceneNum = Game;
-			CircularMotionUD(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleY, +1);
-			CircularMotionLR(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleX, +1);
-			CircularMotionUD(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleY, +1);
-			CircularMotionLR(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleX, +1);
+			isEase = true;
 		}
+		if (isEase == true)
+		{
+			timeRate = nowCount / maxTime;
+
+			titleEye.y = static_cast<float>(Ease::easeIn(titleFirstEyeY, playerPos.y, timeRate));
+			titleEye.z = static_cast<float>(Ease::easeIn(titleFirstEyeZ, playerPos.z, timeRate));
+
+			//イージングのカウント
+			nowCount++;
+
+			//カウントダウンがマックスならbattleに移る
+			if (nowCount > maxTime) {
+				SceneNum = Game;
+				CircularMotionUD(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleY, +1);
+				CircularMotionLR(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleX, +1);
+				CircularMotionUD(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleY, +1);
+				CircularMotionLR(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleX, +1);
+				nowCount = 0.0f;
+				timeRate = 0.0f;
+
+				titleEye = { 0,20,-30 };
+				titleTarget = { 0,2, 40 };
+				isEase = false;
+			}
+		}
+		camera->SetEye(titleEye);
+		camera->SetTarget(titleTarget);
+		camera->Update();
 	}
 
 	if (SceneNum == Game)
@@ -483,6 +524,7 @@ void GameScene::Update()
 		oldPlayerPos = playerPos;
 		oldTargetCameraPos = targetCameraPos;
 		oldVirCameraPos = virCameraPos;
+		oldBossAlive = bossAlive;
 		Audio::GetInstance()->PlayWave("BGM/bgm.wav", 0.03, true);
 		Audio::GetInstance()->PlayWave("SE/enter.wav", 0.03, false);
 		if (timing > 1)
@@ -798,7 +840,7 @@ void GameScene::Update()
 				&& (bossPos.x + playerScale.x > bullet[i].Pos.x - bullet[i].Size.x)
 				&& (bossPos.z - playerScale.z < bullet[i].Pos.z + bullet[i].Size.z)
 				&& (bossPos.z + playerScale.z > bullet[i].Pos.z - bullet[i].Size.z)
-				&& (enemyAlive == true);
+				&& (bossAlive == true);
 			{
 				if (bossHit)
 				{
@@ -806,8 +848,6 @@ void GameScene::Update()
 					objBul[i]->SetPosition({ +1000,-10,1000 });
 					bullet[i].Pos = objBul[i]->GetPosition();
 					bullet[i].Size = objBul[i]->GetScale();
-					//SceneNum = Win;
-					//enemyAlive = false;
 				}
 			}
 		}
@@ -816,27 +856,54 @@ void GameScene::Update()
 
 		if (firstBossHP <= 0)
 		{
-			enemyAlive = false;
+			bossAlive = false;
 		}
 
-		if (enemyAlive == false)
+		//if (bossAlive == false)
+		//{
+		//	enemyTimer++;
+		//}
+
+		//if (enemyTimer > 120)
+		//{
+		//	bossAlive = true;
+		//	firstBossHP = 20;
+		//	enemySinpleAttack = false;
+		//	enemyTripleAttack = false;
+		//	enemyHomingAttack = false;
+		//	/*enemyAttackCounter = 0;*/
+		//	enemyTimer = 0;
+		//}
+
+		for (int i = 0; i < _countof(particleObject); i++)
 		{
-			enemyTimer++;
+			partPos[i] = particleObject[i]->GetPosition();
+			if (bossAlive == false && oldBossAlive == true)
+			{
+				particleObject[i]->SetPosition({ bossPos });
+				partVelocityx[i] = rand() % 10 - 5;
+				partVelocityy[i] = rand() % 10 - 5;
+				partVelocityz[i] = rand() % 10 - 5;
+			}
+			if (bossAlive == false && oldBossAlive == false)
+			{
+				partPos[i].x += static_cast<float>(partVelocityx[i]) / 10;
+				partPos[i].y += static_cast<float>(partVelocityy[i]) / 10;
+				partPos[i].z += static_cast<float>(partVelocityz[i]) / 10;
+				particleObject[i]->SetPosition({ partPos[i]});
+			}
 		}
 
-		if (enemyTimer > 120)
+		if (bossAlive == false && oldBossAlive == false)
 		{
-			enemyAlive = true;
-			firstBossHP = 20;
-			enemySinpleAttack = false;
-			enemyTripleAttack = false;
-			enemyHomingAttack = false;
-			/*enemyAttackCounter = 0;*/
-			enemyTimer = 0;
+			clearTimer++;
 		}
-
+		if (clearTimer > 240)
+		{
+			SceneNum = Title;
+		}
 		//敵の行動
-		if (enemyAlive == true)
+		if (bossAlive == true)
 		{
 			enemyAttackCounter++;
 			if (enemyMove < 320 && isPlus)
@@ -910,15 +977,23 @@ void GameScene::Update()
 			enemyAttackCounter = 0;
 			selectAttack = 0;
 		}
+		else if (selectAttack < 75 && selectAttack != 0)
+		{
+			enemyTripleAttack = true;
+			enemyAttackCounter = 0;
+			selectAttack = 0;
+		}
+
 
 		if (enemySinpleAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			eBullet[enemyBulCount].bulFlag = true;
+			eBullet[enemyBulCount].type = 1;
 			enemyBulCount++;
 			enemySinpleAttack = false;
 		}
 
-		if (eBullet[enemyBulCount - 1].bulFlag == true)
+		if (eBullet[enemyBulCount - 1].bulFlag == true && eBullet[enemyBulCount - 1].type == 1)
 		{
 			eBullet[enemyBulCount - 1].Pos = bossPos;
 			eBullet[enemyBulCount - 1].bulShotFlag = true;
@@ -928,30 +1003,42 @@ void GameScene::Update()
 		if (enemyTripleAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			eBullet[enemyBulCount].bulFlag = true;
+			eBullet[enemyBulCount].type = 1;
 			eBullet[enemyBulCount + 1].bulFlag = true;
+			eBullet[enemyBulCount + 1].type = 1;
 			eBullet[enemyBulCount + 2].bulFlag = true;
+			eBullet[enemyBulCount + 2].type = 1;
 			enemyBulCount += 3;
 			enemyTripleAttack = false;
 		}
 
-		if (eBullet[enemyBulCount - 1].bulFlag == true)
+		if (eBullet[enemyBulCount - 1].bulFlag == true
+			&& eBullet[enemyBulCount - 2].bulFlag == true
+			&& eBullet[enemyBulCount - 3].bulFlag == true)
 		{
 			eBullet[enemyBulCount - 1].Pos = bossPos;
+			eBullet[enemyBulCount - 1].Pos.x = bossPos.x - 2;
 			eBullet[enemyBulCount - 1].bulShotFlag = true;
 			eBullet[enemyBulCount - 1].bulFlag = false;
-			eBullet[enemyBulCount].Pos = bossPos;
-			eBullet[enemyBulCount].bulShotFlag = true;
-			eBullet[enemyBulCount].bulFlag = false;
-			eBullet[enemyBulCount + 1].Pos = bossPos;
-			eBullet[enemyBulCount + 1].bulShotFlag = true;
-			eBullet[enemyBulCount + 1].bulFlag = false;
+
+			eBullet[enemyBulCount - 2].Pos = bossPos;
+			eBullet[enemyBulCount - 2].bulShotFlag = true;
+			eBullet[enemyBulCount - 2].bulFlag = false;
+
+			eBullet[enemyBulCount - 3].Pos = bossPos;
+			eBullet[enemyBulCount - 3].Pos.x = bossPos.x + 2;
+			eBullet[enemyBulCount - 3].bulShotFlag = true;
+			eBullet[enemyBulCount - 3].bulFlag = false;
 		}
 
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
-			if (eBullet[i].bulShotFlag == true)
+			if (eBullet[i].type == 1)
 			{
-				eBullet[i].Pos.z += -0.2;
+				if (eBullet[i].bulShotFlag == true)
+				{
+					eBullet[i].Pos.z += -0.2;
+				}
 			}
 			if ((eBullet[i].Pos.z > 400) || (eBullet[i].Pos.z < -400)
 				|| (eBullet[i].Pos.x > 400) || (eBullet[i].Pos.x < -400))
@@ -1060,6 +1147,10 @@ void GameScene::Update()
 	{
 		objEnemyBul[i]->Update();
 	}
+	for (int i = 0; i < _countof(particleObject); i++)
+	{
+		particleObject[i]->Update();
+	}
 	light->Update();
 	fbxObject1->Update();
 }
@@ -1093,11 +1184,18 @@ void GameScene::Draw()
 	// 3Dオブジェクトの描画
 	//objGround->Draw();
 	//objCity->Draw();
-	objFighter2->Draw();
-	if (enemyAlive == true)
+	//objFighter2->Draw();
+	if (bossAlive == true)
 	{
 		//objFighter2->Draw();
 		bossEnemy->Draw();
+	}
+	if (bossAlive == false)
+	{
+		for (int i = 0; i < _countof(particleObject); i++)
+		{
+			particleObject[i]->Draw();
+		}
 	}
 	for (int i = 0; i < _countof(objBul); i++)
 	{
@@ -1131,7 +1229,7 @@ void GameScene::Draw()
 	//spriteBG->Draw();
 	// デバッグテキストの描画
 	sprite[0]->Draw();
-	if (SceneNum == Title)
+	if (SceneNum == Title && isEase == false)
 	{
 		sprite[1]->Draw();
 	}
@@ -1153,7 +1251,7 @@ void GameScene::Draw()
 		{
 			spriteLife[i]->Draw();
 		}
-		if (enemyAlive == 1)
+		if (bossAlive == 1)
 		{
 			spritebossHPFrame->Draw();
 			spritebossHP->Draw();
