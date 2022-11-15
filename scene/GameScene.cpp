@@ -1064,10 +1064,10 @@ void GameScene::Update()
 
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
-			bool playerHit = (playerPos.x - playerScale.x < eBullet[i].Pos.x + eBullet[i].Size.x)
-				&& (playerPos.x + playerScale.x > eBullet[i].Pos.x - eBullet[i].Size.x)
-				&& (playerPos.z - playerScale.z < eBullet[i].Pos.z + eBullet[i].Size.z)
-				&& (playerPos.z + playerScale.z > eBullet[i].Pos.z - eBullet[i].Size.z)
+			bool playerHit = (playerPos.x - (playerScale.x / 3) < eBullet[i].Pos.x + eBullet[i].Size.x)
+				&& (playerPos.x +			(playerScale.x / 3) > eBullet[i].Pos.x - eBullet[i].Size.x)
+				&& (playerPos.z -			(playerScale.z / 3) < eBullet[i].Pos.z + eBullet[i].Size.z)
+				&& (playerPos.z +			(playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
 				&& (isAlive == true);
 			{
 				if (playerHit)
