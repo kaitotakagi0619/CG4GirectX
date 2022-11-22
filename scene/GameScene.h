@@ -202,7 +202,10 @@ private: // メンバ変数
 	bool enemySinpleAttack = false;
 	bool enemyTripleAttack = false;
 	bool enemyHomingAttack = false;
+	bool isParticle = false;
+	bool setParticle = false;
 	bool enemyIsAttack = false;
+	int partTimer = 0;
 
 	int  enemyMove = 0;
 	bool isPlus = true;
@@ -231,6 +234,7 @@ private: // メンバ変数
 	int partVelocityy[50] = { 0 };
 	int partVelocityz[50] = { 0 };
 	XMFLOAT3 partPos[50] = {};
+	XMFLOAT3 partPos2[50] = {};
 
 	int clearTimer = 0;
 
@@ -261,6 +265,7 @@ private: // メンバ変数
 	ReadModel* modelcowgirl = nullptr;
 	ReadModel* modelBox = nullptr;
 	ReadModel* modelFire = nullptr;
+	ReadModel* modelRed = nullptr;
 
 	Object3d* objSkydome = nullptr;
 	Object3d* objGround = nullptr;
@@ -272,6 +277,7 @@ private: // メンバ変数
 	Object3d* particleObject[50] = { nullptr };
 	Object3d* bossEnemy = nullptr;
 	Object3d* objCity = nullptr;
+	Object3d* redParticleObject[50] = { nullptr };
 
 	//FBX実装
 	FbxModel* fbxModel1 = nullptr;

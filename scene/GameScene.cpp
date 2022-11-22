@@ -49,6 +49,10 @@ GameScene::~GameScene()
 	{
 		safe_delete(particleObject[i]);
 	}
+	for (int i = 0; i < _countof(redParticleObject); i++)
+	{
+		safe_delete(redParticleObject[i]);
+	}
 	for (int i = 0; i < map_max_x; i++)
 	{
 		for (int j = 0; j < map_max_y; j++)
@@ -78,6 +82,7 @@ GameScene::~GameScene()
 	safe_delete(modelCity);
 	safe_delete(modelBox);
 	safe_delete(modelFire);
+	safe_delete(modelRed);
 
 	//fbxのdelete
 	safe_delete(fbxModel1);
@@ -225,11 +230,11 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	spritebossHPFrame = Sprite::Create(19, { 0.0f,0.0f });
 	reloadText = Sprite::Create(20, { 0.0f,0.0f });
 	diedText = Sprite::Create(22, { 0.0f,0.0f });
-	diedText->SetPosition({ WinApp::window_width  / 2 - 254,WinApp::window_height / 2 - 38 });
+	diedText->SetPosition({ WinApp::window_width / 2 - 254,WinApp::window_height / 2 - 38 });
 	diedText->SetColor(color);
 	for (int i = 0; i < _countof(spriteLife); i++)
 	{
-		spriteLife[i] = Sprite::Create(21, { 0.0f,0.0f});
+		spriteLife[i] = Sprite::Create(21, { 0.0f,0.0f });
 	}
 	for (int i = 0; i < _countof(spriteLife); i++)
 	{
@@ -275,15 +280,16 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	// テクスチャ2番に読み込み
 
 	// モデル読み込み
-	modelSkydome =	ReadModel::CreateFromOBJ("skydome");
-	modelGround =	ReadModel::CreateFromOBJ("ground");
-	modelFighter =	ReadModel::CreateFromOBJ("chr_sword");
+	modelSkydome = ReadModel::CreateFromOBJ("skydome");
+	modelGround = ReadModel::CreateFromOBJ("ground");
+	modelFighter = ReadModel::CreateFromOBJ("chr_sword");
 	modelFighter2 = ReadModel::CreateFromOBJ("chr_sword");
-	modelSphere =	ReadModel::CreateFromOBJ("sphere2", true);
-	modelCity =		ReadModel::CreateFromOBJ("city", true);
-	modelcowgirl =	ReadModel::CreateFromOBJ("cowgirl", true);
-	modelBox =		ReadModel::CreateFromOBJ("block",true);
-	modelFire =		ReadModel::CreateFromOBJ("fire",true);
+	modelSphere = ReadModel::CreateFromOBJ("sphere2", true);
+	modelCity = ReadModel::CreateFromOBJ("city", true);
+	modelcowgirl = ReadModel::CreateFromOBJ("cowgirl", true);
+	modelBox = ReadModel::CreateFromOBJ("block", true);
+	modelFire = ReadModel::CreateFromOBJ("fire", true);
+	modelRed = ReadModel::CreateFromOBJ("red", true);
 
 	Mapchip::CsvToVector(map, "Resources/csv/map1.csv");//mapNum=0
 
@@ -309,9 +315,16 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 	for (int i = 0; i < _countof(particleObject); i++)
 	{
-		particleObject[i] = Object3d::Create(modelFire);;
-		particleObject[i]->SetScale({0.2f,0.2f,0.2f});
+		particleObject[i] = Object3d::Create(modelFire);
+		particleObject[i]->SetScale({ 0.2f,0.2f,0.2f });
 		particleObject[i]->SetPosition({ 1000.0f,1000.0f,0.0f });
+	}
+
+	for (int i = 0; i < _countof(redParticleObject); i++)
+	{
+		redParticleObject[i] = Object3d::Create(modelRed);
+		redParticleObject[i]->SetScale({ 0.05f,0.05f,0.05f });
+		redParticleObject[i]->SetPosition({ 1000.0f,1000.0f,0.0f });
 	}
 
 	objFighter->SetPosition({ 0,2,30 });
@@ -374,7 +387,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 void GameScene::Update()
 {
-	SetCursorPos(640,400);
+	SetCursorPos(640, 400);
 	CreateLight();
 	//各種変数関係
 	MapCreate(0);
@@ -386,7 +399,7 @@ void GameScene::Update()
 		}
 	}
 	Input::MouseMove mouseMove = input->GetMouseMove();
-	mousePos = { (float)mouseMove.lX / 50,(float)mouseMove.lY / 50};
+	mousePos = { (float)mouseMove.lX / 50,(float)mouseMove.lY / 50 };
 	playerPos = objFighter->GetPosition();
 	bossPos = bossEnemy->GetPosition();
 	playerScale = objFighter->GetScale();
@@ -469,6 +482,9 @@ void GameScene::Update()
 		isReload = false;
 		maxMagazine = 20;
 		enemyAttackCounter = 0;
+		isParticle = false;
+		setParticle = false;
+		partTimer = 0;
 
 		clearTimer = 0;
 
@@ -536,8 +552,8 @@ void GameScene::Update()
 			timing = 60;
 		}
 
-		sprite[4]->SetPosition({ (WinApp::window_width / 2) - (4 * (float)timing + 32),WinApp::window_height - 160});
-		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height - 160});
+		sprite[4]->SetPosition({ (WinApp::window_width / 2) - (4 * (float)timing + 32),WinApp::window_height - 160 });
+		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height - 160 });
 
 		//sprite[0]->SetPosition({ mousePos.x,mousePos.y });
 		if (isAlive == true)
@@ -720,7 +736,7 @@ void GameScene::Update()
 				bullet[i].Pos.z += (plVelocity.z / 2);
 			}
 			if ((bullet[i].Pos.z > 400) || (bullet[i].Pos.z < -400)
-				|| (bullet[i].Pos.x > 400)|| (bullet[i].Pos.x < -400))
+				|| (bullet[i].Pos.x > 400) || (bullet[i].Pos.x < -400))
 			{
 				bullet[i].Pos = { +1000,-10,1000 };
 				bullet[i].bulShotFlag = false;
@@ -848,11 +864,47 @@ void GameScene::Update()
 					objBul[i]->SetPosition({ +1000,-10,1000 });
 					bullet[i].Pos = objBul[i]->GetPosition();
 					bullet[i].Size = objBul[i]->GetScale();
+					setParticle = true;
 				}
 			}
 		}
 
-		spritebossHP->SetSize({ 34.7f * (float)firstBossHP , 20});
+
+		if (setParticle == true)
+		{
+			for (int i = 0; i < _countof(redParticleObject); i++)
+			{
+				redParticleObject[i]->SetPosition({ bossPos });
+				partPos2[i] = redParticleObject[i]->GetPosition();
+				partVelocityx[i] = rand() % 10 - 5;
+				partVelocityy[i] = rand() % 10 - 5;
+				partVelocityz[i] = rand() % 10 - 5;
+			}
+			isParticle = true;
+			setParticle = false;
+		}
+		if (isParticle == true)
+		{
+			for (int i = 0; i < _countof(redParticleObject); i++)
+			{
+				partPos2[i].x += static_cast<float>(partVelocityx[i]) / 100;
+				partPos2[i].y += static_cast<float>(partVelocityy[i]) / 100;
+				partPos2[i].z += static_cast<float>(partVelocityz[i]) / 100;
+				redParticleObject[i]->SetPosition({ partPos2[i] });
+			}
+		}
+
+		if (isParticle == true)
+		{
+			partTimer++;
+			if (partTimer > 120)
+			{
+				isParticle = false;
+				partTimer = 0;
+			}
+		}
+
+		spritebossHP->SetSize({ 34.7f * (float)firstBossHP , 20 });
 
 		if (firstBossHP <= 0)
 		{
@@ -877,10 +929,10 @@ void GameScene::Update()
 
 		for (int i = 0; i < _countof(particleObject); i++)
 		{
-			partPos[i] = particleObject[i]->GetPosition();
 			if (bossAlive == false && oldBossAlive == true)
 			{
 				particleObject[i]->SetPosition({ bossPos });
+				partPos[i] = particleObject[i]->GetPosition();
 				partVelocityx[i] = rand() % 10 - 5;
 				partVelocityy[i] = rand() % 10 - 5;
 				partVelocityz[i] = rand() % 10 - 5;
@@ -890,7 +942,7 @@ void GameScene::Update()
 				partPos[i].x += static_cast<float>(partVelocityx[i]) / 10;
 				partPos[i].y += static_cast<float>(partVelocityy[i]) / 10;
 				partPos[i].z += static_cast<float>(partVelocityz[i]) / 10;
-				particleObject[i]->SetPosition({ partPos[i]});
+				particleObject[i]->SetPosition({ partPos[i] });
 			}
 		}
 
@@ -1065,9 +1117,9 @@ void GameScene::Update()
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
 			bool playerHit = (playerPos.x - (playerScale.x / 3) < eBullet[i].Pos.x + eBullet[i].Size.x)
-				&& (playerPos.x +			(playerScale.x / 3) > eBullet[i].Pos.x - eBullet[i].Size.x)
-				&& (playerPos.z -			(playerScale.z / 3) < eBullet[i].Pos.z + eBullet[i].Size.z)
-				&& (playerPos.z +			(playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
+				&& (playerPos.x + (playerScale.x / 3) > eBullet[i].Pos.x - eBullet[i].Size.x)
+				&& (playerPos.z - (playerScale.z / 3) < eBullet[i].Pos.z + eBullet[i].Size.z)
+				&& (playerPos.z + (playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
 				&& (isAlive == true);
 			{
 				if (playerHit)
@@ -1130,6 +1182,8 @@ void GameScene::Update()
 		fbxObject1->AnimationFlag = true;
 	}
 
+	objGround->SetPosition({ 0,1,0 });
+
 	particleMan->Update();
 
 	objSkydome->Update();
@@ -1150,6 +1204,10 @@ void GameScene::Update()
 	for (int i = 0; i < _countof(particleObject); i++)
 	{
 		particleObject[i]->Update();
+	}
+	for (int i = 0; i < _countof(redParticleObject); i++)
+	{
+		redParticleObject[i]->Update();
 	}
 	light->Update();
 	fbxObject1->Update();
@@ -1182,7 +1240,7 @@ void GameScene::Draw()
 	Object3d::PreDraw(cmdList);
 	objSkydome->Draw();
 	// 3Dオブジェクトの描画
-	//objGround->Draw();
+	objGround->Draw();
 	//objCity->Draw();
 	//objFighter2->Draw();
 	if (bossAlive == true)
@@ -1204,6 +1262,13 @@ void GameScene::Draw()
 	for (int i = 0; i < _countof(objEnemyBul); i++)
 	{
 		objEnemyBul[i]->Draw();
+	}
+	if (isParticle == true)
+	{
+		for (int i = 0; i < _countof(redParticleObject); i++)
+		{
+			redParticleObject[i]->Draw();
+		}
 	}
 	//マップチップの描画
 	for (int y = 0; y < map_max_y; y++)
@@ -1389,7 +1454,7 @@ void GameScene::MapCreate(int mapNumber)
 	}
 }
 
-bool GameScene::MapCollide(XMFLOAT3& playerPos,const XMFLOAT3& blockPos)
+bool GameScene::MapCollide(XMFLOAT3& playerPos, const XMFLOAT3& blockPos)
 {
 	if ((playerPos.x - (playerScale.x / 2) < blockPos.x + (LAND_SCALE / 2))
 		&& (playerPos.x + (playerScale.x / 2) > blockPos.x - (LAND_SCALE / 2))
@@ -1400,6 +1465,6 @@ bool GameScene::MapCollide(XMFLOAT3& playerPos,const XMFLOAT3& blockPos)
 	}
 	else
 	{
-	return false;
+		return false;
 	}
 }
