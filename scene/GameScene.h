@@ -139,6 +139,7 @@ private: // メンバ変数
 		XMFLOAT3 Pos;
 		XMFLOAT3 Size;
 		XMFLOAT3 Rotation;
+		XMFLOAT3 velocity;
 		bool bulFlag = false;
 		bool bulShotFlag = false;
 		int type = 0;
@@ -205,6 +206,7 @@ private: // メンバ変数
 	bool isParticle = false;
 	bool setParticle = false;
 	bool enemyIsAttack = false;
+	bool attackAnimation = false;
 	int partTimer = 0;
 
 	int  enemyMove = 0;

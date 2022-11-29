@@ -462,7 +462,7 @@ void GameScene::Update()
 		virCameraPos = objFighter3->GetPosition();
 		centerPos = { 0, 2, 50 };
 		bulCount = 30;
-		enemyBulCount = 20;
+		enemyBulCount = 1;
 		plVelocity = { 0,0,0 };
 		virVelocity = { 0,0,0 };
 		bossAlive = true;
@@ -1014,29 +1014,40 @@ void GameScene::Update()
 			{
 				bossPos.x += 0.1;
 			}
+
+
+
+			//---------------------ここから攻撃選定と前処理----------------------//
+
+			//攻撃選定
+			if (enemyAttackCounter >= 59 && attackAnimation == false)
+			{
+				selectAttack = rand() % 100;
+				enemyAttackCounter = 0;
+			}
+
+			if (selectAttack < 50 && selectAttack != 0)
+			{
+				enemySinpleAttack = true;
+				enemyAttackCounter = 0;
+				selectAttack = 0;
+			}
+			else if (selectAttack < 75 && selectAttack != 0)
+			{
+				enemyTripleAttack = true;
+				enemyAttackCounter = 0;
+				selectAttack = 0;
+			}
+			else if (selectAttack < 85 && selectAttack != 0)
+			{
+				enemyHomingAttack = true;
+				enemyAttackCounter = 0;
+				selectAttack = 0;
+				attackAnimation = true;
+			}
 		}
 
-
-		if (enemyAttackCounter >= 59)
-		{
-			selectAttack = rand() % 100;
-			enemyAttackCounter = 0;
-		}
-
-		if (selectAttack < 50 && selectAttack != 0)
-		{
-			enemySinpleAttack = true;
-			enemyAttackCounter = 0;
-			selectAttack = 0;
-		}
-		else if (selectAttack < 75 && selectAttack != 0)
-		{
-			enemyTripleAttack = true;
-			enemyAttackCounter = 0;
-			selectAttack = 0;
-		}
-
-
+		//攻撃前処理
 		if (enemySinpleAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			eBullet[enemyBulCount].bulFlag = true;
@@ -1044,25 +1055,30 @@ void GameScene::Update()
 			enemyBulCount++;
 			enemySinpleAttack = false;
 		}
-
 		if (eBullet[enemyBulCount - 1].bulFlag == true && eBullet[enemyBulCount - 1].type == 1)
 		{
 			eBullet[enemyBulCount - 1].Pos = bossPos;
+			eBullet[enemyBulCount - 1].velocity.x = playerPos.x - bossPos.x;
+			eBullet[enemyBulCount - 1].velocity.z = playerPos.z - bossPos.z;
 			eBullet[enemyBulCount - 1].bulShotFlag = true;
 			eBullet[enemyBulCount - 1].bulFlag = false;
 		}
 
 		if (enemyTripleAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
-			eBullet[enemyBulCount].bulFlag = true;
-			eBullet[enemyBulCount].type = 1;
-			eBullet[enemyBulCount + 1].bulFlag = true;
-			eBullet[enemyBulCount + 1].type = 1;
-			eBullet[enemyBulCount + 2].bulFlag = true;
-			eBullet[enemyBulCount + 2].type = 1;
+			for (int i = enemyBulCount; i < (enemyBulCount + 3); i++)
+			{
+				eBullet[i].bulFlag = true;
+				eBullet[i].type = 1;
+				eBullet[i].velocity.x = playerPos.x - bossPos.x;
+				eBullet[i].velocity.z = playerPos.z - bossPos.z;
+			}
 			enemyBulCount += 3;
 			enemyTripleAttack = false;
 		}
+
+
+
 
 		if (eBullet[enemyBulCount - 1].bulFlag == true
 			&& eBullet[enemyBulCount - 2].bulFlag == true
@@ -1083,13 +1099,60 @@ void GameScene::Update()
 			eBullet[enemyBulCount - 3].bulFlag = false;
 		}
 
+		if (enemyHomingAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
+		{
+			for (int i = enemyBulCount; i < (enemyBulCount + 5); i++)
+			{
+				eBullet[i].bulFlag = true;
+				eBullet[i].type = 1;
+				eBullet[i].velocity.x = playerPos.x - bossPos.x;
+				eBullet[i].velocity.z = playerPos.z - bossPos.z;
+			}
+			enemyBulCount += 5;
+			attackAnimation = true;
+			enemyHomingAttack = false;
+		}
+
+		if (attackAnimation == true)
+		{
+			eBullet[enemyBulCount - 1].Pos = bossPos;
+			eBullet[enemyBulCount - 1].Pos.x = bossPos.x - 4;
+			eBullet[enemyBulCount - 1].bulShotFlag = true;
+			eBullet[enemyBulCount - 1].bulFlag = false;
+
+			eBullet[enemyBulCount - 2].Pos = bossPos;
+			eBullet[enemyBulCount - 2].Pos.x = bossPos.x - 2;
+			eBullet[enemyBulCount - 2].Pos.y = bossPos.y + 1;
+			eBullet[enemyBulCount - 2].bulShotFlag = true;
+			eBullet[enemyBulCount - 2].bulFlag = false;
+
+			eBullet[enemyBulCount - 3].Pos = bossPos;
+			eBullet[enemyBulCount - 3].Pos.y = bossPos.y + 2;
+			eBullet[enemyBulCount - 3].bulShotFlag = true;
+			eBullet[enemyBulCount - 3].bulFlag = false;
+
+			eBullet[enemyBulCount - 4].Pos = bossPos;
+			eBullet[enemyBulCount - 4].Pos.x = bossPos.x + 2;
+			eBullet[enemyBulCount - 4].Pos.y = bossPos.y + 1;
+			eBullet[enemyBulCount - 4].bulShotFlag = true;
+			eBullet[enemyBulCount - 4].bulFlag = false;
+
+			eBullet[enemyBulCount - 5].Pos = bossPos;
+			eBullet[enemyBulCount - 5].Pos.x = bossPos.x + 4;
+			eBullet[enemyBulCount - 5].bulShotFlag = true;
+			eBullet[enemyBulCount - 5].bulFlag = false;
+			attackAnimation = false;
+		}
+
+		//----------------ここから撃つ処理-----------------//
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
 			if (eBullet[i].type == 1)
 			{
 				if (eBullet[i].bulShotFlag == true)
 				{
-					eBullet[i].Pos.z += -0.2;
+					eBullet[i].Pos.x += eBullet[i].velocity.x / 40;
+					eBullet[i].Pos.z += eBullet[i].velocity.z / 40;
 				}
 			}
 			if ((eBullet[i].Pos.z > 400) || (eBullet[i].Pos.z < -400)
@@ -1110,6 +1173,11 @@ void GameScene::Update()
 				}
 			}
 		}
+
+		if (enemyBulCount > 45)
+		{
+			enemyBulCount = 1;
+		}
 		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
 		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
 		camera->Update();
@@ -1122,14 +1190,23 @@ void GameScene::Update()
 				&& (playerPos.z + (playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
 				&& (isAlive == true);
 			{
+				//ノックバック
 				if (playerHit)
 				{
 					hitTimer = 20;
-					playerPos.z -= 2;
+					playerPos.x -= (plVelocity.x / 10);
+					playerPos.z -= (plVelocity.z / 10);
+					targetCameraPos.x -= (plVelocity.x / 10);
+					targetCameraPos.z -= (plVelocity.z / 10);
+					virCameraPos.x -= (plVelocity.x / 10);
+					virCameraPos.z -= (plVelocity.z / 10);
 					playerHP--;
 					objEnemyBul[i]->SetPosition({ +1000,-10,1000 });
 					eBullet[i].Pos = objEnemyBul[i]->GetPosition();
 					eBullet[i].Size = objEnemyBul[i]->GetScale();
+					objFighter->SetPosition(playerPos);
+					objFighter2->SetPosition(targetCameraPos);
+					objFighter3->SetPosition(virCameraPos);
 					//SceneNum = Win;
 					//enemyAlive = false;
 				}
@@ -1338,6 +1415,7 @@ void GameScene::Draw()
 
 void GameScene::Move()
 {
+
 }
 
 void GameScene::CreateParticles()
