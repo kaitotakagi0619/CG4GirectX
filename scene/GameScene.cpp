@@ -485,6 +485,9 @@ void GameScene::Update()
 		isParticle = false;
 		setParticle = false;
 		partTimer = 0;
+		attackAnimation = false;
+		animeCount = 0;
+		fiveAttack = false;
 
 		clearTimer = 0;
 
@@ -1026,7 +1029,7 @@ void GameScene::Update()
 				enemyAttackCounter = 0;
 			}
 
-			if (selectAttack < 50 && selectAttack != 0)
+			/*if (selectAttack < 50 && selectAttack != 0)
 			{
 				enemySinpleAttack = true;
 				enemyAttackCounter = 0;
@@ -1037,8 +1040,8 @@ void GameScene::Update()
 				enemyTripleAttack = true;
 				enemyAttackCounter = 0;
 				selectAttack = 0;
-			}
-			else if (selectAttack < 85 && selectAttack != 0)
+			}*/
+			if (selectAttack < 85 && selectAttack != 0)
 			{
 				enemyHomingAttack = true;
 				enemyAttackCounter = 0;
@@ -1104,50 +1107,74 @@ void GameScene::Update()
 			for (int i = enemyBulCount; i < (enemyBulCount + 5); i++)
 			{
 				eBullet[i].bulFlag = true;
-				eBullet[i].type = 1;
+				eBullet[i].type = 2;
 				eBullet[i].velocity.x = playerPos.x - bossPos.x;
 				eBullet[i].velocity.z = playerPos.z - bossPos.z;
 			}
 			enemyBulCount += 5;
-			attackAnimation = true;
 			enemyHomingAttack = false;
+			fiveAttack = true;
 		}
 
-		if (attackAnimation == true)
+		if (fiveAttack == true)
 		{
-			eBullet[enemyBulCount - 1].Pos = bossPos;
-			eBullet[enemyBulCount - 1].Pos.x = bossPos.x - 4;
-			eBullet[enemyBulCount - 1].bulShotFlag = true;
-			eBullet[enemyBulCount - 1].bulFlag = false;
-
-			eBullet[enemyBulCount - 2].Pos = bossPos;
-			eBullet[enemyBulCount - 2].Pos.x = bossPos.x - 2;
-			eBullet[enemyBulCount - 2].Pos.y = bossPos.y + 1;
-			eBullet[enemyBulCount - 2].bulShotFlag = true;
-			eBullet[enemyBulCount - 2].bulFlag = false;
-
-			eBullet[enemyBulCount - 3].Pos = bossPos;
-			eBullet[enemyBulCount - 3].Pos.y = bossPos.y + 2;
-			eBullet[enemyBulCount - 3].bulShotFlag = true;
-			eBullet[enemyBulCount - 3].bulFlag = false;
-
-			eBullet[enemyBulCount - 4].Pos = bossPos;
-			eBullet[enemyBulCount - 4].Pos.x = bossPos.x + 2;
-			eBullet[enemyBulCount - 4].Pos.y = bossPos.y + 1;
-			eBullet[enemyBulCount - 4].bulShotFlag = true;
-			eBullet[enemyBulCount - 4].bulFlag = false;
-
-			eBullet[enemyBulCount - 5].Pos = bossPos;
-			eBullet[enemyBulCount - 5].Pos.x = bossPos.x + 4;
-			eBullet[enemyBulCount - 5].bulShotFlag = true;
-			eBullet[enemyBulCount - 5].bulFlag = false;
-			attackAnimation = false;
+			animeCount += 3;
+			if (animeCount == 60)
+			{
+				eBullet[enemyBulCount - 1].Pos = bossPos;
+				eBullet[enemyBulCount - 1].Pos.x = bossPos.x - 4;
+				eBullet[enemyBulCount - 1].bulShotFlag = true;
+				eBullet[enemyBulCount - 1].bulFlag = false;
+			}
+			if (animeCount == 120)
+			{
+				eBullet[enemyBulCount - 2].Pos = bossPos;
+				eBullet[enemyBulCount - 2].Pos.x = bossPos.x - 2;
+				eBullet[enemyBulCount - 2].Pos.y = bossPos.y + 1;
+				eBullet[enemyBulCount - 2].bulShotFlag = true;
+				eBullet[enemyBulCount - 2].bulFlag = false;
+			}
+			if (animeCount == 180)
+			{
+				eBullet[enemyBulCount - 3].Pos = bossPos;
+				eBullet[enemyBulCount - 3].Pos.y = bossPos.y + 2;
+				eBullet[enemyBulCount - 3].bulShotFlag = true;
+				eBullet[enemyBulCount - 3].bulFlag = false;
+			}
+			if (animeCount == 240)
+			{
+				eBullet[enemyBulCount - 4].Pos = bossPos;
+				eBullet[enemyBulCount - 4].Pos.x = bossPos.x + 2;
+				eBullet[enemyBulCount - 4].Pos.y = bossPos.y + 1;
+				eBullet[enemyBulCount - 4].bulShotFlag = true;
+				eBullet[enemyBulCount - 4].bulFlag = false;
+			}
+			if (animeCount == 300)
+			{
+				eBullet[enemyBulCount - 5].Pos = bossPos;
+				eBullet[enemyBulCount - 5].Pos.x = bossPos.x + 4;
+				eBullet[enemyBulCount - 5].bulShotFlag = true;
+				eBullet[enemyBulCount - 5].bulFlag = false;
+			}
+			if (animeCount == 360)
+			{
+				fiveAttack = false;
+				animeCount = 0;
+			}
 		}
 
 		//----------------ここから撃つ処理-----------------//
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
 			if (eBullet[i].type == 1)
+			{
+				if (eBullet[i].bulShotFlag == true)
+				{
+					eBullet[i].Pos.x += eBullet[i].velocity.x / 40;
+					eBullet[i].Pos.z += eBullet[i].velocity.z / 40;
+				}
+			}
+			else if (eBullet[i].type == 2 && fiveAttack == false)
 			{
 				if (eBullet[i].bulShotFlag == true)
 				{
@@ -1169,6 +1196,7 @@ void GameScene::Update()
 					{
 						eBullet[i].Pos = { +1000,-10,1000 };
 						eBullet[i].bulShotFlag = false;
+						attackAnimation = false;
 					}
 				}
 			}

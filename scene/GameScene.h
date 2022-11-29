@@ -207,6 +207,8 @@ private: // メンバ変数
 	bool setParticle = false;
 	bool enemyIsAttack = false;
 	bool attackAnimation = false;
+	bool fiveAttack = false;
+	int animeCount = 0;
 	int partTimer = 0;
 
 	int  enemyMove = 0;
