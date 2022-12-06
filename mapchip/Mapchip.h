@@ -7,7 +7,7 @@
 //マップのサイズ(基本は1)
 const int map_size = 1;
 //縦横の最大数(マップによって変更)
-const int map_max_x = 26, map_max_y = 26;
+const int map_max_x = 52, map_max_y = 52;
 
 class Mapchip
 {

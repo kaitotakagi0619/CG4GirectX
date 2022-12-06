@@ -291,7 +291,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	modelFire = ReadModel::CreateFromOBJ("fire", true);
 	modelRed = ReadModel::CreateFromOBJ("red", true);
 
-	Mapchip::CsvToVector(map, "Resources/csv/map1.csv");//mapNum=0
+	Mapchip::CsvToVector(map, "Resources/csv/bigmap.csv");//mapNum=0
 
 	// 3Dオブジェクト生成
 	objSkydome = Object3d::Create(modelSkydome);
@@ -468,6 +468,7 @@ void GameScene::Update()
 		bossAlive = true;
 		enemyTimer = 0;
 		timing = 75;
+		isJust = false;
 		isJump = false;
 		isJustJump = false;
 		isAlive = true;
@@ -488,8 +489,11 @@ void GameScene::Update()
 		attackAnimation = false;
 		animeCount = 0;
 		fiveAttack = false;
+		justCount = 0;
 
 		clearTimer = 0;
+		randUIX = 0;
+		randUIY = 0;
 
 		selectAttack = 0;
 		enemySinpleAttack = false;
@@ -502,11 +506,13 @@ void GameScene::Update()
 
 		firstBossHP = 20;
 		playerHP = 4;
+		skyBul = 0;
 
 
 		if (input->TriggerKey(DIK_RETURN))
 		{
 			isEase = true;
+			Audio::GetInstance()->PlayWave("SE/enter.wav", 0.3, false);
 		}
 		if (isEase == true)
 		{
@@ -544,8 +550,7 @@ void GameScene::Update()
 		oldTargetCameraPos = targetCameraPos;
 		oldVirCameraPos = virCameraPos;
 		oldBossAlive = bossAlive;
-		Audio::GetInstance()->PlayWave("BGM/bgm.wav", 0.03, true);
-		Audio::GetInstance()->PlayWave("SE/enter.wav", 0.03, false);
+		Audio::GetInstance()->PlayWave("BGM/bgm.wav", 0.1, true);
 		if (timing > 1)
 		{
 			timing--;
@@ -557,6 +562,46 @@ void GameScene::Update()
 
 		sprite[4]->SetPosition({ (WinApp::window_width / 2) - (4 * (float)timing + 32),WinApp::window_height - 160 });
 		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height - 160 });
+
+		if (isJust)
+		{
+			randUIX = 30;
+			randUIY = 30;
+			sprite[0]->SetSize({ 64.0f + randUIX,64.0f + randUIY });
+			sprite[0]->SetPosition({ spritePos.center.x - (32 + (randUIX / 2)),spritePos.center.y - (32 + (randUIY / 2)) });
+			spritebossHP->SetPosition({ 303 , 47 - (float)randUIY });
+			spritebossHPFrame->SetPosition({ 300 , 0 - (float)randUIY });
+			spriteNum[0]->SetPosition({ WinApp::window_width - 174 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
+			spriteNum[1]->SetPosition({ WinApp::window_width - 150 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
+			spriteNum[2]->SetPosition({ WinApp::window_width - 104 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
+			spriteNum[3]->SetPosition({ WinApp::window_width - 80 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
+			spriteMagazineUI->SetPosition({ WinApp::window_width - 256 + (float)randUIX,WinApp::window_height - 128 + (float)randUIY });
+			for (int i = 0; i < _countof(spriteLife); i++)
+			{
+				spriteLife[i]->SetPosition({ 100.0f + (i * 60) - (float)randUIX ,600.0f + (float)randUIY });
+			}
+			justCount++;
+			if (justCount > 10)
+			{
+				isJust = false;
+			}
+		}
+		else
+		{
+			sprite[0]->SetSize({ 64.0f,64.0f });
+			sprite[0]->SetPosition({ spritePos.center.x - 32,spritePos.center.y - 32 });
+			spritebossHP->SetPosition({ 303 , 47 });
+			spritebossHPFrame->SetPosition({ 300 , 0 });
+			spriteNum[0]->SetPosition({ WinApp::window_width - 174,WinApp::window_height - 112 });
+			spriteNum[1]->SetPosition({ WinApp::window_width - 150,WinApp::window_height - 112 });
+			spriteNum[2]->SetPosition({ WinApp::window_width - 104,WinApp::window_height - 64 });
+			spriteNum[3]->SetPosition({ WinApp::window_width - 80,WinApp::window_height - 64 });
+			spriteMagazineUI->SetPosition({ WinApp::window_width - 256,WinApp::window_height - 128 });
+			for (int i = 0; i < _countof(spriteLife); i++)
+			{
+				spriteLife[i]->SetPosition({ 100.0f + (i * 60),600.0f });
+			}
+		}
 
 		//sprite[0]->SetPosition({ mousePos.x,mousePos.y });
 		if (isAlive == true)
@@ -595,6 +640,7 @@ void GameScene::Update()
 				targetCameraPos.z += (plVelocity.z / 10);
 				virCameraPos.x += (plVelocity.x / 10);
 				virCameraPos.z += (plVelocity.z / 10);
+				isJust = true;
 			}
 			else if (input->PushKey(DIK_W))
 			{
@@ -616,6 +662,7 @@ void GameScene::Update()
 				targetCameraPos.z -= (plVelocity.z / 10);
 				virCameraPos.x -= (plVelocity.x / 10);
 				virCameraPos.z -= (plVelocity.z / 10);
+				isJust = true;
 			}
 			else if (input->PushKey(DIK_S))
 			{
@@ -637,6 +684,7 @@ void GameScene::Update()
 				targetCameraPos.z -= (virVelocity.z / 10);
 				virCameraPos.x -= (virVelocity.x / 10);
 				virCameraPos.z -= (virVelocity.z / 10);
+				isJust = true;
 			}
 			else if (input->PushKey(DIK_A))
 			{
@@ -658,6 +706,7 @@ void GameScene::Update()
 				targetCameraPos.z += (virVelocity.z / 10);
 				virCameraPos.x += (virVelocity.x / 10);
 				virCameraPos.z += (virVelocity.z / 10);
+				isJust = true;
 			}
 			else if (input->PushKey(DIK_D))
 			{
@@ -676,12 +725,16 @@ void GameScene::Update()
 			{
 				bullet[bulCount].bulFlag = true;
 				bulCount++;
+				if (timing > 55 || timing < 5)
+				{
+					isJust = true;
+				}
 			}
 			lastBul = 50 - bulCount;
 			spriteNum[0]->ChangeTex(lastBul / 10);
 			spriteNum[1]->ChangeTex(lastBul % 10);
 			spriteNum[2]->ChangeTex(maxMagazine / 10);
-			spriteNum[3]->ChangeTex(maxMagazine % 10);
+			spriteNum[3]->ChangeTex(skyBul);
 
 			//リロード
 			if ((input->TriggerKey(DIK_R) && timing > 55 && isReload == false)
@@ -692,6 +745,7 @@ void GameScene::Update()
 				reloadCount = 30;
 				justTiming = true;
 				isReload = true;
+				isJust = true;
 			}
 			else if ((input->TriggerKey(DIK_R) && isReload == false)
 				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isReload == false))
@@ -786,6 +840,7 @@ void GameScene::Update()
 				{
 					isJustJump = true;
 					jCount = jCountMax;
+					isJust = true;
 				}
 				else
 				{
@@ -960,62 +1015,65 @@ void GameScene::Update()
 		//敵の行動
 		if (bossAlive == true)
 		{
-			enemyAttackCounter++;
-			if (enemyMove < 320 && isPlus)
+			if (skyBul == 0)
 			{
-				enemyMove++;
-			}
-			if (enemyMove >= 320 && isPlus)
-			{
-				enemyMove = 0;
-			}
-			if (enemyMove < 40)
-			{
-				bossPos.x += 0.1;
-			}
+				enemyAttackCounter++;
+				if (enemyMove < 320 && isPlus)
+				{
+					enemyMove++;
+				}
+				if (enemyMove >= 320 && isPlus)
+				{
+					enemyMove = 0;
+				}
+				if (enemyMove < 40)
+				{
+					bossPos.x += 0.1;
+				}
 
-			if (enemyMove > 40 && enemyMove < 80)
-			{
-				bossPos.x -= 0.1;
-				bossPos.z += 0.1;
-			}
-			if (enemyMove > 80 && enemyMove < 120)
-			{
-				bossPos.x -= 0.1;
-				bossPos.z -= 0.1;
-			}
-			if (enemyMove > 120 && enemyMove < 140)
-			{
-				bossPos.x += 0.1;
-				bossPos.z -= 0.1;
-			}if (enemyMove > 140 && enemyMove < 160)
-			{
-				bossPos.x += 0.1;
-				bossPos.z += 0.1;
-			}
-			if (enemyMove > 160 && enemyMove < 180)
-			{
-				bossPos.x += 0.1;
-				bossPos.z -= 0.1;
-			}
-			if (enemyMove > 180 && enemyMove < 200)
-			{
-				bossPos.x += 0.1;
-				bossPos.z += 0.1;
-			}
-			if (enemyMove > 200 && enemyMove < 240)
-			{
-				bossPos.x -= 0.1;
-				bossPos.z += 0.1;
-			}
-			if (enemyMove > 240 && enemyMove < 280)
-			{
-				bossPos.x -= 0.1;
-				bossPos.z -= 0.1;
-			}
-			if (enemyMove > 280 && enemyMove < 320)
-			{
-				bossPos.x += 0.1;
+				if (enemyMove > 40 && enemyMove < 80)
+				{
+					bossPos.x -= 0.1;
+					bossPos.z += 0.1;
+				}
+				if (enemyMove > 80 && enemyMove < 120)
+				{
+					bossPos.x -= 0.1;
+					bossPos.z -= 0.1;
+				}
+				if (enemyMove > 120 && enemyMove < 140)
+				{
+					bossPos.x += 0.1;
+					bossPos.z -= 0.1;
+				}if (enemyMove > 140 && enemyMove < 160)
+				{
+					bossPos.x += 0.1;
+					bossPos.z += 0.1;
+				}
+				if (enemyMove > 160 && enemyMove < 180)
+				{
+					bossPos.x += 0.1;
+					bossPos.z -= 0.1;
+				}
+				if (enemyMove > 180 && enemyMove < 200)
+				{
+					bossPos.x += 0.1;
+					bossPos.z += 0.1;
+				}
+				if (enemyMove > 200 && enemyMove < 240)
+				{
+					bossPos.x -= 0.1;
+					bossPos.z += 0.1;
+				}
+				if (enemyMove > 240 && enemyMove < 280)
+				{
+					bossPos.x -= 0.1;
+					bossPos.z -= 0.1;
+				}
+				if (enemyMove > 280 && enemyMove < 320)
+				{
+					bossPos.x += 0.1;
+				}
 			}
 
 
@@ -1023,13 +1081,13 @@ void GameScene::Update()
 			//---------------------ここから攻撃選定と前処理----------------------//
 
 			//攻撃選定
-			if (enemyAttackCounter >= 59 && attackAnimation == false)
+			if (enemyAttackCounter >= 59)
 			{
 				selectAttack = rand() % 100;
 				enemyAttackCounter = 0;
 			}
 
-			/*if (selectAttack < 50 && selectAttack != 0)
+			if (selectAttack < 50 && selectAttack != 0)
 			{
 				enemySinpleAttack = true;
 				enemyAttackCounter = 0;
@@ -1040,13 +1098,12 @@ void GameScene::Update()
 				enemyTripleAttack = true;
 				enemyAttackCounter = 0;
 				selectAttack = 0;
-			}*/
-			if (selectAttack < 85 && selectAttack != 0)
+			}
+			else if (selectAttack < 85 && selectAttack != 0 && skyBul <= 4)
 			{
 				enemyHomingAttack = true;
 				enemyAttackCounter = 0;
 				selectAttack = 0;
-				attackAnimation = true;
 			}
 		}
 
@@ -1080,9 +1137,6 @@ void GameScene::Update()
 			enemyTripleAttack = false;
 		}
 
-
-
-
 		if (eBullet[enemyBulCount - 1].bulFlag == true
 			&& eBullet[enemyBulCount - 2].bulFlag == true
 			&& eBullet[enemyBulCount - 3].bulFlag == true)
@@ -1108,10 +1162,9 @@ void GameScene::Update()
 			{
 				eBullet[i].bulFlag = true;
 				eBullet[i].type = 2;
-				eBullet[i].velocity.x = playerPos.x - bossPos.x;
-				eBullet[i].velocity.z = playerPos.z - bossPos.z;
 			}
 			enemyBulCount += 5;
+			skyBul += 5;
 			enemyHomingAttack = false;
 			fiveAttack = true;
 		}
@@ -1158,6 +1211,11 @@ void GameScene::Update()
 			}
 			if (animeCount == 360)
 			{
+				for (int i = enemyBulCount - 5; i < enemyBulCount; i++)
+				{
+					eBullet[i].velocity.x = playerPos.x - bossPos.x;
+					eBullet[i].velocity.z = playerPos.z - bossPos.z;
+				}
 				fiveAttack = false;
 				animeCount = 0;
 			}
@@ -1179,30 +1237,41 @@ void GameScene::Update()
 				if (eBullet[i].bulShotFlag == true)
 				{
 					eBullet[i].Pos.x += eBullet[i].velocity.x / 40;
+					eBullet[i].Pos.y += eBullet[i].velocity.y / 40;
 					eBullet[i].Pos.z += eBullet[i].velocity.z / 40;
 				}
 			}
-			if ((eBullet[i].Pos.z > 400) || (eBullet[i].Pos.z < -400)
-				|| (eBullet[i].Pos.x > 400) || (eBullet[i].Pos.x < -400))
+			if (eBullet[i].bulShotFlag == true)
 			{
-				eBullet[i].Pos = { +1000,-10,1000 };
-				eBullet[i].bulShotFlag = false;
-			}
-			for (int y = 0; y < map_max_y; y++)
-			{
-				for (int x = 0; x < map_max_x; x++)
+				if ((eBullet[i].Pos.z > 400) || (eBullet[i].Pos.z < -400)
+					|| (eBullet[i].Pos.x > 400) || (eBullet[i].Pos.x < -400))
 				{
-					if (MapCollide(eBullet[i].Pos, objBlock[y][x]->GetPosition()))
+					if (skyBul > 0)
 					{
-						eBullet[i].Pos = { +1000,-10,1000 };
-						eBullet[i].bulShotFlag = false;
-						attackAnimation = false;
+						skyBul--;
+					}
+					eBullet[i].Pos = { +1000,-10,1000 };
+					eBullet[i].bulShotFlag = false;
+				}
+				for (int y = 0; y < map_max_y; y++)
+				{
+					for (int x = 0; x < map_max_x; x++)
+					{
+						if (MapCollide(eBullet[i].Pos, objBlock[y][x]->GetPosition()))
+						{
+							if (skyBul > 0)
+							{
+								skyBul--;
+							}
+							eBullet[i].Pos = { +1000,-10,1000 };
+							eBullet[i].bulShotFlag = false;
+						}
 					}
 				}
 			}
 		}
 
-		if (enemyBulCount > 45)
+		if (enemyBulCount > 42 && skyBul == 0)
 		{
 			enemyBulCount = 1;
 		}
@@ -1210,36 +1279,37 @@ void GameScene::Update()
 		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
 		camera->Update();
 
-		for (int i = 0; i < _countof(objEnemyBul); i++)
-		{
-			bool playerHit = (playerPos.x - (playerScale.x / 3) < eBullet[i].Pos.x + eBullet[i].Size.x)
-				&& (playerPos.x + (playerScale.x / 3) > eBullet[i].Pos.x - eBullet[i].Size.x)
-				&& (playerPos.z - (playerScale.z / 3) < eBullet[i].Pos.z + eBullet[i].Size.z)
-				&& (playerPos.z + (playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
-				&& (isAlive == true);
-			{
-				//ノックバック
-				if (playerHit)
-				{
-					hitTimer = 20;
-					playerPos.x -= (plVelocity.x / 10);
-					playerPos.z -= (plVelocity.z / 10);
-					targetCameraPos.x -= (plVelocity.x / 10);
-					targetCameraPos.z -= (plVelocity.z / 10);
-					virCameraPos.x -= (plVelocity.x / 10);
-					virCameraPos.z -= (plVelocity.z / 10);
-					playerHP--;
-					objEnemyBul[i]->SetPosition({ +1000,-10,1000 });
-					eBullet[i].Pos = objEnemyBul[i]->GetPosition();
-					eBullet[i].Size = objEnemyBul[i]->GetScale();
-					objFighter->SetPosition(playerPos);
-					objFighter2->SetPosition(targetCameraPos);
-					objFighter3->SetPosition(virCameraPos);
-					//SceneNum = Win;
-					//enemyAlive = false;
-				}
-			}
-		}
+		//for (int i = 0; i < _countof(objEnemyBul); i++)
+		//{
+		//	bool playerHit = (playerPos.x - (playerScale.x / 3) < eBullet[i].Pos.x + eBullet[i].Size.x)
+		//		&& (playerPos.x + (playerScale.x / 3) > eBullet[i].Pos.x - eBullet[i].Size.x)
+		//		&& (playerPos.z - (playerScale.z / 3) < eBullet[i].Pos.z + eBullet[i].Size.z)
+		//		&& (playerPos.z + (playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
+		//		&& (isAlive == true);
+		//	{
+		//		//ノックバック
+		//		if (playerHit)
+		//		{
+		//			hitTimer = 20;
+		//			playerPos.x -= (plVelocity.x / 10);
+		//			playerPos.z -= (plVelocity.z / 10);
+		//			targetCameraPos.x -= (plVelocity.x / 10);
+		//			targetCameraPos.z -= (plVelocity.z / 10);
+		//			virCameraPos.x -= (plVelocity.x / 10);
+		//			virCameraPos.z -= (plVelocity.z / 10);
+		//			objFighter->SetPosition(playerPos);
+		//			objFighter2->SetPosition(targetCameraPos);
+		//			objFighter3->SetPosition(virCameraPos);
+		//			playerHP--;
+		//			if (skyBul > 0)
+		//			{
+		//				skyBul--;
+		//			}
+		//			eBullet[i].Pos = { +1000,-10,1000 };
+		//			eBullet[i].bulShotFlag = false;
+		//		}
+		//	}
+		//}
 
 		if (playerHP <= 0)
 		{
@@ -1345,7 +1415,7 @@ void GameScene::Draw()
 	Object3d::PreDraw(cmdList);
 	objSkydome->Draw();
 	// 3Dオブジェクトの描画
-	objGround->Draw();
+	/*objGround->Draw();*/
 	//objCity->Draw();
 	//objFighter2->Draw();
 	if (bossAlive == true)
@@ -1550,7 +1620,7 @@ void GameScene::MapCreate(int mapNumber)
 			{
 				//位置と大きさの変更(今は大きさは変更しないで)
 				//objBlock[y][x]->SetScale({ LAND_SCALE, LAND_SCALE, LAND_SCALE });
-				objBlock[y][x]->SetPosition({ x * LAND_SCALE - 13,   2 , -y * LAND_SCALE + 50 });
+				objBlock[y][x]->SetPosition({ x * LAND_SCALE - 26,   2 , -y * LAND_SCALE + 50 });
 			}
 			else
 			{

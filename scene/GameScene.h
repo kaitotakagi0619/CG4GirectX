@@ -140,6 +140,7 @@ private: // メンバ変数
 		XMFLOAT3 Size;
 		XMFLOAT3 Rotation;
 		XMFLOAT3 velocity;
+		bool attackAnimation = false;
 		bool bulFlag = false;
 		bool bulShotFlag = false;
 		int type = 0;
@@ -166,6 +167,8 @@ private: // メンバ変数
 	bool	 oldBossAlive = true;
 	int      enemyTimer = 0;
 	int		 timing = 75;
+	bool	 isJust = false;
+	int		 justCount = 0;
 	bool	 isJump = false;
 	bool	 isJustJump = false;
 	bool	 isAlive = true;
@@ -210,6 +213,10 @@ private: // メンバ変数
 	bool fiveAttack = false;
 	int animeCount = 0;
 	int partTimer = 0;
+	int skyBul = 0;
+
+	int randUIX = 0;
+	int randUIY = 0;
 
 	int  enemyMove = 0;
 	bool isPlus = true;
