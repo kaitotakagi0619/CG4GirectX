@@ -10,7 +10,7 @@ Camera::Camera(int window_width, int window_height)
 	UpdateViewMatrix();
 
 	// 射影行列の計算
-	UpdateProjectionMatrix();
+	UpdateProjectionMatrix(viewMatrix);
 
 	// ビュープロジェクションの合成
 	matViewProjection = matView * matProjection;
@@ -32,7 +32,7 @@ void Camera::Update()
 		if (projectionDirty)
 		{
 			// ビュー行列更新
-			UpdateProjectionMatrix();
+			UpdateProjectionMatrix(viewMatrix);
 			projectionDirty = false;
 		}
 		// ビュープロジェクションの合成
@@ -127,12 +127,12 @@ void Camera::UpdateViewMatrix()
 #pragma endregion Y軸回りビルボード行列の計算
 }
 
-void Camera::UpdateProjectionMatrix()
+void Camera::UpdateProjectionMatrix(float& viewMatrix)
 {
 	// 透視投影による射影行列の生成
 	matProjection = XMMatrixPerspectiveFovLH
 	(
-		XMConvertToRadians(60.0f),
+		XMConvertToRadians(viewMatrix),
 		aspectRatio,
 		0.1f, 1000.0f
 	);

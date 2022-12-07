@@ -22,7 +22,11 @@ public: // 静的メンバ関数
 	// ビュー行列を更新
 	void UpdateViewMatrix();
 	// 射影行列を更新
-	void UpdateProjectionMatrix();
+	void UpdateProjectionMatrix(float& viewMatrix);
+	//視野角を取得
+	const float GetMatrix() { return viewMatrix; }
+	//視野角を取得
+	void SetMatrix(float viewMatrix) { this->viewMatrix = viewMatrix; projectionDirty = true;}
 	// ビュー行列の取得
 	const XMMATRIX& GetViewMatrix() { return matView; }
 	// 射影行列の取得
@@ -69,6 +73,8 @@ protected: // メンバ変数
 	XMFLOAT3 target = { 0, 0, 0 };
 	// 上方向ベクトル
 	XMFLOAT3 up = { 0, 1, 0 };
+	// 視野角
+	float viewMatrix = 60.0f;
 	// アスペクト比
 	float aspectRatio = 1.0f;
 };

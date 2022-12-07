@@ -489,6 +489,8 @@ void GameScene::Update()
 		attackAnimation = false;
 		animeCount = 0;
 		fiveAttack = false;
+		fiveAttack2 = false;
+		viewMatrix = camera->GetMatrix();
 		justCount = 0;
 
 		clearTimer = 0;
@@ -498,7 +500,8 @@ void GameScene::Update()
 		selectAttack = 0;
 		enemySinpleAttack = false;
 		enemyTripleAttack = false;
-		enemyHomingAttack = false;
+		enemyBirdAttack = false;
+		enemyStarAttack = false;
 		enemyIsAttack = false;
 
 		enemyMove = 0;
@@ -580,11 +583,14 @@ void GameScene::Update()
 			{
 				spriteLife[i]->SetPosition({ 100.0f + (i * 60) - (float)randUIX ,600.0f + (float)randUIY });
 			}
+			viewMatrix = 55;
 			justCount++;
 			if (justCount > 10)
 			{
 				isJust = false;
+				viewMatrix = 60;
 			}
+			camera->SetMatrix(viewMatrix);
 		}
 		else
 		{
@@ -601,6 +607,7 @@ void GameScene::Update()
 			{
 				spriteLife[i]->SetPosition({ 100.0f + (i * 60),600.0f });
 			}
+			justCount = 0;
 		}
 
 		//sprite[0]->SetPosition({ mousePos.x,mousePos.y });
@@ -832,6 +839,7 @@ void GameScene::Update()
 				CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, -1);
 				CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, -1);
 			}*/
+
 
 			// ジャンプ
 			if (input->TriggerKey(DIK_SPACE) && isJump == false && isJustJump == false)
@@ -1101,7 +1109,13 @@ void GameScene::Update()
 			}
 			else if (selectAttack < 85 && selectAttack != 0 && skyBul <= 4)
 			{
-				enemyHomingAttack = true;
+				enemyBirdAttack = true;
+				enemyAttackCounter = 0;
+				selectAttack = 0;
+			}
+			else if (selectAttack < 100 && selectAttack != 0 && skyBul <= 4)
+			{
+				enemyStarAttack = true;
 				enemyAttackCounter = 0;
 				selectAttack = 0;
 			}
@@ -1156,7 +1170,7 @@ void GameScene::Update()
 			eBullet[enemyBulCount - 3].bulFlag = false;
 		}
 
-		if (enemyHomingAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
+		if (enemyBirdAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			for (int i = enemyBulCount; i < (enemyBulCount + 5); i++)
 			{
@@ -1165,7 +1179,7 @@ void GameScene::Update()
 			}
 			enemyBulCount += 5;
 			skyBul += 5;
-			enemyHomingAttack = false;
+			enemyBirdAttack = false;
 			fiveAttack = true;
 		}
 
@@ -1221,6 +1235,71 @@ void GameScene::Update()
 			}
 		}
 
+		if (enemyStarAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
+		{
+			for (int i = enemyBulCount; i < (enemyBulCount + 5); i++)
+			{
+				eBullet[i].bulFlag = true;
+				eBullet[i].type = 2;
+			}
+			enemyBulCount += 5;
+			skyBul += 5;
+			enemyStarAttack = false;
+			fiveAttack2 = true;
+		}
+
+		if (fiveAttack2 == true)
+		{
+			animeCount += 3;
+			if (animeCount == 60)
+			{
+				eBullet[enemyBulCount - 1].Pos = bossPos;
+				eBullet[enemyBulCount - 1].Pos.x = bossPos.x - 1;
+				eBullet[enemyBulCount - 1].bulShotFlag = true;
+				eBullet[enemyBulCount - 1].bulFlag = false;
+			}
+			if (animeCount == 120)
+			{
+				eBullet[enemyBulCount - 2].Pos = bossPos;
+				eBullet[enemyBulCount - 2].Pos.x = bossPos.x - 2;
+				eBullet[enemyBulCount - 2].Pos.y = bossPos.y + 2;
+				eBullet[enemyBulCount - 2].bulShotFlag = true;
+				eBullet[enemyBulCount - 2].bulFlag = false;
+			}
+			if (animeCount == 180)
+			{
+				eBullet[enemyBulCount - 3].Pos = bossPos;
+				eBullet[enemyBulCount - 3].Pos.y = bossPos.y + 4;
+				eBullet[enemyBulCount - 3].bulShotFlag = true;
+				eBullet[enemyBulCount - 3].bulFlag = false;
+			}
+			if (animeCount == 240)
+			{
+				eBullet[enemyBulCount - 4].Pos = bossPos;
+				eBullet[enemyBulCount - 4].Pos.x = bossPos.x + 2;
+				eBullet[enemyBulCount - 4].Pos.y = bossPos.y + 2;
+				eBullet[enemyBulCount - 4].bulShotFlag = true;
+				eBullet[enemyBulCount - 4].bulFlag = false;
+			}
+			if (animeCount == 300)
+			{
+				eBullet[enemyBulCount - 5].Pos = bossPos;
+				eBullet[enemyBulCount - 5].Pos.x = bossPos.x + 1;
+				eBullet[enemyBulCount - 5].bulShotFlag = true;
+				eBullet[enemyBulCount - 5].bulFlag = false;
+			}
+			if (animeCount == 360)
+			{
+				for (int i = enemyBulCount - 5; i < enemyBulCount; i++)
+				{
+					eBullet[i].velocity.x = playerPos.x - bossPos.x;
+					eBullet[i].velocity.z = playerPos.z - bossPos.z;
+				}
+				fiveAttack2 = false;
+				animeCount = 0;
+			}
+		}
+
 		//----------------ここから撃つ処理-----------------//
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
@@ -1232,7 +1311,8 @@ void GameScene::Update()
 					eBullet[i].Pos.z += eBullet[i].velocity.z / 40;
 				}
 			}
-			else if (eBullet[i].type == 2 && fiveAttack == false)
+			else if (eBullet[i].type == 2 && fiveAttack == false
+				|| eBullet[i].type == 2 && fiveAttack2 == false)
 			{
 				if (eBullet[i].bulShotFlag == true)
 				{

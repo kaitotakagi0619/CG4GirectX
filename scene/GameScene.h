@@ -171,6 +171,7 @@ private: // メンバ変数
 	int		 justCount = 0;
 	bool	 isJump = false;
 	bool	 isJustJump = false;
+	float    viewMatrix = 0;
 	bool	 isAlive = true;
 	int		 hitTimer = 0;
 	float	 jCount = 0.6;
@@ -205,12 +206,14 @@ private: // メンバ変数
 	int  selectAttack = 0;
 	bool enemySinpleAttack = false;
 	bool enemyTripleAttack = false;
-	bool enemyHomingAttack = false;
+	bool enemyBirdAttack = false;
+	bool enemyStarAttack = false;
 	bool isParticle = false;
 	bool setParticle = false;
 	bool enemyIsAttack = false;
 	bool attackAnimation = false;
 	bool fiveAttack = false;
+	bool fiveAttack2 = false;
 	int animeCount = 0;
 	int partTimer = 0;
 	int skyBul = 0;
