@@ -95,6 +95,8 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	Audio::GetInstance()->LoadWave("SE/jump.wav");
 	Audio::GetInstance()->LoadWave("SE/enter.wav");
 	Audio::GetInstance()->LoadWave("SE/damage.wav");
+	Audio::GetInstance()->LoadWave("SE/swing.wav");
+	Audio::GetInstance()->LoadWave("SE/reload.wav");
 	ShowCursor(FALSE);
 	// nullptrチェック
 	assert(dxCommon);
@@ -553,6 +555,7 @@ void GameScene::Update()
 		oldTargetCameraPos = targetCameraPos;
 		oldVirCameraPos = virCameraPos;
 		oldBossAlive = bossAlive;
+		Audio::GetInstance()->SoundStop("SE/enter.wav");
 		Audio::GetInstance()->PlayWave("BGM/bgm.wav", 0.1, true);
 		if (timing > 1)
 		{
@@ -623,6 +626,7 @@ void GameScene::Update()
 				virVelocity.x = (virCameraPos.x - playerPos.x) * 2;
 				virVelocity.y = (virCameraPos.y - playerPos.y) * 2;
 				virVelocity.z = (virCameraPos.z - playerPos.z) * 2;
+				Audio::GetInstance()->PlayWave("SE/swing.wav", 0.3, false);
 			}
 			else
 			{
@@ -633,6 +637,7 @@ void GameScene::Update()
 				virVelocity.x = virCameraPos.x - playerPos.x;
 				virVelocity.y = virCameraPos.y - playerPos.y;
 				virVelocity.z = virCameraPos.z - playerPos.z;
+				Audio::GetInstance()->SoundStop("SE/swing.wav");
 			}
 
 			// 移動後の座標を計算
@@ -767,6 +772,7 @@ void GameScene::Update()
 		if (reloadCount > 0 && isReload == true)
 		{
 			reloadCount--;
+			Audio::GetInstance()->PlayWave("SE/reload.wav", 0.3, false);
 		}
 
 		if (reloadCount == 0 && isReload == true && justTiming == true)
@@ -775,11 +781,13 @@ void GameScene::Update()
 			maxMagazine = 30;
 			isReload = false;
 			justTiming = false;
+			Audio::GetInstance()->SoundStop("SE/reload.wav");
 		}
 		else if (reloadCount == 0 && isReload == true)
 		{
 			bulCount = 30;
 			isReload = false;
+			Audio::GetInstance()->SoundStop("SE/reload.wav");
 		}
 
 		//弾を撃つ
