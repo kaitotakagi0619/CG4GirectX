@@ -1,6 +1,7 @@
 #include "Ease.h"
 #include<cmath>
 
+//time‚Í0~1‚Ü‚Å
 float Ease::lerp(const float& start, const float& end, const float time)
 {
 	return start * (1.0f - time) + end * time;

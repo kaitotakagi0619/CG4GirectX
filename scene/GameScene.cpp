@@ -1359,7 +1359,7 @@ void GameScene::Update()
 			}
 		}
 
-		if (enemyBulCount > 42 && skyBul == 0)
+		if (enemyBulCount > 42 && skyBul == 0 && enemyAttackCounter >= 59)
 		{
 			enemyBulCount = 1;
 		}
@@ -1367,37 +1367,37 @@ void GameScene::Update()
 		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
 		camera->Update();
 
-		//for (int i = 0; i < _countof(objEnemyBul); i++)
-		//{
-		//	bool playerHit = (playerPos.x - (playerScale.x / 3) < eBullet[i].Pos.x + eBullet[i].Size.x)
-		//		&& (playerPos.x + (playerScale.x / 3) > eBullet[i].Pos.x - eBullet[i].Size.x)
-		//		&& (playerPos.z - (playerScale.z / 3) < eBullet[i].Pos.z + eBullet[i].Size.z)
-		//		&& (playerPos.z + (playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
-		//		&& (isAlive == true);
-		//	{
-		//		//ノックバック
-		//		if (playerHit)
-		//		{
-		//			hitTimer = 20;
-		//			playerPos.x -= (plVelocity.x / 10);
-		//			playerPos.z -= (plVelocity.z / 10);
-		//			targetCameraPos.x -= (plVelocity.x / 10);
-		//			targetCameraPos.z -= (plVelocity.z / 10);
-		//			virCameraPos.x -= (plVelocity.x / 10);
-		//			virCameraPos.z -= (plVelocity.z / 10);
-		//			objFighter->SetPosition(playerPos);
-		//			objFighter2->SetPosition(targetCameraPos);
-		//			objFighter3->SetPosition(virCameraPos);
-		//			playerHP--;
-		//			if (skyBul > 0)
-		//			{
-		//				skyBul--;
-		//			}
-		//			eBullet[i].Pos = { +1000,-10,1000 };
-		//			eBullet[i].bulShotFlag = false;
-		//		}
-		//	}
-		//}
+		for (int i = 0; i < _countof(objEnemyBul); i++)
+		{
+			bool playerHit = (playerPos.x - (playerScale.x / 3) < eBullet[i].Pos.x + eBullet[i].Size.x)
+				&& (playerPos.x + (playerScale.x / 3) > eBullet[i].Pos.x - eBullet[i].Size.x)
+				&& (playerPos.z - (playerScale.z / 3) < eBullet[i].Pos.z + eBullet[i].Size.z)
+				&& (playerPos.z + (playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
+				&& (isAlive == true);
+			{
+				//ノックバック
+				if (playerHit)
+				{
+					hitTimer = 20;
+					playerPos.x -= (plVelocity.x / 10);
+					playerPos.z -= (plVelocity.z / 10);
+					targetCameraPos.x -= (plVelocity.x / 10);
+					targetCameraPos.z -= (plVelocity.z / 10);
+					virCameraPos.x -= (plVelocity.x / 10);
+					virCameraPos.z -= (plVelocity.z / 10);
+					objFighter->SetPosition(playerPos);
+					objFighter2->SetPosition(targetCameraPos);
+					objFighter3->SetPosition(virCameraPos);
+					playerHP--;
+					if (skyBul > 0)
+					{
+						skyBul--;
+					}
+					eBullet[i].Pos = { +1000,-10,1000 };
+					eBullet[i].bulShotFlag = false;
+				}
+			}
+		}
 
 		if (playerHP <= 0)
 		{
