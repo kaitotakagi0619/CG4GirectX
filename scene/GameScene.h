@@ -243,6 +243,8 @@ private: // メンバ変数
 	XMFLOAT3 titleTarget = { 0,2, 40 };
 
 	XMFLOAT3 partVelocity = { 0,0,0 };
+	XMFLOAT3 bossVelocity = { 0,0,0 };
+	XMFLOAT3 bossRota = { 0,0,0 };
 
 	int partVelocityx[50] = { 0 };
 	int partVelocityy[50] = { 0 };
@@ -267,6 +269,7 @@ private: // メンバ変数
 	Sprite* spritebossHPFrame = nullptr;
 	Sprite* reloadText = nullptr;
 	Sprite* diedText = nullptr;
+	Sprite* blinkEffect = nullptr;
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
 

@@ -494,6 +494,7 @@ void GameScene::Update()
 		fiveAttack2 = false;
 		viewMatrix = camera->GetMatrix();
 		justCount = 0;
+		bossVelocity = { 0,0,0 };
 
 		clearTimer = 0;
 		randUIX = 0;
@@ -1031,6 +1032,12 @@ void GameScene::Update()
 		//敵の行動
 		if (bossAlive == true)
 		{
+			bossVelocity.x = (bossPos.x - playerPos.x);
+			//bossVelocity.y = (bossPos.y - playerPos.y);
+			bossVelocity.z = (bossPos.z - playerPos.z);
+			bossRota.y = atan2(bossVelocity.x , bossVelocity.z) * 55 + 180.0f;
+			bossEnemy->SetRotation(bossRota);
+
 			if (skyBul == 0)
 			{
 				enemyAttackCounter++;

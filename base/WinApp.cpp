@@ -1,4 +1,5 @@
 ﻿#include "WinApp.h"
+#pragma comment(lib, "winmm.lib")
 
 const wchar_t WinApp::windowClassName[] = L"DirectXGame";
 
@@ -17,6 +18,7 @@ LRESULT WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 void WinApp::CreateGameWindow()
 {
+	timeBeginPeriod(1);
 	// ウィンドウクラスの設定
 	wndClass.cbSize = sizeof(WNDCLASSEX);
 	wndClass.lpfnWndProc = (WNDPROC)WindowProc; // ウィンドウプロシージャ

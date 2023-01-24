@@ -9,6 +9,8 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_impl_dx12.h"
+#include <chrono>
+#include <thread>
 
 #include "WinApp.h"
 
@@ -42,6 +44,12 @@ public: // メンバ関数
 	// 描画コマンドリストの取得
 	// <returns>描画コマンドリスト</returns>
 	ID3D12GraphicsCommandList* GetCommandList() { return commandList.Get(); }
+
+	void InitializeFixFPS();
+
+	void UpdateFixFPS();
+
+	std::chrono::steady_clock::time_point reference_;
 
 
 private: // メンバ変数
