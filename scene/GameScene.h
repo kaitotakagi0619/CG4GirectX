@@ -203,6 +203,7 @@ private: // メンバ変数
 
 	int  enemyAttackCounter = 0;
 
+	//敵関係
 	int  selectAttack = 0;
 	bool enemySinpleAttack = false;
 	bool enemyTripleAttack = false;
@@ -274,6 +275,7 @@ private: // メンバ変数
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
 
+	//モデル読み込み
 	ReadModel* modelSkydome = nullptr;
 	ReadModel* modelGround = nullptr;
 	ReadModel* modelFighter = nullptr;
@@ -285,6 +287,7 @@ private: // メンバ変数
 	ReadModel* modelFire = nullptr;
 	ReadModel* modelRed = nullptr;
 
+	//3dオブジェクト宣言
 	Object3d* objSkydome = nullptr;
 	Object3d* objGround = nullptr;
 	Object3d* objFighter = nullptr;

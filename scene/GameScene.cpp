@@ -335,6 +335,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		redParticleObject[i]->SetPosition({ 1000.0f,1000.0f,0.0f });
 	}
 
+	//プレイヤー、敵、カメラの初期セット
 	objFighter->SetPosition({ 0,2,30 });
 	objFighter2->SetPosition({ 0,12,30 });
 	objFighter3->SetPosition({ 0,12,30 });
@@ -556,6 +557,7 @@ void GameScene::Update()
 		camera->Update();
 	}
 
+	//ゲームシーン
 	if (SceneNum == Game)
 	{
 		oldPlayerPos = playerPos;
@@ -576,6 +578,7 @@ void GameScene::Update()
 		sprite[4]->SetPosition({ (WinApp::window_width / 2) - (4 * (float)timing + 32),WinApp::window_height - 160 });
 		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height - 160 });
 
+		//タイミングがジャストだった時にUIを揺らす処理
 		if (isJust)
 		{
 			randUIX = 30;
@@ -593,6 +596,7 @@ void GameScene::Update()
 			{
 				spriteLife[i]->SetPosition({ 100.0f + (i * 60) - (float)randUIX ,600.0f + (float)randUIY });
 			}
+			//視野角の変更
 			viewMatrix = 55;
 			justCount++;
 			if (justCount > 10)
@@ -602,6 +606,7 @@ void GameScene::Update()
 			}
 			camera->SetMatrix(viewMatrix);
 		}
+		//そうじゃなかったときに戻す処理
 		else
 		{
 			sprite[0]->SetSize({ 64.0f,64.0f });
@@ -775,13 +780,14 @@ void GameScene::Update()
 			}
 		}
 
-
+		//リロード音を鳴らす
 		if (reloadCount > 0 && isReload == true)
 		{
 			reloadCount--;
 			Audio::GetInstance()->PlayWave("SE/reload.wav", 0.3, false);
 		}
 
+		//リロード内部実行(タイミングジャスト)
 		if (reloadCount == 0 && isReload == true && justTiming == true)
 		{
 			bulCount = 20;
@@ -790,6 +796,7 @@ void GameScene::Update()
 			justTiming = false;
 			Audio::GetInstance()->SoundStop("SE/reload.wav");
 		}
+		//リロード内部実行
 		else if (reloadCount == 0 && isReload == true)
 		{
 			bulCount = 30;
@@ -806,6 +813,7 @@ void GameScene::Update()
 			bullet[bulCount - 1].bulFlag = false;
 		}
 
+		// 弾の処理
 		for (int i = 0; i < _countof(objBul); i++)
 		{
 			if (bullet[i].bulShotFlag == true)
@@ -821,7 +829,7 @@ void GameScene::Update()
 				bullet[i].bulShotFlag = false;
 			}
 		}
-
+		//プレイヤーが生きているとき
 		if (isAlive == true)
 		{
 			if (camera_data.angleY < 90 && mousePos.y < 0 || camera_data.angleY > -90 && mousePos.y > 0)
@@ -872,6 +880,7 @@ void GameScene::Update()
 				}
 			}
 		}
+		//ジャンプしたとき
 		if (isJump == true)
 		{
 			Audio::GetInstance()->PlayWave("SE/jump.wav", 0.03, false);
@@ -887,6 +896,7 @@ void GameScene::Update()
 				Audio::GetInstance()->SoundStop("SE/jump.wav");
 			}
 		}
+		//ジャストタイミングでジャンプしたとき
 		if (isJustJump == true)
 		{
 			Audio::GetInstance()->PlayWave("SE/jump.wav", 0.03, false);
@@ -915,6 +925,7 @@ void GameScene::Update()
 			}
 		}
 
+		//マップと当たってないときにカメラを正常に戻す
 		if (isHit == true && isAlive == true)
 		{
 			playerPos.x = oldPlayerPos.x;
@@ -923,15 +934,18 @@ void GameScene::Update()
 			virCameraPos = oldVirCameraPos;
 			isHit = false;
 		}
+		//カメラ位置更新
 		objFighter->SetPosition(playerPos);
 		objFighter2->SetPosition(targetCameraPos);
 		objFighter3->SetPosition(virCameraPos);
 
+		//弾の初期化
 		for (int i = 0; i < _countof(objBul); i++)
 		{
 			objBul[i]->SetPosition(bullet[i].Pos);
 		}
 
+		//弾がボスに当たったとき
 		for (int i = 0; i < _countof(objBul); i++)
 		{
 			bool bossHit = (bossPos.x - playerScale.x < bullet[i].Pos.x + bullet[i].Size.x)
@@ -951,7 +965,7 @@ void GameScene::Update()
 			}
 		}
 
-
+		//パーティクルをセット
 		if (setParticle == true)
 		{
 			for (int i = 0; i < _countof(redParticleObject); i++)
@@ -965,6 +979,7 @@ void GameScene::Update()
 			isParticle = true;
 			setParticle = false;
 		}
+		//パーティクルを出す
 		if (isParticle == true)
 		{
 			for (int i = 0; i < _countof(redParticleObject); i++)
@@ -976,6 +991,7 @@ void GameScene::Update()
 			}
 		}
 
+		//一定の時間経過で消える
 		if (isParticle == true)
 		{
 			partTimer++;
@@ -985,7 +1001,7 @@ void GameScene::Update()
 				partTimer = 0;
 			}
 		}
-
+		//ボスのHPの描画
 		spritebossHP->SetSize({ 34.7f * (float)firstBossHP , 20 });
 
 		if (firstBossHP <= 0)
@@ -1009,6 +1025,8 @@ void GameScene::Update()
 		//	enemyTimer = 0;
 		//}
 
+
+		//ボスが死んだときのパーティクルを出す
 		for (int i = 0; i < _countof(particleObject); i++)
 		{
 			if (bossAlive == false && oldBossAlive == true)
@@ -1028,6 +1046,7 @@ void GameScene::Update()
 			}
 		}
 
+		//クリア時
 		if (bossAlive == false && oldBossAlive == false)
 		{
 			clearTimer++;
@@ -1205,6 +1224,7 @@ void GameScene::Update()
 			fiveAttack = true;
 		}
 
+		//5つの弾が三角形に飛んでいく処理
 		if (fiveAttack == true)
 		{
 			animeCount += 3;
@@ -1257,6 +1277,7 @@ void GameScene::Update()
 			}
 		}
 
+		//5つの弾が五角形に飛んでいく前処理
 		if (enemyStarAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			for (int i = enemyBulCount; i < (enemyBulCount + 5); i++)
@@ -1270,6 +1291,7 @@ void GameScene::Update()
 			fiveAttack2 = true;
 		}
 
+		//5つの弾が五角形に飛んでいく処理
 		if (fiveAttack2 == true)
 		{
 			animeCount += 3;
@@ -1325,6 +1347,7 @@ void GameScene::Update()
 		//----------------ここから撃つ処理-----------------//
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
+			//タイプごとに飛ばし方を変える
 			if (eBullet[i].type == 1)
 			{
 				if (eBullet[i].bulShotFlag == true)
@@ -1359,6 +1382,7 @@ void GameScene::Update()
 				{
 					for (int x = 0; x < map_max_x; x++)
 					{
+						//マップチップとの当たり判定
 						if (MapCollide(eBullet[i].Pos, objBlock[y][x]->GetPosition()))
 						{
 							if (skyBul > 0)
@@ -1381,6 +1405,7 @@ void GameScene::Update()
 		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
 		camera->Update();
 
+		//敵の攻撃と自分との当たり判定
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
 			bool playerHit = (playerPos.x - (playerScale.x / 3) < eBullet[i].Pos.x + eBullet[i].Size.x)
@@ -1413,11 +1438,12 @@ void GameScene::Update()
 			}
 		}
 
+		//プレイヤーのHPが0になったら死ぬ
 		if (playerHP <= 0)
 		{
 			isAlive = false;
 		}
-
+		//プレイヤーが死んだら
 		if (isAlive == false)
 		{
 			targetCameraPos.y -= 0.2;
@@ -1433,11 +1459,13 @@ void GameScene::Update()
 			}
 		}
 
+		//ヒット時の無敵時間
 		if (hitTimer > 0)
 		{
 			hitTimer--;
 			Audio::GetInstance()->PlayWave("SE/damage.wav", 0.03, false);
 		}
+		//当たり判定が消えたら音をリセットする
 		else
 		{
 			Audio::GetInstance()->SoundStop("SE/damage.wav");
