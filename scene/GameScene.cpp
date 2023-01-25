@@ -34,6 +34,7 @@ GameScene::~GameScene()
 	safe_delete(spritebossHPFrame);
 	safe_delete(reloadText);
 	safe_delete(diedText);
+	safe_delete(brinkEffect);
 
 	//オブジェクトのdelete
 	safe_delete(objSkydome);
@@ -217,6 +218,10 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
+	if (!Sprite::LoadTexture(23, L"Resources/brink.png")) {
+		assert(0);
+		return;
+	}
 
 	// スプライト生成
 	for (int i = 0; i < _countof(sprite); i++)
@@ -232,6 +237,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	spritebossHPFrame = Sprite::Create(19, { 0.0f,0.0f });
 	reloadText = Sprite::Create(20, { 0.0f,0.0f });
 	diedText = Sprite::Create(22, { 0.0f,0.0f });
+	brinkEffect = Sprite::Create(23, { 0.0f,0.0f });
 	diedText->SetPosition({ WinApp::window_width / 2 - 254,WinApp::window_height / 2 - 38 });
 	diedText->SetColor(color);
 	for (int i = 0; i < _countof(spriteLife); i++)
@@ -897,6 +903,7 @@ void GameScene::Update()
 			}
 		}
 
+		//マップ判定
 		for (int y = 0; y < map_max_y; y++)
 		{
 			for (int x = 0; x < map_max_x; x++)
@@ -1599,6 +1606,7 @@ void GameScene::Draw()
 		{
 			diedText->Draw();
 		}
+		brinkEffect->Draw();
 	}
 
 	// スプライト描画後処理

@@ -217,6 +217,7 @@ private: // メンバ変数
 	int animeCount = 0;
 	int partTimer = 0;
 	int skyBul = 0;
+	float brinkEffectPos = -1280.0;
 
 	int randUIX = 0;
 	int randUIY = 0;
@@ -269,7 +270,7 @@ private: // メンバ変数
 	Sprite* spritebossHPFrame = nullptr;
 	Sprite* reloadText = nullptr;
 	Sprite* diedText = nullptr;
-	Sprite* blinkEffect = nullptr;
+	Sprite* brinkEffect = nullptr;
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
 
