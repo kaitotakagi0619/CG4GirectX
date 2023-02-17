@@ -140,6 +140,7 @@ private: // メンバ変数
 		XMFLOAT3 Size;
 		XMFLOAT3 Rotation;
 		XMFLOAT3 velocity;
+		float normalize;
 		bool attackAnimation = false;
 		bool bulFlag = false;
 		bool bulShotFlag = false;
@@ -191,6 +192,7 @@ private: // メンバ変数
 	XMFLOAT4	color = { 1,1,1,0 };
 	CameraData camera_data;
 	bool justTiming = false;
+	bool isJustTiming = false;
 	//残段数カウント用変数
 	int lastBul = 0;
 	//リロード関係

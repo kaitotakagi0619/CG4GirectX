@@ -222,6 +222,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
+	
 
 	// スプライト生成
 	for (int i = 0; i < _countof(sprite); i++)
@@ -487,6 +488,7 @@ void GameScene::Update()
 		centerPos = { 0, 2, 50 };
 		color = { 1,1,1,0 };
 		justTiming = false;
+		isJustTiming = false;
 		lastBul = 0;
 		reloadCount = 0;
 		isReload = false;
@@ -575,6 +577,15 @@ void GameScene::Update()
 			timing = 60;
 		}
 
+		if (timing > 55 || timing < 5)
+		{
+			isJustTiming = true;
+		}
+		else
+		{
+			isJustTiming = false;
+		}
+
 		sprite[4]->SetPosition({ (WinApp::window_width / 2) - (4 * (float)timing + 32),WinApp::window_height - 160 });
 		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height - 160 });
 
@@ -655,8 +666,7 @@ void GameScene::Update()
 			// 移動後の座標を計算
 			//タイミングよく移動すると加速
 			// -----------------------------------------//
-			if ((input->TriggerKey(DIK_W) && timing > 55)
-				|| (input->TriggerKey(DIK_W) && timing < 5))
+			if (input->TriggerKey(DIK_W) && isJustTiming)
 			{
 				playerPos.x += (plVelocity.x / 10);
 				playerPos.z += (plVelocity.z / 10);
@@ -677,8 +687,7 @@ void GameScene::Update()
 			}
 
 
-			if ((input->TriggerKey(DIK_S) && timing > 55)
-				|| (input->TriggerKey(DIK_S) && timing < 5))
+			if (input->TriggerKey(DIK_S) && isJustTiming)
 			{
 				playerPos.x -= (plVelocity.x / 10);
 				playerPos.z -= (plVelocity.z / 10);
@@ -699,8 +708,7 @@ void GameScene::Update()
 			}
 
 
-			if ((input->TriggerKey(DIK_A) && timing > 55)
-				|| (input->TriggerKey(DIK_A) && timing < 5))
+			if (input->TriggerKey(DIK_A) && isJustTiming)
 			{
 				playerPos.x -= (virVelocity.x / 10);
 				playerPos.z -= (virVelocity.z / 10);
@@ -721,8 +729,7 @@ void GameScene::Update()
 			}
 
 
-			if ((input->TriggerKey(DIK_D) && timing > 55)
-				|| (input->TriggerKey(DIK_D) && timing < 5))
+			if (input->TriggerKey(DIK_D) && isJustTiming)
 			{
 				playerPos.x += (virVelocity.x / 10);
 				playerPos.z += (virVelocity.z / 10);
@@ -749,7 +756,7 @@ void GameScene::Update()
 			{
 				bullet[bulCount].bulFlag = true;
 				bulCount++;
-				if (timing > 55 || timing < 5)
+				if (isJustTiming)
 				{
 					isJust = true;
 				}
@@ -762,10 +769,8 @@ void GameScene::Update()
 			spriteNum[3]->ChangeTex(skyBul);
 
 			//リロード
-			if ((input->TriggerKey(DIK_R) && timing > 55 && isReload == false)
-				|| (input->TriggerKey(DIK_R) && timing < 5 && isReload == false)
-				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing > 55 && isReload == false)
-				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing < 5 && isReload == false))
+			if ((input->TriggerKey(DIK_R) && isJustTiming && isReload == false)
+				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isJustTiming && isReload == false))
 			{
 				reloadCount = 30;
 				justTiming = true;
@@ -794,7 +799,7 @@ void GameScene::Update()
 			bulCount = 20;
 			maxMagazine = 30;
 			isReload = false;
-			justTiming = false;
+			
 			Audio::GetInstance()->SoundStop("SE/reload.wav");
 		}
 		//リロード内部実行
@@ -869,7 +874,7 @@ void GameScene::Update()
 			// ジャンプ
 			if (input->TriggerKey(DIK_SPACE) && isJump == false && isJustJump == false)
 			{
-				if (timing > 55 || timing < 5)
+				if (isJustTiming)
 				{
 					isJustJump = true;
 					jCount = jCountMax;
@@ -982,14 +987,14 @@ void GameScene::Update()
 			setParticle = false;
 		}
 		//パーティクルを出す
-		if (isParticle == true)
+		for (int i = 0; i < _countof(redParticleObject); i++)
 		{
-			for (int i = 0; i < _countof(redParticleObject); i++)
+			if (isParticle == true)
 			{
 				partPos2[i].x += static_cast<float>(partVelocityx[i]) / 100;
 				partPos2[i].y += static_cast<float>(partVelocityy[i]) / 100;
 				partPos2[i].z += static_cast<float>(partVelocityz[i]) / 100;
-				redParticleObject[i]->SetPosition({ partPos2[i] });
+				redParticleObject[i]->SetPosition({ partPos2[i]});
 			}
 		}
 
@@ -1010,23 +1015,6 @@ void GameScene::Update()
 		{
 			bossAlive = false;
 		}
-
-		//if (bossAlive == false)
-		//{
-		//	enemyTimer++;
-		//}
-
-		//if (enemyTimer > 120)
-		//{
-		//	bossAlive = true;
-		//	firstBossHP = 20;
-		//	enemySinpleAttack = false;
-		//	enemyTripleAttack = false;
-		//	enemyHomingAttack = false;
-		//	/*enemyAttackCounter = 0;*/
-		//	enemyTimer = 0;
-		//}
-
 
 		//ボスが死んだときのパーティクルを出す
 		for (int i = 0; i < _countof(particleObject); i++)
@@ -1354,8 +1342,9 @@ void GameScene::Update()
 			{
 				if (eBullet[i].bulShotFlag == true)
 				{
-					eBullet[i].Pos.x += eBullet[i].velocity.x / 40;
-					eBullet[i].Pos.z += eBullet[i].velocity.z / 40;
+					eBullet[i].normalize = sqrtf((eBullet[i].velocity.x * eBullet[i].velocity.x) + (eBullet[i].velocity.z * eBullet[i].velocity.z));
+					eBullet[i].Pos.x += eBullet[i].velocity.x / (eBullet[i].normalize * 3);
+					eBullet[i].Pos.z += eBullet[i].velocity.z / (eBullet[i].normalize * 3);
 				}
 			}
 			else if (eBullet[i].type == 2 && fiveAttack == false
