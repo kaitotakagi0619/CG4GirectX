@@ -754,6 +754,7 @@ void GameScene::Update()
 					isJust = true;
 				}
 			}
+
 			lastBul = 50 - bulCount;
 			spriteNum[0]->ChangeTex(lastBul / 10);
 			spriteNum[1]->ChangeTex(lastBul % 10);
@@ -829,6 +830,7 @@ void GameScene::Update()
 				bullet[i].bulShotFlag = false;
 			}
 		}
+
 		//プレイヤーが生きているとき
 		if (isAlive == true)
 		{
@@ -1634,7 +1636,7 @@ void GameScene::Draw()
 		{
 			diedText->Draw();
 		}
-		brinkEffect->Draw();
+		//brinkEffect->Draw();
 	}
 
 	// スプライト描画後処理
