@@ -82,7 +82,7 @@ public: // メンバ関数
 
 	void CreateLight();
 
-	void CharactorMove(XMFLOAT3 pos);
+	void CharactorMove(XMFLOAT3 &pos, XMFLOAT3 &camera, XMFLOAT3 &vir, XMFLOAT3 vec , int size, int type);
 
 	//カメラの動きを制御する関数
 	void CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, float& angleZ, float& angleY, const float add);

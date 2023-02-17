@@ -668,85 +668,45 @@ void GameScene::Update()
 			// -----------------------------------------//
 			if (input->TriggerKey(DIK_W) && isJustTiming)
 			{
-				playerPos.x += (plVelocity.x / 10);
-				playerPos.z += (plVelocity.z / 10);
-				targetCameraPos.x += (plVelocity.x / 10);
-				targetCameraPos.z += (plVelocity.z / 10);
-				virCameraPos.x += (plVelocity.x / 10);
-				virCameraPos.z += (plVelocity.z / 10);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, 10, 1);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_W))
 			{
-				playerPos.x += (plVelocity.x / 100);
-				playerPos.z += (plVelocity.z / 100);
-				targetCameraPos.x += (plVelocity.x / 100);
-				targetCameraPos.z += (plVelocity.z / 100);
-				virCameraPos.x += (plVelocity.x / 100);
-				virCameraPos.z += (plVelocity.z / 100);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, 100, 1);
 			}
 
 
 			if (input->TriggerKey(DIK_S) && isJustTiming)
 			{
-				playerPos.x -= (plVelocity.x / 10);
-				playerPos.z -= (plVelocity.z / 10);
-				targetCameraPos.x -= (plVelocity.x / 10);
-				targetCameraPos.z -= (plVelocity.z / 10);
-				virCameraPos.x -= (plVelocity.x / 10);
-				virCameraPos.z -= (plVelocity.z / 10);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, 10, 2);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_S))
 			{
-				playerPos.x -= (plVelocity.x / 100);
-				playerPos.z -= (plVelocity.z / 100);
-				targetCameraPos.x -= (plVelocity.x / 100);
-				targetCameraPos.z -= (plVelocity.z / 100);
-				virCameraPos.x -= (plVelocity.x / 100);
-				virCameraPos.z -= (plVelocity.z / 100);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, 100, 2);
 			}
 
 
 			if (input->TriggerKey(DIK_A) && isJustTiming)
 			{
-				playerPos.x -= (virVelocity.x / 10);
-				playerPos.z -= (virVelocity.z / 10);
-				targetCameraPos.x -= (virVelocity.x / 10);
-				targetCameraPos.z -= (virVelocity.z / 10);
-				virCameraPos.x -= (virVelocity.x / 10);
-				virCameraPos.z -= (virVelocity.z / 10);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, 10, 2);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_A))
 			{
-				playerPos.x -= (virVelocity.x / 100);
-				playerPos.z -= (virVelocity.z / 100);
-				targetCameraPos.x -= (virVelocity.x / 100);
-				targetCameraPos.z -= (virVelocity.z / 100);
-				virCameraPos.x -= (virVelocity.x / 100);
-				virCameraPos.z -= (virVelocity.z / 100);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, 100, 2);
 			}
 
 
 			if (input->TriggerKey(DIK_D) && isJustTiming)
 			{
-				playerPos.x += (virVelocity.x / 10);
-				playerPos.z += (virVelocity.z / 10);
-				targetCameraPos.x += (virVelocity.x / 10);
-				targetCameraPos.z += (virVelocity.z / 10);
-				virCameraPos.x += (virVelocity.x / 10);
-				virCameraPos.z += (virVelocity.z / 10);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, 10, 1);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_D))
 			{
-				playerPos.x += (virVelocity.x / 100);
-				playerPos.z += (virVelocity.z / 100);
-				targetCameraPos.x += (virVelocity.x / 100);
-				targetCameraPos.z += (virVelocity.z / 100);
-				virCameraPos.x += (virVelocity.x / 100);
-				virCameraPos.z += (virVelocity.z / 100);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, 100, 1);
 			}
 			// -----------------------------------------//
 
@@ -849,27 +809,6 @@ void GameScene::Update()
 				CircularMotionLR(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleX, mousePos.x);
 				CircularMotionLR(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleX, mousePos.x);
 			}
-			/*if (input->PushKey(DIK_UP))
-			{
-				CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, +1);
-				CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, +1);
-			}*/
-			/*if (input->PushKey(DIK_DOWN))
-			{
-				CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, -1);
-				CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, -1);
-			}*/
-			/*if (input->PushKey(DIK_RIGHT))
-			{
-				CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, +1);
-				CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, +1);
-			}*/
-			/*if (input->PushKey(DIK_LEFT))
-			{
-				CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, -1);
-				CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, -1);
-			}*/
-
 
 			// ジャンプ
 			if (input->TriggerKey(DIK_SPACE) && isJump == false && isJustJump == false)
@@ -1032,6 +971,7 @@ void GameScene::Update()
 				partPos[i].x += static_cast<float>(partVelocityx[i]) / 10;
 				partPos[i].y += static_cast<float>(partVelocityy[i]) / 10;
 				partPos[i].z += static_cast<float>(partVelocityz[i]) / 10;
+				//XMVectorAdd(partPos[i], static_cast<float>(partVelocityx[i]) / 10)
 				particleObject[i]->SetPosition({ partPos[i] });
 			}
 		}
@@ -1065,12 +1005,12 @@ void GameScene::Update()
 				{
 					enemyMove = 0;
 				}
-				if (enemyMove < 40)
+				if ((enemyMove < 40) && (enemyMove > 280 && enemyMove < 320))
 				{
 					bossPos.x += 0.1;
 				}
 
-				if (enemyMove > 40 && enemyMove < 80)
+				if ((enemyMove > 40 && enemyMove < 80) && (enemyMove > 200 && enemyMove < 240))
 				{
 					bossPos.x -= 0.1;
 					bossPos.z += 0.1;
@@ -1080,28 +1020,14 @@ void GameScene::Update()
 					bossPos.x -= 0.1;
 					bossPos.z -= 0.1;
 				}
-				if (enemyMove > 120 && enemyMove < 140)
-				{
-					bossPos.x += 0.1;
-					bossPos.z -= 0.1;
-				}if (enemyMove > 140 && enemyMove < 160)
-				{
-					bossPos.x += 0.1;
-					bossPos.z += 0.1;
-				}
-				if (enemyMove > 160 && enemyMove < 180)
+				if ((enemyMove > 120 && enemyMove < 140) && (enemyMove > 160 && enemyMove < 180))
 				{
 					bossPos.x += 0.1;
 					bossPos.z -= 0.1;
 				}
-				if (enemyMove > 180 && enemyMove < 200)
+				if ((enemyMove > 140 && enemyMove < 160) && (enemyMove > 180 && enemyMove < 200))
 				{
 					bossPos.x += 0.1;
-					bossPos.z += 0.1;
-				}
-				if (enemyMove > 200 && enemyMove < 240)
-				{
-					bossPos.x -= 0.1;
 					bossPos.z += 0.1;
 				}
 				if (enemyMove > 240 && enemyMove < 280)
@@ -1109,18 +1035,12 @@ void GameScene::Update()
 					bossPos.x -= 0.1;
 					bossPos.z -= 0.1;
 				}
-				if (enemyMove > 280 && enemyMove < 320)
-				{
-					bossPos.x += 0.1;
-				}
 			}
-
-
 
 			//---------------------ここから攻撃選定と前処理----------------------//
 
 			//攻撃選定
-			if (enemyAttackCounter >= 59)
+			if (enemyAttackCounter >= 59 && skyBul == 0 && enemyBulCount < 42)
 			{
 				selectAttack = rand() % 100;
 				enemyAttackCounter = 0;
@@ -1390,6 +1310,7 @@ void GameScene::Update()
 
 		if (enemyBulCount > 42 && skyBul == 0 && enemyAttackCounter >= 59)
 		{
+			//弾の初期化処理が必要
 			enemyBulCount = 1;
 		}
 		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
@@ -1694,24 +1615,25 @@ void GameScene::CreateLight()
 	debugText.Print(debugstr.str(), 50, 70, 1.0f);
 }
 
-void GameScene::CharactorMove(XMFLOAT3 pos)
+void GameScene::CharactorMove(XMFLOAT3 &pos, XMFLOAT3 &camera, XMFLOAT3 &vir, XMFLOAT3 vec, int size,int type)
 {
-	if (input->PushKey(DIK_W) && pos.z < 15.0f)
+	if (type == 1)
 	{
-		pos.z += 0.1f;
+		pos.x += (vec.x / size);
+		pos.z += (vec.z / size);
+		camera.x += (vec.x / size);
+		camera.z += (vec.z / size);
+		vir.x += (vec.x / size);
+		vir.z += (vec.z / size);
 	}
-	else if (input->PushKey(DIK_S) && pos.z > -15.0f)
+	if (type == 2)
 	{
-		pos.z -= 0.1f;
-	}
-
-	if (input->PushKey(DIK_D) && pos.x < 15.0f)
-	{
-		pos.x += 0.1f;
-	}
-	else if (input->PushKey(DIK_A) && pos.x > -15.0f)
-	{
-		pos.x -= 0.1f;
+		pos.x -= (vec.x / size);
+		pos.z -= (vec.z / size);
+		camera.x -= (vec.x / size);
+		camera.z -= (vec.z / size);
+		vir.x -= (vec.x / size);
+		vir.z -= (vec.z / size);
 	}
 }
 
