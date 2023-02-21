@@ -594,8 +594,6 @@ void GameScene::Update()
 		{
 			randUIX = 30;
 			randUIY = 30;
-			sprite[0]->SetSize({ 64.0f + randUIX,64.0f + randUIY });
-			sprite[0]->SetPosition({ spritePos.center.x - (32 + (randUIX / 2)),spritePos.center.y - (32 + (randUIY / 2)) });
 			spritebossHP->SetPosition({ 303 , 47 - (float)randUIY });
 			spritebossHPFrame->SetPosition({ 300 , 0 - (float)randUIY });
 			spriteNum[0]->SetPosition({ WinApp::window_width - 174 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
@@ -620,8 +618,6 @@ void GameScene::Update()
 		//そうじゃなかったときに戻す処理
 		else
 		{
-			sprite[0]->SetSize({ 64.0f,64.0f });
-			sprite[0]->SetPosition({ spritePos.center.x - 32,spritePos.center.y - 32 });
 			spritebossHP->SetPosition({ 303 , 47 });
 			spritebossHPFrame->SetPosition({ 300 , 0 });
 			spriteNum[0]->SetPosition({ WinApp::window_width - 174,WinApp::window_height - 112 });
@@ -675,8 +671,6 @@ void GameScene::Update()
 			{
 				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, 100, 1);
 			}
-
-
 			if (input->TriggerKey(DIK_S) && isJustTiming)
 			{
 				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, 10, 2);
@@ -686,8 +680,6 @@ void GameScene::Update()
 			{
 				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, 100, 2);
 			}
-
-
 			if (input->TriggerKey(DIK_A) && isJustTiming)
 			{
 				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, 10, 2);
@@ -697,8 +689,6 @@ void GameScene::Update()
 			{
 				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, 100, 2);
 			}
-
-
 			if (input->TriggerKey(DIK_D) && isJustTiming)
 			{
 				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, 10, 1);
@@ -774,6 +764,8 @@ void GameScene::Update()
 
 		if (bullet[bulCount - 1].bulFlag == true)
 		{
+			sprite[0]->SetSize({ 64.0f + randUIX,64.0f + randUIY });
+			sprite[0]->SetPosition({ spritePos.center.x - (32 + (randUIX / 2)),spritePos.center.y - (32 + (randUIY / 2)) });
 			bullet[bulCount - 1].Pos = playerPos;
 			bullet[bulCount - 1].bulShotFlag = true;
 			bullet[bulCount - 1].bulFlag = false;
@@ -787,12 +779,14 @@ void GameScene::Update()
 				bullet[i].Pos.x += (plVelocity.x / 2);
 				bullet[i].Pos.y += (plVelocity.y / 2);
 				bullet[i].Pos.z += (plVelocity.z / 2);
-			}
-			if ((bullet[i].Pos.z > 400) || (bullet[i].Pos.z < -400)
-				|| (bullet[i].Pos.x > 400) || (bullet[i].Pos.x < -400))
-			{
-				bullet[i].Pos = { +1000,-10,1000 };
-				bullet[i].bulShotFlag = false;
+				if ((bullet[i].Pos.z > 400) || (bullet[i].Pos.z < -400)
+					|| (bullet[i].Pos.x > 400) || (bullet[i].Pos.x < -400))
+				{
+					bullet[i].Pos = { +1000,-10,1000 };
+					bullet[i].bulShotFlag = false;
+					sprite[0]->SetSize({ 64.0f,64.0f });
+					sprite[0]->SetPosition({ spritePos.center.x - 32,spritePos.center.y - 32 });
+				}
 			}
 		}
 
@@ -1457,7 +1451,7 @@ void GameScene::Draw()
 	Object3d::PreDraw(cmdList);
 	objSkydome->Draw();
 	// 3Dオブジェクトの描画
-	/*objGround->Draw();*/
+	objGround->Draw();
 	//objCity->Draw();
 	//objFighter2->Draw();
 	if (bossAlive == true)
