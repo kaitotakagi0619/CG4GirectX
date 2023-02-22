@@ -989,12 +989,12 @@ void GameScene::Update()
 				{
 					enemyMove = 0;
 				}
-				if ((enemyMove < 40) && (enemyMove > 280 && enemyMove < 320))
+				if ((enemyMove < 40) || (enemyMove > 280 && enemyMove < 320))
 				{
 					bossPos.x += 0.1;
 				}
 
-				if ((enemyMove > 40 && enemyMove < 80) && (enemyMove > 200 && enemyMove < 240))
+				if ((enemyMove > 40 && enemyMove < 80) || (enemyMove > 200 && enemyMove < 240))
 				{
 					bossPos.x -= 0.1;
 					bossPos.z += 0.1;
@@ -1004,12 +1004,12 @@ void GameScene::Update()
 					bossPos.x -= 0.1;
 					bossPos.z -= 0.1;
 				}
-				if ((enemyMove > 120 && enemyMove < 140) && (enemyMove > 160 && enemyMove < 180))
+				if ((enemyMove > 120 && enemyMove < 140) || (enemyMove > 160 && enemyMove < 180))
 				{
 					bossPos.x += 0.1;
 					bossPos.z -= 0.1;
 				}
-				if ((enemyMove > 140 && enemyMove < 160) && (enemyMove > 180 && enemyMove < 200))
+				if ((enemyMove > 140 && enemyMove < 160) || (enemyMove > 180 && enemyMove < 200))
 				{
 					bossPos.x += 0.1;
 					bossPos.z += 0.1;
@@ -1297,6 +1297,8 @@ void GameScene::Update()
 			//弾の初期化処理が必要
 			enemyBulCount = 1;
 		}
+
+		//----------------ここまで敵の撃つ処理-----------------//
 		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
 		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
 		camera->Update();
