@@ -638,24 +638,12 @@ void GameScene::Update()
 			//移動用velocity計算
 			if (input->PushKey(DIK_LSHIFT))
 			{
-				plVelocity.x = (targetCameraPos.x - playerPos.x) * 2;
-				plVelocity.y = (targetCameraPos.y - playerPos.y) * 2;
-				plVelocity.z = (targetCameraPos.z - playerPos.z) * 2;
-
-				virVelocity.x = (virCameraPos.x - playerPos.x) * 2;
-				virVelocity.y = (virCameraPos.y - playerPos.y) * 2;
-				virVelocity.z = (virCameraPos.z - playerPos.z) * 2;
+				VelocityBoost(plVelocity, virVelocity, targetCameraPos, virCameraPos, playerPos);
 				Audio::GetInstance()->PlayWave("SE/swing.wav", 0.3, false);
 			}
 			else
 			{
-				plVelocity.x = targetCameraPos.x - playerPos.x;
-				plVelocity.y = targetCameraPos.y - playerPos.y;
-				plVelocity.z = targetCameraPos.z - playerPos.z;
-
-				virVelocity.x = virCameraPos.x - playerPos.x;
-				virVelocity.y = virCameraPos.y - playerPos.y;
-				virVelocity.z = virCameraPos.z - playerPos.z;
+				VelocityNormal(plVelocity, virVelocity, targetCameraPos, virCameraPos, playerPos);
 				Audio::GetInstance()->SoundStop("SE/swing.wav");
 			}
 
@@ -700,7 +688,7 @@ void GameScene::Update()
 			}
 			// -----------------------------------------//
 
-			//弾を撃つ
+			//プレイヤーが弾を撃つ
 			// -----------------------------------------//
 			if (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount < 50)
 			{
@@ -793,6 +781,7 @@ void GameScene::Update()
 		//プレイヤーが生きているとき
 		if (isAlive == true)
 		{
+			//マウスを動かすことによる視点移動
 			if (camera_data.angleY < 90 && mousePos.y < 0 || camera_data.angleY > -90 && mousePos.y > 0)
 			{
 				CircularMotionUD(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleY, -mousePos.y);
@@ -962,6 +951,7 @@ void GameScene::Update()
 			}
 			if (bossAlive == false && oldBossAlive == false)
 			{
+				//ここ指摘されたとこだけどパーティクルのために全部変えていたためやり方がわからなかった
 				partPos[i].x += static_cast<float>(partVelocityx[i]) / 10;
 				partPos[i].y += static_cast<float>(partVelocityy[i]) / 10;
 				partPos[i].z += static_cast<float>(partVelocityz[i]) / 10;
@@ -982,8 +972,8 @@ void GameScene::Update()
 		//敵の行動
 		if (bossAlive == true)
 		{
+			//atan2で敵の角度を割り出す
 			bossVelocity.x = (bossPos.x - playerPos.x);
-			//bossVelocity.y = (bossPos.y - playerPos.y);
 			bossVelocity.z = (bossPos.z - playerPos.z);
 			bossRota.y = atan2(bossVelocity.x , bossVelocity.z) * 55 + 180.0f;
 			bossEnemy->SetRotation(bossRota);
@@ -1248,7 +1238,7 @@ void GameScene::Update()
 			}
 		}
 
-		//----------------ここから撃つ処理-----------------//
+		//----------------ここから敵の撃つ処理-----------------//
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
 			//タイプごとに飛ばし方を変える
@@ -1629,6 +1619,28 @@ void GameScene::CharactorMove(XMFLOAT3 &pos, XMFLOAT3 &camera, XMFLOAT3 &vir, XM
 		vir.x -= (vec.x / size);
 		vir.z -= (vec.z / size);
 	}
+}
+
+void GameScene::VelocityBoost(XMFLOAT3& vel, XMFLOAT3& vel2, XMFLOAT3 camera, XMFLOAT3 vir, XMFLOAT3 pos)
+{
+	vel.x = (camera.x - pos.x) * 2;
+	vel.y = (camera.y - pos.y) * 2;
+	vel.z = (camera.z - pos.z) * 2;
+
+	vel2.x = (vir.x - pos.x) * 2;
+	vel2.y = (vir.y - pos.y) * 2;
+	vel2.z = (vir.z - pos.z) * 2;
+}
+
+void GameScene::VelocityNormal(XMFLOAT3& vel, XMFLOAT3& vel2, XMFLOAT3 camera, XMFLOAT3 vir, XMFLOAT3 pos)
+{
+	vel.x = (camera.x - pos.x);
+	vel.y = (camera.y - pos.y);
+	vel.z = (camera.z - pos.z);
+
+	vel2.x = (vir.x - pos.x);
+	vel2.y = (vir.y - pos.y);
+	vel2.z = (vir.z - pos.z);
 }
 
 void GameScene::CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, float& angleZ, float& angleY, const float add)
