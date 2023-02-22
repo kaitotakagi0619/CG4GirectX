@@ -1308,6 +1308,8 @@ void GameScene::Update()
 		{
 			bool playerHit = (playerPos.x - (playerScale.x / 3) < eBullet[i].Pos.x + eBullet[i].Size.x)
 				&& (playerPos.x + (playerScale.x / 3) > eBullet[i].Pos.x - eBullet[i].Size.x)
+				&& (playerPos.y - (playerScale.y / 3) < eBullet[i].Pos.y + eBullet[i].Size.y)
+				&& (playerPos.y + (playerScale.y / 3) > eBullet[i].Pos.y - eBullet[i].Size.y)
 				&& (playerPos.z - (playerScale.z / 3) < eBullet[i].Pos.z + eBullet[i].Size.z)
 				&& (playerPos.z + (playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
 				&& (isAlive == true);
