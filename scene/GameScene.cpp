@@ -750,7 +750,7 @@ void GameScene::Update()
 
 		//弾を撃つ
 
-		if (bullet[bulCount - 1].bulFlag == true)
+		if (bullet[bulCount - 1].bulFlag == true && isReload == false)
 		{
 			sprite[0]->SetSize({ 64.0f + randUIX,64.0f + randUIY });
 			sprite[0]->SetPosition({ spritePos.center.x - (32 + (randUIX / 2)),spritePos.center.y - (32 + (randUIY / 2)) });
@@ -1312,8 +1312,8 @@ void GameScene::Update()
 				&& (playerPos.z + (playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
 				&& (isAlive == true);
 			{
-				//ノックバック
-				if (playerHit)
+				//ノックバックとダメージ
+				if (playerHit && hitTimer == 0)
 				{
 					hitTimer = 20;
 					playerPos.x -= (plVelocity.x / 10);
