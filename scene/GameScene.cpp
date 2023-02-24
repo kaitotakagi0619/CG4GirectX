@@ -1284,21 +1284,34 @@ void GameScene::Update()
 							{
 								skyBul--;
 							}
-							eBullet[i].Pos = { +1000,-10,1000 };
+							eBullet[i].Pos = { 1000,-10,1000 };
 							eBullet[i].bulShotFlag = false;
+							eBullet[i].bulFlag = false;
+							eBullet[i].attackAnimation = false;
+							eBullet[i].type = 0;
+							eBullet[i].velocity = { 0,0,0 };
 						}
 					}
 				}
 			}
 		}
 
+		//----------------ここまで敵の撃つ処理-----------------//
+
+		// 
 		if (enemyBulCount > 42 && skyBul == 0 && enemyAttackCounter >= 59)
 		{
 			//弾の初期化処理が必要
 			enemyBulCount = 1;
+			for (int i = 0; i < _countof(objEnemyBul); i++)
+			{
+				eBullet[i].bulShotFlag = false;
+				eBullet[i].bulFlag = false;
+				eBullet[i].attackAnimation = false;
+				eBullet[i].type = 0;
+				eBullet[i].velocity = { 0,0,0 };
+			}
 		}
-
-		//----------------ここまで敵の撃つ処理-----------------//
 		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
 		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
 		camera->Update();
