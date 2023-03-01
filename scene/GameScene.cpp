@@ -530,7 +530,7 @@ void GameScene::Update()
 		skyBul = 0;
 
 
-		if (input->TriggerKey(DIK_RETURN))
+		if (input->TriggerKey(DIK_RETURN) || input->TriggerMouseLeft())
 		{
 			isEase = true;
 			Audio::GetInstance()->PlayWave("SE/enter.wav", 0.3, false);
@@ -1057,19 +1057,16 @@ void GameScene::Update()
 			&& eBullet[enemyBulCount - 2].bulFlag == true
 			&& eBullet[enemyBulCount - 3].bulFlag == true)
 		{
-			eBullet[enemyBulCount - 1].Pos = bossPos;
-			eBullet[enemyBulCount - 1].Pos.x = bossPos.x - 2;
-			eBullet[enemyBulCount - 1].bulShotFlag = true;
-			eBullet[enemyBulCount - 1].bulFlag = false;
+			eBullet[enemyBulCount - 1].Pos = XMFLOAT3(bossPos.x - 2, bossPos.y ,bossPos.z);
 
 			eBullet[enemyBulCount - 2].Pos = bossPos;
-			eBullet[enemyBulCount - 2].bulShotFlag = true;
-			eBullet[enemyBulCount - 2].bulFlag = false;
 
-			eBullet[enemyBulCount - 3].Pos = bossPos;
-			eBullet[enemyBulCount - 3].Pos.x = bossPos.x + 2;
-			eBullet[enemyBulCount - 3].bulShotFlag = true;
-			eBullet[enemyBulCount - 3].bulFlag = false;
+			eBullet[enemyBulCount - 3].Pos = XMFLOAT3(bossPos.x + 2, bossPos.y, bossPos.z);
+			for (int i = enemyBulCount - 3; i < enemyBulCount; i++)
+			{
+				eBullet[i].bulShotFlag = true;
+				eBullet[i].bulFlag = false;
+			}
 		}
 
 		if (enemyBirdAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
@@ -1091,40 +1088,23 @@ void GameScene::Update()
 			animeCount += 3;
 			if (animeCount == 60)
 			{
-				eBullet[enemyBulCount - 1].Pos = bossPos;
-				eBullet[enemyBulCount - 1].Pos.x = bossPos.x - 4;
-				eBullet[enemyBulCount - 1].bulShotFlag = true;
-				eBullet[enemyBulCount - 1].bulFlag = false;
+				eBullet[enemyBulCount - 1].Pos = XMFLOAT3(bossPos.x - 4, bossPos.y, bossPos.z);
 			}
 			if (animeCount == 120)
 			{
-				eBullet[enemyBulCount - 2].Pos = bossPos;
-				eBullet[enemyBulCount - 2].Pos.x = bossPos.x - 2;
-				eBullet[enemyBulCount - 2].Pos.y = bossPos.y + 1;
-				eBullet[enemyBulCount - 2].bulShotFlag = true;
-				eBullet[enemyBulCount - 2].bulFlag = false;
+				eBullet[enemyBulCount - 2].Pos = XMFLOAT3(bossPos.x - 2, bossPos.y + 1, bossPos.z);
 			}
 			if (animeCount == 180)
 			{
-				eBullet[enemyBulCount - 3].Pos = bossPos;
-				eBullet[enemyBulCount - 3].Pos.y = bossPos.y + 2;
-				eBullet[enemyBulCount - 3].bulShotFlag = true;
-				eBullet[enemyBulCount - 3].bulFlag = false;
+				eBullet[enemyBulCount - 3].Pos = XMFLOAT3(bossPos.x, bossPos.y + 2, bossPos.z);
 			}
 			if (animeCount == 240)
 			{
-				eBullet[enemyBulCount - 4].Pos = bossPos;
-				eBullet[enemyBulCount - 4].Pos.x = bossPos.x + 2;
-				eBullet[enemyBulCount - 4].Pos.y = bossPos.y + 1;
-				eBullet[enemyBulCount - 4].bulShotFlag = true;
-				eBullet[enemyBulCount - 4].bulFlag = false;
+				eBullet[enemyBulCount - 4].Pos = XMFLOAT3(bossPos.x + 2, bossPos.y + 1, bossPos.z);
 			}
 			if (animeCount == 300)
 			{
-				eBullet[enemyBulCount - 5].Pos = bossPos;
-				eBullet[enemyBulCount - 5].Pos.x = bossPos.x + 4;
-				eBullet[enemyBulCount - 5].bulShotFlag = true;
-				eBullet[enemyBulCount - 5].bulFlag = false;
+				eBullet[enemyBulCount - 5].Pos = XMFLOAT3(bossPos.x + 4, bossPos.y, bossPos.z);
 			}
 			if (animeCount == 360)
 			{
@@ -1132,6 +1112,8 @@ void GameScene::Update()
 				{
 					eBullet[i].velocity.x = playerPos.x - bossPos.x;
 					eBullet[i].velocity.z = playerPos.z - bossPos.z;
+					eBullet[i].bulShotFlag = true;
+					eBullet[i].bulFlag = false;
 				}
 				fiveAttack = false;
 				animeCount = 0;
@@ -1158,40 +1140,23 @@ void GameScene::Update()
 			animeCount += 3;
 			if (animeCount == 60)
 			{
-				eBullet[enemyBulCount - 1].Pos = bossPos;
-				eBullet[enemyBulCount - 1].Pos.x = bossPos.x - 1;
-				eBullet[enemyBulCount - 1].bulShotFlag = true;
-				eBullet[enemyBulCount - 1].bulFlag = false;
+				eBullet[enemyBulCount - 1].Pos = XMFLOAT3(bossPos.x - 1, bossPos.y, bossPos.z);
 			}
 			if (animeCount == 120)
 			{
-				eBullet[enemyBulCount - 2].Pos = bossPos;
-				eBullet[enemyBulCount - 2].Pos.x = bossPos.x - 2;
-				eBullet[enemyBulCount - 2].Pos.y = bossPos.y + 2;
-				eBullet[enemyBulCount - 2].bulShotFlag = true;
-				eBullet[enemyBulCount - 2].bulFlag = false;
+				eBullet[enemyBulCount - 2].Pos = XMFLOAT3(bossPos.x - 2, bossPos.y + 2,bossPos.z);
 			}
 			if (animeCount == 180)
 			{
-				eBullet[enemyBulCount - 3].Pos = bossPos;
-				eBullet[enemyBulCount - 3].Pos.y = bossPos.y + 4;
-				eBullet[enemyBulCount - 3].bulShotFlag = true;
-				eBullet[enemyBulCount - 3].bulFlag = false;
+				eBullet[enemyBulCount - 3].Pos = XMFLOAT3(bossPos.x, bossPos.y + 4, bossPos.z);
 			}
 			if (animeCount == 240)
 			{
-				eBullet[enemyBulCount - 4].Pos = bossPos;
-				eBullet[enemyBulCount - 4].Pos.x = bossPos.x + 2;
-				eBullet[enemyBulCount - 4].Pos.y = bossPos.y + 2;
-				eBullet[enemyBulCount - 4].bulShotFlag = true;
-				eBullet[enemyBulCount - 4].bulFlag = false;
+				eBullet[enemyBulCount - 4].Pos = XMFLOAT3(bossPos.x + 2, bossPos.y + 2, bossPos.z);
 			}
 			if (animeCount == 300)
 			{
-				eBullet[enemyBulCount - 5].Pos = bossPos;
-				eBullet[enemyBulCount - 5].Pos.x = bossPos.x + 1;
-				eBullet[enemyBulCount - 5].bulShotFlag = true;
-				eBullet[enemyBulCount - 5].bulFlag = false;
+				eBullet[enemyBulCount - 5].Pos = XMFLOAT3(bossPos.x + 1, bossPos.y, bossPos.z);
 			}
 			if (animeCount == 360)
 			{
@@ -1199,6 +1164,8 @@ void GameScene::Update()
 				{
 					eBullet[i].velocity.x = playerPos.x - bossPos.x;
 					eBullet[i].velocity.z = playerPos.z - bossPos.z;
+					eBullet[i].bulShotFlag = true;
+					eBullet[i].bulFlag = false;
 				}
 				fiveAttack2 = false;
 				animeCount = 0;
@@ -1233,9 +1200,12 @@ void GameScene::Update()
 				if ((eBullet[i].Pos.z > 400) || (eBullet[i].Pos.z < -400)
 					|| (eBullet[i].Pos.x > 400) || (eBullet[i].Pos.x < -400))
 				{
-					if (skyBul > 0)
+					if (eBullet[i].type == 2)
 					{
-						skyBul--;
+						if (skyBul > 0)
+						{
+							skyBul--;
+						}
 					}
 					eBullet[i].Pos = { +1000,-10,1000 };
 					eBullet[i].bulShotFlag = false;
@@ -1247,9 +1217,12 @@ void GameScene::Update()
 						//マップチップとの当たり判定
 						if (MapCollide(eBullet[i].Pos, objBlock[y][x]->GetPosition()))
 						{
-							if (skyBul > 0)
+							if (eBullet[i].type == 2)
 							{
-								skyBul--;
+								if (skyBul > 0)
+								{
+									skyBul--;
+								}
 							}
 							eBullet[i].Pos = { 1000,-10,1000 };
 							eBullet[i].bulShotFlag = false;
@@ -1287,7 +1260,6 @@ void GameScene::Update()
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
 			XMcalculation(playerCollideScale,playerScale,collideSize,4);
-			//playerScaleに割る3したい。
 			bool playerHit = Collide(playerPos, playerCollideScale, eBullet[i].Pos, eBullet[i].Size, isAlive);
 			{
 				//ノックバックとダメージ
@@ -1355,6 +1327,7 @@ void GameScene::Update()
 	}
 
 	objGround->SetPosition({ 0,1,0 });
+	objGround->SetScale({ 10,1,10 });
 
 	particleMan->Update();
 
@@ -1368,17 +1341,8 @@ void GameScene::Update()
 	for (int i = 0; i < _countof(objBul); i++)
 	{
 		objBul[i]->Update();
-	}
-	for (int i = 0; i < _countof(objEnemyBul); i++)
-	{
 		objEnemyBul[i]->Update();
-	}
-	for (int i = 0; i < _countof(particleObject); i++)
-	{
 		particleObject[i]->Update();
-	}
-	for (int i = 0; i < _countof(redParticleObject); i++)
-	{
 		redParticleObject[i]->Update();
 	}
 	light->Update();
