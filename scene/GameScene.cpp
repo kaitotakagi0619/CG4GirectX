@@ -526,7 +526,7 @@ void GameScene::Update()
 		isPlus = true;
 
 		firstBossHP = 20;
-		playerHP = 4;
+		playerHP = 5;
 		skyBul = 0;
 
 
@@ -619,10 +619,6 @@ void GameScene::Update()
 			spriteNum[2]->SetPosition({ WinApp::window_width - 104 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
 			spriteNum[3]->SetPosition({ WinApp::window_width - 80 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
 			spriteMagazineUI->SetPosition({ WinApp::window_width - 256 + (float)randUIX,WinApp::window_height - 128 + (float)randUIY });
-			/*for (int i = 0; i < _countof(spriteLife); i++)
-			{
-				spriteLife[i]->SetPosition({ 100.0f + (i * 60) - (float)randUIX ,600.0f + (float)randUIY });
-			}*/
 			//視野角の変更
 			viewMatrix = 55;
 			justCount++;
@@ -643,14 +639,9 @@ void GameScene::Update()
 			spriteNum[2]->SetPosition({ WinApp::window_width - 104,WinApp::window_height - 64 });
 			spriteNum[3]->SetPosition({ WinApp::window_width - 80,WinApp::window_height - 64 });
 			spriteMagazineUI->SetPosition({ WinApp::window_width - 256,WinApp::window_height - 128 });
-			/*for (int i = 0; i < _countof(spriteLife); i++)
-			{
-				spriteLife[i]->SetPosition({ 100.0f + (i * 60),600.0f });
-			}*/
 			justCount = 0;
 		}
 
-		//sprite[0]->SetPosition({ mousePos.x,mousePos.y });
 		if (isAlive == true)
 		{
 			//移動用velocity計算
@@ -722,7 +713,7 @@ void GameScene::Update()
 			spriteNum[0]->ChangeTex(lastBul / 10);
 			spriteNum[1]->ChangeTex(lastBul % 10);
 			spriteNum[2]->ChangeTex(maxMagazine / 10);
-			spriteNum[3]->ChangeTex(skyBul);
+			spriteNum[3]->ChangeTex(maxMagazine & 10);
 
 			//リロード
 			if ((input->TriggerKey(DIK_R) && isJustTiming && isReload == false)
@@ -895,11 +886,7 @@ void GameScene::Update()
 		//弾がボスに当たったとき
 		for (int i = 0; i < _countof(objBul); i++)
 		{
-			bool bossHit = (bossPos.x - playerScale.x < bullet[i].Pos.x + bullet[i].Size.x)
-				&& (bossPos.x + playerScale.x > bullet[i].Pos.x - bullet[i].Size.x)
-				&& (bossPos.z - playerScale.z < bullet[i].Pos.z + bullet[i].Size.z)
-				&& (bossPos.z + playerScale.z > bullet[i].Pos.z - bullet[i].Size.z)
-				&& (bossAlive == true);
+			bool bossHit = Collide(bossPos, playerScale, bullet[i].Pos, bullet[i].Size, bossAlive);
 			{
 				if (bossHit)
 				{
@@ -973,8 +960,6 @@ void GameScene::Update()
 				partPos[i].x += static_cast<float>(partVelocityx[i]) / 10;
 				partPos[i].y += static_cast<float>(partVelocityy[i]) / 10;
 				partPos[i].z += static_cast<float>(partVelocityz[i]) / 10;
-				//partVelocityzを一個のvectorでまとめる;
-				//XMVectorAdd(partPos[i], static_cast<float>(partVelocityx[i]) / 10)
 				particleObject[i]->SetPosition({ partPos[i] });
 			}
 		}
@@ -1000,50 +985,13 @@ void GameScene::Update()
 			if (skyBul == 0)
 			{
 				enemyAttackCounter++;
-				if (enemyMove < 320 && isPlus)
-				{
-					enemyMove++;
-				}
-				if (enemyMove >= 320 && isPlus)
-				{
-					enemyMove = 0;
-				}
-				if ((enemyMove < 40) || (enemyMove > 280 && enemyMove < 320))
-				{
-					bossPos.x += 0.1;
-				}
-
-				if ((enemyMove > 40 && enemyMove < 80) || (enemyMove > 200 && enemyMove < 240))
-				{
-					bossPos.x -= 0.1;
-					bossPos.z += 0.1;
-				}
-				if (enemyMove > 80 && enemyMove < 120)
-				{
-					bossPos.x -= 0.1;
-					bossPos.z -= 0.1;
-				}
-				if ((enemyMove > 120 && enemyMove < 140) || (enemyMove > 160 && enemyMove < 180))
-				{
-					bossPos.x += 0.1;
-					bossPos.z -= 0.1;
-				}
-				if ((enemyMove > 140 && enemyMove < 160) || (enemyMove > 180 && enemyMove < 200))
-				{
-					bossPos.x += 0.1;
-					bossPos.z += 0.1;
-				}
-				if (enemyMove > 240 && enemyMove < 280)
-				{
-					bossPos.x -= 0.1;
-					bossPos.z -= 0.1;
-				}
+				EnemyMove(bossPos, enemyMove, isPlus);
 			}
 
 			//---------------------ここから攻撃選定と前処理----------------------//
 
 			//攻撃選定
-			if (enemyAttackCounter >= 59 && skyBul == 0 && enemyBulCount < 42)
+			if (enemyAttackCounter >= 59 && skyBul == 0 && enemyBulCount < 46)
 			{
 				selectAttack = rand() % 100;
 				enemyAttackCounter = 0;
@@ -1317,11 +1265,10 @@ void GameScene::Update()
 
 		//----------------ここまで敵の撃つ処理-----------------//
 
-		// 
-		if (enemyBulCount > 42 && skyBul == 0 && enemyAttackCounter >= 59)
+		// 弾の初期化と弾数リセット
+		if (enemyBulCount > 42 && skyBul == 0 && enemyAttackCounter <= 59)
 		{
 			//弾の初期化処理が必要
-			enemyBulCount = 1;
 			for (int i = 0; i < _countof(objEnemyBul); i++)
 			{
 				eBullet[i].bulShotFlag = false;
@@ -1330,6 +1277,7 @@ void GameScene::Update()
 				eBullet[i].type = 0;
 				eBullet[i].velocity = { 0,0,0 };
 			}
+			enemyBulCount = 1;
 		}
 		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
 		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
@@ -1338,13 +1286,9 @@ void GameScene::Update()
 		//敵の攻撃と自分との当たり判定
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
-			bool playerHit = (playerPos.x - (playerScale.x / 3) < eBullet[i].Pos.x + eBullet[i].Size.x)
-				&& (playerPos.x + (playerScale.x / 3) > eBullet[i].Pos.x - eBullet[i].Size.x)
-				&& (playerPos.y - (playerScale.y / 3) < eBullet[i].Pos.y + eBullet[i].Size.y)
-				&& (playerPos.y + (playerScale.y / 3) > eBullet[i].Pos.y - eBullet[i].Size.y)
-				&& (playerPos.z - (playerScale.z / 3) < eBullet[i].Pos.z + eBullet[i].Size.z)
-				&& (playerPos.z + (playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
-				&& (isAlive == true);
+			XMcalculation(playerCollideScale,playerScale,collideSize,4);
+			//playerScaleに割る3したい。
+			bool playerHit = Collide(playerPos, playerCollideScale, eBullet[i].Pos, eBullet[i].Size, isAlive);
 			{
 				//ノックバックとダメージ
 				if (playerHit && hitTimer == 0)
@@ -1689,6 +1633,48 @@ void GameScene::CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const
 	pos.x = (sinf(3.14 / 180.0f * angleX) * r) + center_pos.x;//円運動の処理
 }
 
+void GameScene::EnemyMove(XMFLOAT3& epos, int& emove, bool eflag)
+{
+	if (emove < 320 && eflag)
+	{
+		emove++;
+	}
+	if (emove >= 320 && eflag)
+	{
+		emove = 0;
+	}
+	if ((emove < 40) || (emove > 280 && emove < 320))
+	{
+		epos.x += 0.1;
+	}
+
+	if ((emove > 40 && emove < 80) || (emove > 200 && emove < 240))
+	{
+		epos.x -= 0.1;
+		epos.z += 0.1;
+	}
+	if (emove > 80 && emove < 120)
+	{
+		epos.x -= 0.1;
+		epos.z -= 0.1;
+	}
+	if ((emove > 120 && emove < 140) || (emove > 160 && emove < 180))
+	{
+		epos.x += 0.1;
+		epos.z -= 0.1;
+	}
+	if ((emove > 140 && emove < 160) || (emove > 180 && emove < 200))
+	{
+		epos.x += 0.1;
+		epos.z += 0.1;
+	}
+	if (emove > 240 && emove < 280)
+	{
+		epos.x -= 0.1;
+		epos.z -= 0.1;
+	}
+}
+
 void GameScene::MapCreate(int mapNumber)
 {
 	for (int y = 0; y < map_max_y; y++) {//(yが26)
@@ -1720,5 +1706,51 @@ bool GameScene::MapCollide(XMFLOAT3& playerPos, const XMFLOAT3& blockPos)
 	else
 	{
 		return false;
+	}
+}
+
+bool GameScene::Collide(XMFLOAT3& pos, XMFLOAT3 scale, const XMFLOAT3& bulPos, XMFLOAT3 bulSize, bool alive)
+{
+	if ((pos.x - scale.x < bulPos.x + bulSize.x)
+		&& (pos.x + scale.x > bulPos.x - bulSize.x)
+		&& (pos.y - scale.y < bulPos.y + bulSize.y)
+		&& (pos.y + scale.y > bulPos.y - bulSize.y)
+		&& (pos.z - scale.z < bulPos.z + bulSize.z)
+		&& (pos.z + scale.z > bulPos.z - bulSize.z)
+		&& (alive == true))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void GameScene::XMcalculation(XMFLOAT3& firstScore, XMFLOAT3 Score1, XMFLOAT3 Score2, int type)
+{
+	if (type == 1)
+	{
+		firstScore.x = Score1.x + Score2.x;
+		firstScore.y = Score1.y + Score2.y;
+		firstScore.z = Score1.z + Score2.z;
+	}
+	if (type == 2)
+	{
+		firstScore.x = Score1.x - Score2.x;
+		firstScore.y = Score1.y - Score2.y;
+		firstScore.z = Score1.z - Score2.z;
+	}
+	if (type == 3)
+	{
+		firstScore.x = Score1.x* Score2.x;
+		firstScore.y = Score1.y* Score2.y;
+		firstScore.z = Score1.z* Score2.z;
+	}
+	if (type == 4)
+	{
+		firstScore.x = Score1.x / Score2.x;
+		firstScore.y = Score1.y / Score2.y;
+		firstScore.z = Score1.z / Score2.z;
 	}
 }

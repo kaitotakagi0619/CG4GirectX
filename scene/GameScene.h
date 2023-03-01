@@ -93,6 +93,11 @@ public: // メンバ関数
 
 	void CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, float& angleZ, float& angleX, const float add);
 
+	void EnemyMove(XMFLOAT3& epos, int& emove, bool eflag);
+
+	void XMcalculation(XMFLOAT3& firstScore, XMFLOAT3 Score1, XMFLOAT3 Score2, int type);
+
+	bool Collide(XMFLOAT3& pos, XMFLOAT3 scale, const XMFLOAT3& bulPos, XMFLOAT3 bulSize, bool alive);
 	//マップチップ1つの大きさ
 	const float LAND_SCALE = 1.0f;
 
@@ -116,6 +121,7 @@ public: // メンバ関数
 	/// //マップチップ当たり判定
 	/// </summary>
 	bool MapCollide(XMFLOAT3& playerPos, const XMFLOAT3& blockPos);
+
 
 
 private: // メンバ変数
@@ -184,6 +190,8 @@ private: // メンバ変数
 	const float jCountMin = 0.3;
 	XMFLOAT3	playerPos = { 0,0,0 };
 	XMFLOAT3	oldPlayerPos = { 0,0,0 };
+	XMFLOAT3    collideSize = { 3,3,3 };
+	XMFLOAT3 playerCollideScale = { 0,0,0 };
 	bool		isHit = false;
 	XMFLOAT3	bossPos = { 0,0,0 };
 	XMFLOAT3	playerScale = { 0,0,0 };
@@ -269,6 +277,7 @@ private: // メンバ変数
 	float timeHeart = 0.0f;
 	float heartSize = 64.0f;
 
+
 	int clearTimer = 0;
 
 
@@ -280,7 +289,7 @@ private: // メンバ変数
 	//Sprite* spriteBG = nullptr;
 	Sprite* sprite[6] = { nullptr };
 	Sprite* spriteNum[4] = { nullptr };
-	Sprite* spriteLife[4] = { nullptr };
+	Sprite* spriteLife[5] = { nullptr };
 	Sprite* spriteMagazineUI = nullptr;
 	Sprite* spritedamageEffect = nullptr;
 	Sprite* spritebossHP = nullptr;
