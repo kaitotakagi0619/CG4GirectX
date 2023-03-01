@@ -210,7 +210,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
-	if (!Sprite::LoadTexture(21, L"Resources/life.png")) {
+	if (!Sprite::LoadTexture(21, L"Resources/heart.png")) {
 		assert(0);
 		return;
 	}
@@ -219,6 +219,10 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		return;
 	}
 	if (!Sprite::LoadTexture(23, L"Resources/brink.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(24, L"Resources/damageEffect.png")) {
 		assert(0);
 		return;
 	}
@@ -233,6 +237,8 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	spriteNum[1] = Sprite::Create(1, { 0.0f,0.0f });
 	spriteNum[2] = Sprite::Create(2, { 0.0f,0.0f });
 	spriteNum[3] = Sprite::Create(3, { 0.0f,0.0f });
+	spritedamageEffect = Sprite::Create(24, { 0.0f,0.0f });
+	spritedamageEffect->SetSize({ WinApp::window_width,WinApp::window_height });
 	spriteMagazineUI = Sprite::Create(18, { 0.0f,0.0f });
 	spritebossHP = Sprite::Create(11, { 0.0f,0.0f });
 	spritebossHPFrame = Sprite::Create(19, { 0.0f,0.0f });
@@ -247,11 +253,11 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	}
 	for (int i = 0; i < _countof(spriteLife); i++)
 	{
-		spriteLife[i]->SetSize({ 64,32 });
+		spriteLife[i]->SetSize({ HeartMaxSize,HeartMaxSize });
 	}
 	for (int i = 0; i < _countof(spriteLife); i++)
 	{
-		spriteLife[i]->SetPosition({ 100.0f + (i * 60),600.0f });
+		spriteLife[i]->SetPosition({ heartPos + (i * 80),600.0f });
 	}
 
 	//スプライトの初期変更
@@ -585,10 +591,22 @@ void GameScene::Update()
 		{
 			isJustTiming = false;
 		}
+		//---------------スプライトを変更する処理--------------//
 
+		timeHeart = (timing / 60.0f);
 		sprite[4]->SetPosition({ (WinApp::window_width / 2) - (4 * (float)timing + 32),WinApp::window_height - 160 });
 		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height - 160 });
-
+		heartSize = static_cast<float>(Ease::easeIn(HeartMaxSize, HeartMinSize, timeHeart));
+		heartPos = static_cast<float>(Ease::easeIn(MaxPos, MinPos, timeHeart));
+		for (int i = 0; i < _countof(spriteLife); i++)
+		{
+			spriteLife[i]->SetSize({heartSize,heartSize});
+		}
+		for (int i = 0; i < _countof(spriteLife); i++)
+		{
+			spriteLife[i]->SetPosition({ heartPos + (i * 80),600.0f });
+		}
+		//---------------スプライトを変更する処理ここまで-------//
 		//タイミングがジャストだった時にUIを揺らす処理
 		if (isJust)
 		{
@@ -601,10 +619,10 @@ void GameScene::Update()
 			spriteNum[2]->SetPosition({ WinApp::window_width - 104 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
 			spriteNum[3]->SetPosition({ WinApp::window_width - 80 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
 			spriteMagazineUI->SetPosition({ WinApp::window_width - 256 + (float)randUIX,WinApp::window_height - 128 + (float)randUIY });
-			for (int i = 0; i < _countof(spriteLife); i++)
+			/*for (int i = 0; i < _countof(spriteLife); i++)
 			{
 				spriteLife[i]->SetPosition({ 100.0f + (i * 60) - (float)randUIX ,600.0f + (float)randUIY });
-			}
+			}*/
 			//視野角の変更
 			viewMatrix = 55;
 			justCount++;
@@ -625,10 +643,10 @@ void GameScene::Update()
 			spriteNum[2]->SetPosition({ WinApp::window_width - 104,WinApp::window_height - 64 });
 			spriteNum[3]->SetPosition({ WinApp::window_width - 80,WinApp::window_height - 64 });
 			spriteMagazineUI->SetPosition({ WinApp::window_width - 256,WinApp::window_height - 128 });
-			for (int i = 0; i < _countof(spriteLife); i++)
+			/*for (int i = 0; i < _countof(spriteLife); i++)
 			{
 				spriteLife[i]->SetPosition({ 100.0f + (i * 60),600.0f });
-			}
+			}*/
 			justCount = 0;
 		}
 
@@ -955,6 +973,7 @@ void GameScene::Update()
 				partPos[i].x += static_cast<float>(partVelocityx[i]) / 10;
 				partPos[i].y += static_cast<float>(partVelocityy[i]) / 10;
 				partPos[i].z += static_cast<float>(partVelocityz[i]) / 10;
+				//partVelocityzを一個のvectorでまとめる;
 				//XMVectorAdd(partPos[i], static_cast<float>(partVelocityx[i]) / 10)
 				particleObject[i]->SetPosition({ partPos[i] });
 			}
@@ -1331,15 +1350,6 @@ void GameScene::Update()
 				if (playerHit && hitTimer == 0)
 				{
 					hitTimer = 20;
-					playerPos.x -= (plVelocity.x / 10);
-					playerPos.z -= (plVelocity.z / 10);
-					targetCameraPos.x -= (plVelocity.x / 10);
-					targetCameraPos.z -= (plVelocity.z / 10);
-					virCameraPos.x -= (plVelocity.x / 10);
-					virCameraPos.z -= (plVelocity.z / 10);
-					objFighter->SetPosition(playerPos);
-					objFighter2->SetPosition(targetCameraPos);
-					objFighter3->SetPosition(virCameraPos);
 					playerHP--;
 					if (skyBul > 0)
 					{
@@ -1522,6 +1532,7 @@ void GameScene::Draw()
 	}
 	if (SceneNum == Game)
 	{
+		//spritedamageEffect->Draw();
 		sprite[3]->Draw();
 		sprite[4]->Draw();
 		sprite[5]->Draw();

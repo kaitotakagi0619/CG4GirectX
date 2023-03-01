@@ -260,6 +260,15 @@ private: // メンバ変数
 	XMFLOAT3 partPos[50] = {};
 	XMFLOAT3 partPos2[50] = {};
 
+	const float HeartMaxSize = 128.0f;
+	const float HeartMinSize = 64.0f;
+	const float MaxPos = 50;
+	const float MinPos = 82;
+	float heartPos = 50.0f;
+
+	float timeHeart = 0.0f;
+	float heartSize = 64.0f;
+
 	int clearTimer = 0;
 
 
@@ -273,6 +282,7 @@ private: // メンバ変数
 	Sprite* spriteNum[4] = { nullptr };
 	Sprite* spriteLife[4] = { nullptr };
 	Sprite* spriteMagazineUI = nullptr;
+	Sprite* spritedamageEffect = nullptr;
 	Sprite* spritebossHP = nullptr;
 	Sprite* spritebossHPFrame = nullptr;
 	Sprite* reloadText = nullptr;
