@@ -133,6 +133,20 @@ private: // メンバ変数
 	Object3d* objBlock[map_max_y][map_max_x]; //ステージブロック
 
 	const int enemyBul = 50;
+	const float circle = 10.0f;
+	const float circleAdd = 1.0f;
+	const int timingStart = 55;
+	const int timingEnd = 5;
+	const int timingMax = 60;
+
+	const XMFLOAT3 OutAriaPos = { 1000,-10,1000 };
+	const XMFLOAT3 resetFloat3 = { 0,0,0 };
+
+	const float AriaField = 400.0f;
+	const int mousePosX = 640;
+	const int mousePosY = 400;
+	const int sensitivity = 50;
+
 
 	struct Bullet
 	{
@@ -172,8 +186,8 @@ private: // メンバ変数
 
 	int		 bulCount = 30;
 	int		 enemyBulCount = 20;
-	XMFLOAT3 plVelocity = { 0,0,0 };
-	XMFLOAT3 virVelocity = { 0,0,0 };
+	XMFLOAT3 plVelocity = { resetFloat3 };
+	XMFLOAT3 virVelocity = { resetFloat3 };
 	bool	 bossAlive = true;
 	bool	 oldBossAlive = true;
 	int      enemyTimer = 0;
@@ -188,17 +202,17 @@ private: // メンバ変数
 	float	 jCount = 0.6;
 	const float jCountMax = 0.5;
 	const float jCountMin = 0.3;
-	XMFLOAT3	playerPos = { 0,0,0 };
-	XMFLOAT3	oldPlayerPos = { 0,0,0 };
+	XMFLOAT3	playerPos = { resetFloat3 };
+	XMFLOAT3	oldPlayerPos = { resetFloat3 };
 	XMFLOAT3    collideSize = { 3,3,3 };
-	XMFLOAT3 playerCollideScale = { 0,0,0 };
+	XMFLOAT3 playerCollideScale = { resetFloat3 };
 	bool		isHit = false;
-	XMFLOAT3	bossPos = { 0,0,0 };
-	XMFLOAT3	playerScale = { 0,0,0 };
-	XMFLOAT3	targetCameraPos = { 0,0,0 };
-	XMFLOAT3	oldTargetCameraPos = { 0,0,0 };
-	XMFLOAT3	virCameraPos = { 0,0,0 };
-	XMFLOAT3	oldVirCameraPos = { 0,0,0 };
+	XMFLOAT3	bossPos = { resetFloat3 };
+	XMFLOAT3	playerScale = { resetFloat3 };
+	XMFLOAT3	targetCameraPos = { resetFloat3 };
+	XMFLOAT3	oldTargetCameraPos = { resetFloat3 };
+	XMFLOAT3	virCameraPos = { resetFloat3 };
+	XMFLOAT3	oldVirCameraPos = { resetFloat3 };
 	XMFLOAT3	centerPos = { 0, 2, 50 };
 	XMFLOAT2	mousePos = { 0,0 };
 	XMFLOAT4	color = { 1,1,1,0 };
@@ -258,9 +272,9 @@ private: // メンバ変数
 	XMFLOAT3 titleEye = { 0,20,-30 };
 	XMFLOAT3 titleTarget = { 0,2, 40 };
 
-	XMFLOAT3 partVelocity = { 0,0,0 };
-	XMFLOAT3 bossVelocity = { 0,0,0 };
-	XMFLOAT3 bossRota = { 0,0,0 };
+	XMFLOAT3 partVelocity = { resetFloat3 };
+	XMFLOAT3 bossVelocity = { resetFloat3 };
+	XMFLOAT3 bossRota = { resetFloat3 };
 
 	int partVelocityx[50] = { 0 };
 	int partVelocityy[50] = { 0 };

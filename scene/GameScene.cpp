@@ -324,7 +324,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		{
 			objBlock[y][x] = Object3d::Create(modelBox);
 			objBlock[y][x]->SetScale({ 0.2f,0.2f,0.2f });
-			objBlock[y][x]->SetPosition({ 1000.0f,1000.0f,0.0f });
+			objBlock[y][x]->SetPosition(OutAriaPos);
 		}
 	}
 
@@ -332,14 +332,14 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	{
 		particleObject[i] = Object3d::Create(modelFire);
 		particleObject[i]->SetScale({ 0.2f,0.2f,0.2f });
-		particleObject[i]->SetPosition({ 1000.0f,1000.0f,0.0f });
+		particleObject[i]->SetPosition(OutAriaPos);
 	}
 
 	for (int i = 0; i < _countof(redParticleObject); i++)
 	{
 		redParticleObject[i] = Object3d::Create(modelRed);
 		redParticleObject[i]->SetScale({ 0.05f,0.05f,0.05f });
-		redParticleObject[i]->SetPosition({ 1000.0f,1000.0f,0.0f });
+		redParticleObject[i]->SetPosition(OutAriaPos);
 	}
 
 	//プレイヤー、敵、カメラの初期セット
@@ -371,20 +371,20 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	for (int i = 0; i < _countof(objBul); i++)
 	{
 		objBul[i] = Object3d::Create(modelSphere);
-		objBul[i]->SetPosition({ +1000,-10,1000 });
+		objBul[i]->SetPosition(OutAriaPos);
 		objBul[i]->SetScale({ 0.2,0.2,0.2 });
 	}
 
 	for (int i = 0; i < _countof(objEnemyBul); i++)
 	{
 		objEnemyBul[i] = Object3d::Create(modelSphere);
-		objEnemyBul[i]->SetPosition({ +1000,-10,1000 });
+		objEnemyBul[i]->SetPosition(OutAriaPos);
 		objEnemyBul[i]->SetScale({ 0.5,0.5,0.5 });
 	}
 
 	// カメラ注視点をセット
 	camera->SetTarget({ 0, 0, 0 });
-	camera->SetEye({ 0,0,0 });
+	camera->SetEye({ resetFloat3 });
 
 	light = Light::Create();
 	light->SetLightColor({ 1,1,1 });
@@ -403,7 +403,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 void GameScene::Update()
 {
-	SetCursorPos(640, 400);
+	SetCursorPos(mousePosX, mousePosY);
 	CreateLight();
 	//各種変数関係
 	MapCreate(0);
@@ -412,10 +412,11 @@ void GameScene::Update()
 		for (int x = 0; x < map_max_x; x++)
 		{
 			objBlock[y][x]->Update();
+			objBlock[y][x]->GetPosition();
 		}
 	}
 	Input::MouseMove mouseMove = input->GetMouseMove();
-	mousePos = { (float)mouseMove.lX / 50,(float)mouseMove.lY / 50 };
+	mousePos = { (float)mouseMove.lX / sensitivity,(float)mouseMove.lY / sensitivity };
 	playerPos = objFighter->GetPosition();
 	bossPos = bossEnemy->GetPosition();
 	playerScale = objFighter->GetScale();
@@ -461,13 +462,13 @@ void GameScene::Update()
 
 		for (int i = 0; i < _countof(objBul); i++)
 		{
-			objBul[i]->SetPosition({ +1000,-10,1000 });
+			objBul[i]->SetPosition(OutAriaPos);
 			objBul[i]->SetScale({ 0.2,0.2,0.2 });
 		}
 
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
-			objEnemyBul[i]->SetPosition({ +1000,-10,1000 });
+			objEnemyBul[i]->SetPosition(OutAriaPos);
 			objEnemyBul[i]->SetScale({ 0.5,0.5,0.5 });
 		}
 		mousePos = { (float)mouseMove.lX / 50,(float)mouseMove.lY / 50 };
@@ -479,8 +480,8 @@ void GameScene::Update()
 		centerPos = { 0, 2, 50 };
 		bulCount = 30;
 		enemyBulCount = 1;
-		plVelocity = { 0,0,0 };
-		virVelocity = { 0,0,0 };
+		plVelocity = { resetFloat3 };
+		virVelocity = { resetFloat3 };
 		bossAlive = true;
 		enemyTimer = 0;
 		timing = 75;
@@ -509,11 +510,11 @@ void GameScene::Update()
 		fiveAttack2 = false;
 		viewMatrix = camera->GetMatrix();
 		justCount = 0;
-		bossVelocity = { 0,0,0 };
+		bossVelocity = { resetFloat3 };
 
 		clearTimer = 0;
-		randUIX = 0;
-		randUIY = 0;
+		randUIX = 30;
+		randUIY = 30;
 
 		selectAttack = 0;
 		enemySinpleAttack = false;
@@ -548,10 +549,10 @@ void GameScene::Update()
 			//カウントダウンがマックスならbattleに移る
 			if (nowCount > maxTime) {
 				SceneNum = Game;
-				CircularMotionUD(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleY, +1);
-				CircularMotionLR(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleX, +1);
-				CircularMotionUD(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleY, +1);
-				CircularMotionLR(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleX, +1);
+				CircularMotionUD(targetCameraPos, playerPos, circle, camera_data.angleZ, camera_data.angleY, circleAdd);
+				CircularMotionLR(targetCameraPos, playerPos, circle, camera_data.angleZ, camera_data.angleX, circleAdd);
+				CircularMotionUD(virCameraPos, playerPos, circle, camera_data.virangleZ, camera_data.virangleY, circleAdd);
+				CircularMotionLR(virCameraPos, playerPos, circle, camera_data.virangleZ, camera_data.virangleX, circleAdd);
 				nowCount = 0.0f;
 				timeRate = 0.0f;
 
@@ -580,10 +581,10 @@ void GameScene::Update()
 		}
 		else
 		{
-			timing = 60;
+			timing = timingMax;
 		}
 
-		if (timing > 55 || timing < 5)
+		if (timing > timingStart || timing < timingEnd)
 		{
 			isJustTiming = true;
 		}
@@ -610,14 +611,15 @@ void GameScene::Update()
 		//タイミングがジャストだった時にUIを揺らす処理
 		if (isJust)
 		{
-			randUIX = 30;
-			randUIY = 30;
 			spritebossHP->SetPosition({ 303 , 47 - (float)randUIY });
 			spritebossHPFrame->SetPosition({ 300 , 0 - (float)randUIY });
-			spriteNum[0]->SetPosition({ WinApp::window_width - 174 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
-			spriteNum[1]->SetPosition({ WinApp::window_width - 150 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
-			spriteNum[2]->SetPosition({ WinApp::window_width - 104 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
-			spriteNum[3]->SetPosition({ WinApp::window_width - 80 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
+			for (int i = 0; i < 4; i++)
+			{
+				spriteNum[0]->SetPosition({ WinApp::window_width - 174 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
+				spriteNum[1]->SetPosition({ WinApp::window_width - 150 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
+				spriteNum[2]->SetPosition({ WinApp::window_width - 104 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
+				spriteNum[3]->SetPosition({ WinApp::window_width - 80 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
+			}
 			spriteMagazineUI->SetPosition({ WinApp::window_width - 256 + (float)randUIX,WinApp::window_height - 128 + (float)randUIY });
 			//視野角の変更
 			viewMatrix = 55;
@@ -776,10 +778,10 @@ void GameScene::Update()
 				bullet[i].Pos.x += (plVelocity.x / 2);
 				bullet[i].Pos.y += (plVelocity.y / 2);
 				bullet[i].Pos.z += (plVelocity.z / 2);
-				if ((bullet[i].Pos.z > 400) || (bullet[i].Pos.z < -400)
-					|| (bullet[i].Pos.x > 400) || (bullet[i].Pos.x < -400))
+				if ((bullet[i].Pos.z > AriaField) || (bullet[i].Pos.z < -AriaField)
+					|| (bullet[i].Pos.x > AriaField) || (bullet[i].Pos.x < -AriaField))
 				{
-					bullet[i].Pos = { +1000,-10,1000 };
+					bullet[i].Pos = OutAriaPos;
 					bullet[i].bulShotFlag = false;
 					sprite[0]->SetSize({ 64.0f,64.0f });
 					sprite[0]->SetPosition({ spritePos.center.x - 32,spritePos.center.y - 32 });
@@ -891,7 +893,7 @@ void GameScene::Update()
 				if (bossHit)
 				{
 					firstBossHP--;
-					objBul[i]->SetPosition({ +1000,-10,1000 });
+					objBul[i]->SetPosition(OutAriaPos);
 					bullet[i].Pos = objBul[i]->GetPosition();
 					bullet[i].Size = objBul[i]->GetScale();
 					setParticle = true;
@@ -997,27 +999,25 @@ void GameScene::Update()
 				enemyAttackCounter = 0;
 			}
 
-			if (selectAttack < 50 && selectAttack != 0)
+			if (selectAttack != 0)
 			{
-				enemySinpleAttack = true;
-				enemyAttackCounter = 0;
-				selectAttack = 0;
-			}
-			else if (selectAttack < 75 && selectAttack != 0)
-			{
-				enemyTripleAttack = true;
-				enemyAttackCounter = 0;
-				selectAttack = 0;
-			}
-			else if (selectAttack < 85 && selectAttack != 0 && skyBul <= 4)
-			{
-				enemyBirdAttack = true;
-				enemyAttackCounter = 0;
-				selectAttack = 0;
-			}
-			else if (selectAttack < 100 && selectAttack != 0 && skyBul <= 4)
-			{
-				enemyStarAttack = true;
+				if (selectAttack < 50)
+				{
+					enemySinpleAttack = true;
+				}
+				else if (selectAttack < 75)
+				{
+					enemyTripleAttack = true;
+				}
+				//元々4以下だった
+				else if (selectAttack < 85 && skyBul == 0)
+				{
+					enemyBirdAttack = true;
+				}
+				else if (selectAttack < 100 && skyBul == 0)
+				{
+					enemyStarAttack = true;
+				}
 				enemyAttackCounter = 0;
 				selectAttack = 0;
 			}
@@ -1197,8 +1197,8 @@ void GameScene::Update()
 			}
 			if (eBullet[i].bulShotFlag == true)
 			{
-				if ((eBullet[i].Pos.z > 400) || (eBullet[i].Pos.z < -400)
-					|| (eBullet[i].Pos.x > 400) || (eBullet[i].Pos.x < -400))
+				if ((eBullet[i].Pos.z > AriaField) || (eBullet[i].Pos.z < -AriaField)
+					|| (eBullet[i].Pos.x > AriaField) || (eBullet[i].Pos.x < -AriaField))
 				{
 					if (eBullet[i].type == 2)
 					{
@@ -1207,7 +1207,7 @@ void GameScene::Update()
 							skyBul--;
 						}
 					}
-					eBullet[i].Pos = { +1000,-10,1000 };
+					eBullet[i].Pos = OutAriaPos;
 					eBullet[i].bulShotFlag = false;
 				}
 				for (int y = 0; y < map_max_y; y++)
@@ -1224,12 +1224,12 @@ void GameScene::Update()
 									skyBul--;
 								}
 							}
-							eBullet[i].Pos = { 1000,-10,1000 };
+							eBullet[i].Pos = OutAriaPos;
 							eBullet[i].bulShotFlag = false;
 							eBullet[i].bulFlag = false;
 							eBullet[i].attackAnimation = false;
 							eBullet[i].type = 0;
-							eBullet[i].velocity = { 0,0,0 };
+							eBullet[i].velocity = { resetFloat3 };
 						}
 					}
 				}
@@ -1248,7 +1248,7 @@ void GameScene::Update()
 				eBullet[i].bulFlag = false;
 				eBullet[i].attackAnimation = false;
 				eBullet[i].type = 0;
-				eBullet[i].velocity = { 0,0,0 };
+				eBullet[i].velocity = { resetFloat3 };
 			}
 			enemyBulCount = 1;
 		}
@@ -1271,7 +1271,7 @@ void GameScene::Update()
 					{
 						skyBul--;
 					}
-					eBullet[i].Pos = { +1000,-10,1000 };
+					eBullet[i].Pos = OutAriaPos;
 					eBullet[i].bulShotFlag = false;
 				}
 			}
@@ -1411,7 +1411,10 @@ void GameScene::Draw()
 	{
 		for (int x = 0; x < map_max_x; x++)
 		{
-			objBlock[y][x]->Draw();
+			if (Mapchip::GetChipNum(x, y, map[0]) == Ground)
+			{
+				objBlock[y][x]->Draw();
+			}
 		}
 	}
 	Object3d::PostDraw();
@@ -1652,7 +1655,7 @@ void GameScene::MapCreate(int mapNumber)
 			}
 			else
 			{
-				objBlock[y][x]->SetPosition({ 1000, 1000, 0 });
+				objBlock[y][x]->SetPosition(OutAriaPos);
 			}
 		}
 	}
