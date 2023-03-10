@@ -4,13 +4,12 @@
 #include <sstream>
 #include <iomanip>
 #include "Audio.h"
-#include "FbxLoader.h"
-#include "FbxObject3d.h"
 
 using namespace DirectX;
 
 GameScene::GameScene()
 {
+
 }
 
 GameScene::~GameScene()
@@ -66,7 +65,6 @@ GameScene::~GameScene()
 	safe_delete(objFighter2);
 	safe_delete(objFighter3);
 	safe_delete(bossEnemy);
-	safe_delete(objCity);
 
 	//機能のdelete
 	//safe_delete(dxCommon);
@@ -80,14 +78,9 @@ GameScene::~GameScene()
 	safe_delete(modelFighter);
 	safe_delete(modelFighter2);
 	safe_delete(modelSphere);
-	safe_delete(modelCity);
 	safe_delete(modelBox);
 	safe_delete(modelFire);
 	safe_delete(modelRed);
-
-	//fbxのdelete
-	safe_delete(fbxModel1);
-	safe_delete(fbxObject1);
 }
 
 void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
@@ -112,14 +105,6 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 	// 3Dオブジェクトにカメラをセット
 	Object3d::SetCamera(camera);
-
-	FbxLoader::GetInstance()->LoadModelFromFile("cube");
-
-	FbxObject3d::SetDevice(dxCommon->GetDevice());
-
-	FbxObject3d::SetCamera(camera);
-
-	FbxObject3d::CreateGraphicsPipeline();
 
 	// デバッグテキスト用テクスチャ読み込み
 	if (!Sprite::LoadTexture(debugTextTexNumber, L"Resources/debugfont.png")) {
@@ -226,6 +211,10 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
+	if (!Sprite::LoadTexture(25, L"Resources/reticleRed.png")) {
+		assert(0);
+		return;
+	}
 	
 
 	// スプライト生成
@@ -300,7 +289,6 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	modelFighter = ReadModel::CreateFromOBJ("chr_sword");
 	modelFighter2 = ReadModel::CreateFromOBJ("chr_sword");
 	modelSphere = ReadModel::CreateFromOBJ("sphere2", true);
-	modelCity = ReadModel::CreateFromOBJ("city", true);
 	modelcowgirl = ReadModel::CreateFromOBJ("cowgirl", true);
 	modelBox = ReadModel::CreateFromOBJ("block", true);
 	modelFire = ReadModel::CreateFromOBJ("fire", true);
@@ -314,7 +302,6 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	objFighter = Object3d::Create(modelFighter);
 	objFighter2 = Object3d::Create(modelFighter2);
 	objFighter3 = Object3d::Create(modelFighter2);
-	objCity = Object3d::Create(modelCity);
 	bossEnemy = Object3d::Create(modelcowgirl);
 
 	//マップチップ用のオブジェクトの初期化
@@ -364,9 +351,6 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	objFighter2->SetRotation({ 0,180,0 });
 	objFighter3->SetRotation({ 0,180,0 });
 	bossEnemy->SetRotation({ 0,180,0 });
-	objCity->SetPosition({ 0,0,20 });
-	objCity->SetRotation({ 0,90,0 });
-	objCity->SetScale({ 3,3,3 });
 
 	for (int i = 0; i < _countof(objBul); i++)
 	{
@@ -389,14 +373,6 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	light = Light::Create();
 	light->SetLightColor({ 1,1,1 });
 	Object3d::SetLight(light);
-
-	//モデル名を指定してファイル読み込み
-	fbxModel1 = FbxLoader::GetInstance()->LoadModelFromFile("boneTest");
-	//3Dオブジェクト生成とモデルのセット
-	fbxObject1 = new FbxObject3d;
-	fbxObject1->Initialize();
-	fbxObject1->SetModel(fbxModel1);
-	fbxObject1->SetRotation({ 0,90,0 });
 
 	SceneNum = Title;
 }
@@ -517,10 +493,7 @@ void GameScene::Update()
 		randUIY = 30;
 
 		selectAttack = 0;
-		enemySinpleAttack = false;
-		enemyTripleAttack = false;
-		enemyBirdAttack = false;
-		enemyStarAttack = false;
+		howAttack = Non;
 		enemyIsAttack = false;
 
 		enemyMove = 0;
@@ -561,6 +534,16 @@ void GameScene::Update()
 				isEase = false;
 			}
 		}
+		if (skyDomeRota < 360)
+		{
+			skyDomeRota += 0.1f;
+		}
+		else
+		{
+			skyDomeRota = 0;
+		}
+		objSkydome->SetRotation({ 0, skyDomeRota, 0 });
+
 		camera->SetEye(titleEye);
 		camera->SetTarget(titleTarget);
 		camera->Update();
@@ -581,10 +564,25 @@ void GameScene::Update()
 		}
 		else
 		{
+			if (mapRotaY == 0)
+			{
+				mapRotaY = 180.0f;
+			}
+			else
+			{
+				mapRotaY = 0.0f;
+			}
+
 			timing = timingMax;
+			for (int y = 0; y < map_max_y; y++) {//(yが26)
+				for (int x = 0; x < map_max_x; x++) {//(xが26)
+					objBlock[y][x]->SetRotation({ mapRotaY, 0, 0 });
+					objBlock[y][x]->Update();
+				}
+			}
 		}
 
-		if (timing > timingStart || timing < timingEnd)
+		if (TimingCheck(timing))
 		{
 			isJustTiming = true;
 		}
@@ -663,39 +661,39 @@ void GameScene::Update()
 			// -----------------------------------------//
 			if (input->TriggerKey(DIK_W) && isJustTiming)
 			{
-				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, 10, 1);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, MinMoveVelocity, Plus);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_W))
 			{
-				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, 100, 1);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, MaxMoveVelocity, Plus);
 			}
 			if (input->TriggerKey(DIK_S) && isJustTiming)
 			{
-				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, 10, 2);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, MinMoveVelocity, Minus);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_S))
 			{
-				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, 100, 2);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, MaxMoveVelocity, Minus);
 			}
 			if (input->TriggerKey(DIK_A) && isJustTiming)
 			{
-				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, 10, 2);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, MinMoveVelocity, Minus);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_A))
 			{
-				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, 100, 2);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, MaxMoveVelocity, Minus);
 			}
 			if (input->TriggerKey(DIK_D) && isJustTiming)
 			{
-				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, 10, 1);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, MinMoveVelocity, Plus);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_D))
 			{
-				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, 100, 1);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, MaxMoveVelocity, Plus);
 			}
 			// -----------------------------------------//
 
@@ -715,13 +713,13 @@ void GameScene::Update()
 			spriteNum[0]->ChangeTex(lastBul / 10);
 			spriteNum[1]->ChangeTex(lastBul % 10);
 			spriteNum[2]->ChangeTex(maxMagazine / 10);
-			spriteNum[3]->ChangeTex(maxMagazine & 10);
+			spriteNum[3]->ChangeTex(maxMagazine % 10);
 
 			//リロード
 			if ((input->TriggerKey(DIK_R) && isJustTiming && isReload == false)
 				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isJustTiming && isReload == false))
 			{
-				reloadCount = 30;
+				reloadCount = BigMag;
 				justTiming = true;
 				isReload = true;
 				isJust = true;
@@ -729,8 +727,8 @@ void GameScene::Update()
 			else if ((input->TriggerKey(DIK_R) && isReload == false)
 				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isReload == false))
 			{
-				reloadCount = 30;
-				maxMagazine = 20;
+				reloadCount = BigMag;
+				maxMagazine = MinMag;
 				isReload = true;
 			}
 		}
@@ -745,8 +743,8 @@ void GameScene::Update()
 		//リロード内部実行(タイミングジャスト)
 		if (reloadCount == 0 && isReload == true && justTiming == true)
 		{
-			bulCount = 20;
-			maxMagazine = 30;
+			bulCount = MinMag;
+			maxMagazine = BigMag;
 			isReload = false;
 			
 			Audio::GetInstance()->SoundStop("SE/reload.wav");
@@ -754,7 +752,7 @@ void GameScene::Update()
 		//リロード内部実行
 		else if (reloadCount == 0 && isReload == true)
 		{
-			bulCount = 30;
+			bulCount = BigMag;
 			isReload = false;
 			Audio::GetInstance()->SoundStop("SE/reload.wav");
 		}
@@ -764,6 +762,7 @@ void GameScene::Update()
 		if (bullet[bulCount - 1].bulFlag == true && isReload == false)
 		{
 			sprite[0]->SetSize({ 64.0f + randUIX,64.0f + randUIY });
+			sprite[0]->ChangeTex(25);
 			sprite[0]->SetPosition({ spritePos.center.x - (32 + (randUIX / 2)),spritePos.center.y - (32 + (randUIY / 2)) });
 			bullet[bulCount - 1].Pos = playerPos;
 			bullet[bulCount - 1].bulShotFlag = true;
@@ -775,16 +774,24 @@ void GameScene::Update()
 		{
 			if (bullet[i].bulShotFlag == true)
 			{
-				bullet[i].Pos.x += (plVelocity.x / 2);
-				bullet[i].Pos.y += (plVelocity.y / 2);
-				bullet[i].Pos.z += (plVelocity.z / 2);
-				if ((bullet[i].Pos.z > AriaField) || (bullet[i].Pos.z < -AriaField)
-					|| (bullet[i].Pos.x > AriaField) || (bullet[i].Pos.x < -AriaField))
+				bullet[i].Pos.x += (plVelocity.x / 8);
+				bullet[i].Pos.y += (plVelocity.y / 8);
+				bullet[i].Pos.z += (plVelocity.z / 8);
+				for (int y = 0; y < map_max_y; y++)
 				{
-					bullet[i].Pos = OutAriaPos;
-					bullet[i].bulShotFlag = false;
-					sprite[0]->SetSize({ 64.0f,64.0f });
-					sprite[0]->SetPosition({ spritePos.center.x - 32,spritePos.center.y - 32 });
+					for (int x = 0; x < map_max_x; x++)
+					{
+						if ((bullet[i].Pos.z > AriaField) || (bullet[i].Pos.z < -AriaField)
+							|| (bullet[i].Pos.x > AriaField) || (bullet[i].Pos.x < -AriaField)
+							|| MapCollide3D(bullet[i].Pos, objBlock[y][x]->GetPosition()))
+						{
+							bullet[i].Pos = OutAriaPos;
+							bullet[i].bulShotFlag = false;
+							sprite[0]->SetSize({ 64.0f,64.0f });
+							sprite[0]->ChangeTex(12);
+							sprite[0]->SetPosition({ spritePos.center.x - 32,spritePos.center.y - 32 });
+						}
+					}
 				}
 			}
 		}
@@ -999,37 +1006,16 @@ void GameScene::Update()
 				enemyAttackCounter = 0;
 			}
 
-			if (selectAttack != 0)
-			{
-				if (selectAttack < 50)
-				{
-					enemySinpleAttack = true;
-				}
-				else if (selectAttack < 75)
-				{
-					enemyTripleAttack = true;
-				}
-				//元々4以下だった
-				else if (selectAttack < 85 && skyBul == 0)
-				{
-					enemyBirdAttack = true;
-				}
-				else if (selectAttack < 100 && skyBul == 0)
-				{
-					enemyStarAttack = true;
-				}
-				enemyAttackCounter = 0;
-				selectAttack = 0;
-			}
+			SelectAttack(selectAttack, howAttack, skyBul, enemyAttackCounter);
 		}
 
 		//攻撃前処理
-		if (enemySinpleAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
+		if (howAttack == Sinple && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			eBullet[enemyBulCount].bulFlag = true;
 			eBullet[enemyBulCount].type = 1;
 			enemyBulCount++;
-			enemySinpleAttack = false;
+			howAttack = Non;
 		}
 		if (eBullet[enemyBulCount - 1].bulFlag == true && eBullet[enemyBulCount - 1].type == 1)
 		{
@@ -1040,7 +1026,7 @@ void GameScene::Update()
 			eBullet[enemyBulCount - 1].bulFlag = false;
 		}
 
-		if (enemyTripleAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
+		if (howAttack == Triple && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			for (int i = enemyBulCount; i < (enemyBulCount + 3); i++)
 			{
@@ -1050,7 +1036,7 @@ void GameScene::Update()
 				eBullet[i].velocity.z = playerPos.z - bossPos.z;
 			}
 			enemyBulCount += 3;
-			enemyTripleAttack = false;
+			howAttack = Non;
 		}
 
 		if (eBullet[enemyBulCount - 1].bulFlag == true
@@ -1069,7 +1055,7 @@ void GameScene::Update()
 			}
 		}
 
-		if (enemyBirdAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
+		if (howAttack == Bird && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			for (int i = enemyBulCount; i < (enemyBulCount + 5); i++)
 			{
@@ -1078,7 +1064,7 @@ void GameScene::Update()
 			}
 			enemyBulCount += 5;
 			skyBul += 5;
-			enemyBirdAttack = false;
+			howAttack = Non;
 			fiveAttack = true;
 		}
 
@@ -1121,7 +1107,7 @@ void GameScene::Update()
 		}
 
 		//5つの弾が五角形に飛んでいく前処理
-		if (enemyStarAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
+		if (howAttack == Star && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			for (int i = enemyBulCount; i < (enemyBulCount + 5); i++)
 			{
@@ -1130,7 +1116,7 @@ void GameScene::Update()
 			}
 			enemyBulCount += 5;
 			skyBul += 5;
-			enemyStarAttack = false;
+			howAttack = Non;
 			fiveAttack2 = true;
 		}
 
@@ -1176,7 +1162,7 @@ void GameScene::Update()
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
 			//タイプごとに飛ばし方を変える
-			if (eBullet[i].type == 1)
+			if (eBullet[i].type == Streat)
 			{
 				if (eBullet[i].bulShotFlag == true)
 				{
@@ -1185,8 +1171,8 @@ void GameScene::Update()
 					eBullet[i].Pos.z += eBullet[i].velocity.z / (eBullet[i].normalize * 3);
 				}
 			}
-			else if (eBullet[i].type == 2 && fiveAttack == false
-				|| eBullet[i].type == 2 && fiveAttack2 == false)
+			else if (eBullet[i].type == Anime && fiveAttack == false
+				|| eBullet[i].type == Anime && fiveAttack2 == false)
 			{
 				if (eBullet[i].bulShotFlag == true)
 				{
@@ -1252,8 +1238,8 @@ void GameScene::Update()
 			}
 			enemyBulCount = 1;
 		}
-		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
-		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
+		camera->SetEye(playerPos);
+		camera->SetTarget(targetCameraPos);
 		camera->Update();
 
 		//敵の攻撃と自分との当たり判定
@@ -1323,7 +1309,15 @@ void GameScene::Update()
 		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
 		camera->Update();
 
-		fbxObject1->AnimationFlag = true;
+		if (skyDomeRota < 360)
+		{
+			skyDomeRota += 0.1f;
+		}
+		else
+		{
+			skyDomeRota = 0;
+		}
+		objSkydome->SetRotation({ 0, skyDomeRota, 0 });
 	}
 
 	objGround->SetPosition({ 0,1,0 });
@@ -1337,7 +1331,6 @@ void GameScene::Update()
 	objFighter->Update();
 	objFighter2->Update();
 	objFighter3->Update();
-	objCity->Update();
 	for (int i = 0; i < _countof(objBul); i++)
 	{
 		objBul[i]->Update();
@@ -1346,7 +1339,6 @@ void GameScene::Update()
 		redParticleObject[i]->Update();
 	}
 	light->Update();
-	fbxObject1->Update();
 }
 
 void GameScene::Draw()
@@ -1377,7 +1369,6 @@ void GameScene::Draw()
 	objSkydome->Draw();
 	// 3Dオブジェクトの描画
 	objGround->Draw();
-	//objCity->Draw();
 	//objFighter2->Draw();
 	if (bossAlive == true)
 	{
@@ -1419,8 +1410,6 @@ void GameScene::Draw()
 	}
 	Object3d::PostDraw();
 
-	//fbxObject1->Draw(cmdList);
-
 	// パーティクルの描画
 	particleMan->Draw(cmdList);
 #pragma endregion
@@ -1443,7 +1432,10 @@ void GameScene::Draw()
 	}
 	if (SceneNum == Game)
 	{
-		//spritedamageEffect->Draw();
+		if (hitTimer > 0)
+		{
+			//spritedamageEffect->Draw();
+		}
 		sprite[3]->Draw();
 		sprite[4]->Draw();
 		sprite[5]->Draw();
@@ -1651,7 +1643,7 @@ void GameScene::MapCreate(int mapNumber)
 			{
 				//位置と大きさの変更(今は大きさは変更しないで)
 				//objBlock[y][x]->SetScale({ LAND_SCALE, LAND_SCALE, LAND_SCALE });
-				objBlock[y][x]->SetPosition({ x * LAND_SCALE - 26,   2 , -y * LAND_SCALE + 50 });
+				objBlock[y][x]->SetPosition({ x * LAND_SCALE - 26,   1.5f , -y * LAND_SCALE + 50 });
 			}
 			else
 			{
@@ -1676,6 +1668,35 @@ bool GameScene::MapCollide(XMFLOAT3& playerPos, const XMFLOAT3& blockPos)
 	}
 }
 
+bool GameScene::MapCollide3D(XMFLOAT3& playerPos, const XMFLOAT3& blockPos)
+{
+	if ((playerPos.x - (playerScale.x / 2) < blockPos.x + (LAND_SCALE / 2))
+		&& (playerPos.x + (playerScale.x / 2) > blockPos.x - (LAND_SCALE / 2))
+		&& (playerPos.y - (playerScale.y / 2) < blockPos.y + (LAND_SCALE / 2))
+		&& (playerPos.y + (playerScale.y / 2) > blockPos.y - (LAND_SCALE / 2))
+		&& (playerPos.z - (playerScale.z / 2) < blockPos.z + (LAND_SCALE / 2))
+		&& (playerPos.z + (playerScale.z / 2) > blockPos.z - (LAND_SCALE / 2)))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool GameScene::TimingCheck(int time)
+{
+	if (time > timingStart || time < timingEnd)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 bool GameScene::Collide(XMFLOAT3& pos, XMFLOAT3 scale, const XMFLOAT3& bulPos, XMFLOAT3 bulSize, bool alive)
 {
 	if ((pos.x - scale.x < bulPos.x + bulSize.x)
@@ -1691,6 +1712,32 @@ bool GameScene::Collide(XMFLOAT3& pos, XMFLOAT3 scale, const XMFLOAT3& bulPos, X
 	else
 	{
 		return false;
+	}
+}
+
+void GameScene::SelectAttack(int& selectAttack, int& howAttack, int skyBul, int& enemyAttackCounter)
+{
+	if (selectAttack != 0)
+	{
+		if (selectAttack < 50)
+		{
+			howAttack = Sinple;
+		}
+		else if (selectAttack < 75)
+		{
+			howAttack = Triple;
+		}
+		//元々skybul4以下だった
+		else if (selectAttack < 85 && skyBul == 0)
+		{
+			howAttack = Bird;
+		}
+		else if (selectAttack < 100 && skyBul == 0)
+		{
+			howAttack = Star;
+		}
+		enemyAttackCounter = 0;
+		selectAttack = 0;
 	}
 }
 

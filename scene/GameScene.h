@@ -11,8 +11,6 @@
 #include "DebugCamera.h"
 #include "Light.h"
 #include "CollisionPrimitive.h"
-#include "FbxLoader.h"
-#include "FbxObject3d.h"
 #include "Mapchip.h"
 #include "Ease.h"
 
@@ -98,6 +96,8 @@ public: // メンバ関数
 	void XMcalculation(XMFLOAT3& firstScore, XMFLOAT3 Score1, XMFLOAT3 Score2, int type);
 
 	bool Collide(XMFLOAT3& pos, XMFLOAT3 scale, const XMFLOAT3& bulPos, XMFLOAT3 bulSize, bool alive);
+
+	void SelectAttack(int& selectAttack, int& howAttack, int skyBul, int& enemyAttackCounter);
 	//マップチップ1つの大きさ
 	const float LAND_SCALE = 1.0f;
 
@@ -121,6 +121,9 @@ public: // メンバ関数
 	/// //マップチップ当たり判定
 	/// </summary>
 	bool MapCollide(XMFLOAT3& playerPos, const XMFLOAT3& blockPos);
+	bool MapCollide3D(XMFLOAT3& playerPos, const XMFLOAT3& blockPos);
+
+	bool TimingCheck(int time);
 
 
 
@@ -142,10 +145,12 @@ private: // メンバ変数
 	const XMFLOAT3 OutAriaPos = { 1000,-10,1000 };
 	const XMFLOAT3 resetFloat3 = { 0,0,0 };
 
-	const float AriaField = 400.0f;
+	const float AriaField = 50.0f;
 	const int mousePosX = 640;
 	const int mousePosY = 400;
 	const int sensitivity = 50;
+	const int MaxMoveVelocity = 100;
+	const int MinMoveVelocity = 10;
 
 
 	struct Bullet
@@ -157,6 +162,9 @@ private: // メンバ変数
 		bool bulShotFlag = false;
 	};
 	Bullet bullet[50];
+
+	const int BigMag = 30;
+	const int MinMag = 20;
 
 	struct EnemyBullet
 	{
@@ -181,6 +189,21 @@ private: // メンバ変数
 	enum Scene
 	{
 		Title, Game, Win, Lose,
+	};
+
+	enum MoveType
+	{
+		Zero, Plus, Minus,
+	};
+
+	enum BulletSelect
+	{
+		Non,Sinple, Triple, Star, Bird,
+	};
+
+	enum BulletType
+	{
+		Stop, Streat, Anime,
 	};
 	int SceneNum = Title;
 
@@ -233,10 +256,6 @@ private: // メンバ変数
 
 	//敵関係
 	int  selectAttack = 0;
-	bool enemySinpleAttack = false;
-	bool enemyTripleAttack = false;
-	bool enemyBirdAttack = false;
-	bool enemyStarAttack = false;
 	bool isParticle = false;
 	bool setParticle = false;
 	bool enemyIsAttack = false;
@@ -246,6 +265,8 @@ private: // メンバ変数
 	int animeCount = 0;
 	int partTimer = 0;
 	int skyBul = 0;
+	int howAttack = Non;
+
 	float brinkEffectPos = -1280.0;
 
 	int randUIX = 0;
@@ -294,6 +315,9 @@ private: // メンバ変数
 
 	int clearTimer = 0;
 
+	float skyDomeRota = 0.0f;
+	float mapRotaY = 0.0f;
+
 
 	XMFLOAT3 cameraPos = { 0,0,0 };
 	float	 cameraPosZ = 30.0f;
@@ -320,7 +344,6 @@ private: // メンバ変数
 	ReadModel* modelFighter = nullptr;
 	ReadModel* modelFighter2 = nullptr;
 	ReadModel* modelSphere = nullptr;
-	ReadModel* modelCity = nullptr;
 	ReadModel* modelcowgirl = nullptr;
 	ReadModel* modelBox = nullptr;
 	ReadModel* modelFire = nullptr;
@@ -336,10 +359,5 @@ private: // メンバ変数
 	Object3d* objEnemyBul[50] = { nullptr };
 	Object3d* particleObject[50] = { nullptr };
 	Object3d* bossEnemy = nullptr;
-	Object3d* objCity = nullptr;
 	Object3d* redParticleObject[50] = { nullptr };
-
-	//FBX実装
-	FbxModel* fbxModel1 = nullptr;
-	FbxObject3d* fbxObject1 = nullptr;
 };
