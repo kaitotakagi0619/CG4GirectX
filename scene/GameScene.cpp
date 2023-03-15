@@ -1000,7 +1000,7 @@ void GameScene::Update()
 			//---------------------ここから攻撃選定と前処理----------------------//
 
 			//攻撃選定
-			if (enemyAttackCounter >= 59 && skyBul == 0 && enemyBulCount < 46)
+			if (enemyAttackCounter >= 59 && skyBul == 0 && enemyBulCount < 46 && timing == timingMax)
 			{
 				selectAttack = rand() % 100;
 				enemyAttackCounter = 0;
@@ -1071,28 +1071,28 @@ void GameScene::Update()
 		//5つの弾が三角形に飛んでいく処理
 		if (fiveAttack == true)
 		{
-			animeCount += 3;
-			if (animeCount == 60)
+			animeCount += 1;
+			if (animeCount == 30)
 			{
 				eBullet[enemyBulCount - 1].Pos = XMFLOAT3(bossPos.x - 4, bossPos.y, bossPos.z);
 			}
-			if (animeCount == 120)
+			if (animeCount == 60)
 			{
 				eBullet[enemyBulCount - 2].Pos = XMFLOAT3(bossPos.x - 2, bossPos.y + 1, bossPos.z);
 			}
-			if (animeCount == 180)
+			if (animeCount == 90)
 			{
 				eBullet[enemyBulCount - 3].Pos = XMFLOAT3(bossPos.x, bossPos.y + 2, bossPos.z);
 			}
-			if (animeCount == 240)
+			if (animeCount == 120)
 			{
 				eBullet[enemyBulCount - 4].Pos = XMFLOAT3(bossPos.x + 2, bossPos.y + 1, bossPos.z);
 			}
-			if (animeCount == 300)
+			if (animeCount == 150)
 			{
 				eBullet[enemyBulCount - 5].Pos = XMFLOAT3(bossPos.x + 4, bossPos.y, bossPos.z);
 			}
-			if (animeCount == 360)
+			if (animeCount == 180)
 			{
 				for (int i = enemyBulCount - 5; i < enemyBulCount; i++)
 				{
@@ -1123,28 +1123,28 @@ void GameScene::Update()
 		//5つの弾が五角形に飛んでいく処理
 		if (fiveAttack2 == true)
 		{
-			animeCount += 3;
-			if (animeCount == 60)
+			animeCount += 1;
+			if (animeCount == 30)
 			{
 				eBullet[enemyBulCount - 1].Pos = XMFLOAT3(bossPos.x - 1, bossPos.y, bossPos.z);
 			}
-			if (animeCount == 120)
+			if (animeCount == 60)
 			{
 				eBullet[enemyBulCount - 2].Pos = XMFLOAT3(bossPos.x - 2, bossPos.y + 2,bossPos.z);
 			}
-			if (animeCount == 180)
+			if (animeCount == 90)
 			{
 				eBullet[enemyBulCount - 3].Pos = XMFLOAT3(bossPos.x, bossPos.y + 4, bossPos.z);
 			}
-			if (animeCount == 240)
+			if (animeCount == 120)
 			{
 				eBullet[enemyBulCount - 4].Pos = XMFLOAT3(bossPos.x + 2, bossPos.y + 2, bossPos.z);
 			}
-			if (animeCount == 300)
+			if (animeCount == 150)
 			{
 				eBullet[enemyBulCount - 5].Pos = XMFLOAT3(bossPos.x + 1, bossPos.y, bossPos.z);
 			}
-			if (animeCount == 360)
+			if (animeCount == 180)
 			{
 				for (int i = enemyBulCount - 5; i < enemyBulCount; i++)
 				{
@@ -1311,7 +1311,10 @@ void GameScene::Update()
 
 		if (skyDomeRota < 360)
 		{
-			skyDomeRota += 0.1f;
+			if (timing == timingMax)
+			{
+				skyDomeRota += 10.0f;
+			}
 		}
 		else
 		{
@@ -1594,40 +1597,43 @@ void GameScene::CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const
 
 void GameScene::EnemyMove(XMFLOAT3& epos, int& emove, bool eflag)
 {
-	if (emove < 320 && eflag)
+	if (eflag)
 	{
-		emove++;
+		if (emove < 480)
+		{
+			emove++;
+		}
+		if (emove >= 480)
+		{
+			emove = 0;
+		}
 	}
-	if (emove >= 320 && eflag)
-	{
-		emove = 0;
-	}
-	if ((emove < 40) || (emove > 280 && emove < 320))
+	if ((emove < 60) || (emove > 420 && emove < 480))
 	{
 		epos.x += 0.1;
 	}
 
-	if ((emove > 40 && emove < 80) || (emove > 200 && emove < 240))
+	if ((emove > 60 && emove < 120) || (emove > 300 && emove < 360))
 	{
 		epos.x -= 0.1;
 		epos.z += 0.1;
 	}
-	if (emove > 80 && emove < 120)
+	if (emove > 120 && emove < 180)
 	{
 		epos.x -= 0.1;
 		epos.z -= 0.1;
 	}
-	if ((emove > 120 && emove < 140) || (emove > 160 && emove < 180))
+	if ((emove > 180 && emove < 210) || (emove > 240 && emove < 270))
 	{
 		epos.x += 0.1;
 		epos.z -= 0.1;
 	}
-	if ((emove > 140 && emove < 160) || (emove > 180 && emove < 200))
+	if ((emove > 210 && emove < 240) || (emove > 270 && emove < 300))
 	{
 		epos.x += 0.1;
 		epos.z += 0.1;
 	}
-	if (emove > 240 && emove < 280)
+	if (emove > 360 && emove < 420)
 	{
 		epos.x -= 0.1;
 		epos.z -= 0.1;
