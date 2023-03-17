@@ -78,7 +78,7 @@ public: // メンバ関数
 	// パーティクル生成
 	void CreateParticles();
 
-	void CreateLight();
+	void CreateLight(int timing);
 
 	void CharactorMove(XMFLOAT3 &pos, XMFLOAT3 &camera, XMFLOAT3 &vir, XMFLOAT3 vec , int size, int type);
 
@@ -238,7 +238,7 @@ private: // メンバ変数
 	XMFLOAT3	oldVirCameraPos = { resetFloat3 };
 	XMFLOAT3	centerPos = { 0, 2, 50 };
 	XMFLOAT2	mousePos = { 0,0 };
-	XMFLOAT4	color = { 1,1,1,0 };
+	XMFLOAT4	diedTextColor = { 1,1,1,0 };
 	CameraData camera_data;
 	bool justTiming = false;
 	bool isJustTiming = false;
@@ -318,6 +318,8 @@ private: // メンバ変数
 	float skyDomeRota = 0.0f;
 	float mapRotaY = 0.0f;
 
+	int titleDrowCount = 0;
+
 
 	XMFLOAT3 cameraPos = { 0,0,0 };
 	float	 cameraPosZ = 30.0f;
@@ -344,6 +346,7 @@ private: // メンバ変数
 	ReadModel* modelFighter = nullptr;
 	ReadModel* modelFighter2 = nullptr;
 	ReadModel* modelSphere = nullptr;
+	ReadModel* modelSphere2 = nullptr;
 	ReadModel* modelcowgirl = nullptr;
 	ReadModel* modelBox = nullptr;
 	ReadModel* modelFire = nullptr;

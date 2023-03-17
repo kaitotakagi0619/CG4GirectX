@@ -78,6 +78,7 @@ GameScene::~GameScene()
 	safe_delete(modelFighter);
 	safe_delete(modelFighter2);
 	safe_delete(modelSphere);
+	safe_delete(modelSphere2);
 	safe_delete(modelBox);
 	safe_delete(modelFire);
 	safe_delete(modelRed);
@@ -235,7 +236,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	diedText = Sprite::Create(22, { 0.0f,0.0f });
 	brinkEffect = Sprite::Create(23, { 0.0f,0.0f });
 	diedText->SetPosition({ WinApp::window_width / 2 - 254,WinApp::window_height / 2 - 38 });
-	diedText->SetColor(color);
+	diedText->SetColor(diedTextColor);
 	for (int i = 0; i < _countof(spriteLife); i++)
 	{
 		spriteLife[i] = Sprite::Create(21, { 0.0f,0.0f });
@@ -288,7 +289,8 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	modelGround = ReadModel::CreateFromOBJ("ground");
 	modelFighter = ReadModel::CreateFromOBJ("chr_sword");
 	modelFighter2 = ReadModel::CreateFromOBJ("chr_sword");
-	modelSphere = ReadModel::CreateFromOBJ("sphere2", true);
+	modelSphere = ReadModel::CreateFromOBJ("sphere3", true);
+	modelSphere2 = ReadModel::CreateFromOBJ("sphere2", true);
 	modelcowgirl = ReadModel::CreateFromOBJ("cowgirl", true);
 	modelBox = ReadModel::CreateFromOBJ("block", true);
 	modelFire = ReadModel::CreateFromOBJ("fire", true);
@@ -354,7 +356,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 	for (int i = 0; i < _countof(objBul); i++)
 	{
-		objBul[i] = Object3d::Create(modelSphere);
+		objBul[i] = Object3d::Create(modelSphere2);
 		objBul[i]->SetPosition(OutAriaPos);
 		objBul[i]->SetScale({ 0.2,0.2,0.2 });
 	}
@@ -380,7 +382,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 void GameScene::Update()
 {
 	SetCursorPos(mousePosX, mousePosY);
-	CreateLight();
+	CreateLight(timing);
 	//各種変数関係
 	MapCreate(0);
 	for (int y = 0; y < map_max_y; y++)
@@ -416,6 +418,7 @@ void GameScene::Update()
 	//タイトルシーン
 	if (SceneNum == Title)
 	{
+		titleDrowCount++;
 		objFighter->SetPosition({ 0,2,30 });
 		objFighter2->SetPosition({ 0,12,30 });
 		objFighter3->SetPosition({ 0,12,30 });
@@ -469,7 +472,7 @@ void GameScene::Update()
 		jCount = 0.6;
 		isHit = false;
 		centerPos = { 0, 2, 50 };
-		color = { 1,1,1,0 };
+		diedTextColor = { 1,1,1,0 };
 		justTiming = false;
 		isJustTiming = false;
 		lastBul = 0;
@@ -496,7 +499,7 @@ void GameScene::Update()
 		howAttack = Non;
 		enemyIsAttack = false;
 
-		enemyMove = 0;
+		enemyMove = -15;
 		isPlus = true;
 
 		firstBossHP = 20;
@@ -522,6 +525,7 @@ void GameScene::Update()
 			//カウントダウンがマックスならbattleに移る
 			if (nowCount > maxTime) {
 				SceneNum = Game;
+				titleDrowCount = 0;
 				CircularMotionUD(targetCameraPos, playerPos, circle, camera_data.angleZ, camera_data.angleY, circleAdd);
 				CircularMotionLR(targetCameraPos, playerPos, circle, camera_data.angleZ, camera_data.angleX, circleAdd);
 				CircularMotionUD(virCameraPos, playerPos, circle, camera_data.virangleZ, camera_data.virangleY, circleAdd);
@@ -1235,6 +1239,7 @@ void GameScene::Update()
 				eBullet[i].attackAnimation = false;
 				eBullet[i].type = 0;
 				eBullet[i].velocity = { resetFloat3 };
+				eBullet[i].Pos = OutAriaPos;
 			}
 			enemyBulCount = 1;
 		}
@@ -1273,12 +1278,12 @@ void GameScene::Update()
 		{
 			targetCameraPos.y -= 0.2;
 			objFighter2->SetPosition(targetCameraPos);
-			if (color.w < 1.0f)
+			if (diedTextColor.w < 1.0f)
 			{
-				color.w += 0.01;
+				diedTextColor.w += 0.01;
 			}
-			diedText->SetColor(color);
-			if (color.w >= 1.0f)
+			diedText->SetColor(diedTextColor);
+			if (diedTextColor.w >= 1.0f)
 			{
 				SceneNum = Title;
 			}
@@ -1308,17 +1313,16 @@ void GameScene::Update()
 		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
 		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
 		camera->Update();
-
-		if (skyDomeRota < 360)
+		if (timing == timingMax)
 		{
-			if (timing == timingMax)
+			if (skyDomeRota < 360)
 			{
 				skyDomeRota += 10.0f;
 			}
-		}
-		else
-		{
-			skyDomeRota = 0;
+			else
+			{
+				skyDomeRota = 0;
+			}
 		}
 		objSkydome->SetRotation({ 0, skyDomeRota, 0 });
 	}
@@ -1427,7 +1431,10 @@ void GameScene::Draw()
 	sprite[0]->Draw();
 	if (SceneNum == Title && isEase == false)
 	{
-		sprite[1]->Draw();
+		if (titleDrowCount % 100 < 50)
+		{
+			sprite[1]->Draw();
+		}
 	}
 	if (SceneNum == Win)
 	{
@@ -1437,7 +1444,8 @@ void GameScene::Draw()
 	{
 		if (hitTimer > 0)
 		{
-			//spritedamageEffect->Draw();
+			spritedamageEffect->SetColor({ 1, 0, 0, 0.5 });
+			spritedamageEffect->Draw();
 		}
 		sprite[3]->Draw();
 		sprite[4]->Draw();
@@ -1464,7 +1472,6 @@ void GameScene::Draw()
 		{
 			diedText->Draw();
 		}
-		//brinkEffect->Draw();
 	}
 
 	// スプライト描画後処理
@@ -1502,15 +1509,16 @@ void GameScene::CreateParticles()
 	}
 }
 
-void GameScene::CreateLight()
+void GameScene::CreateLight(int timing)
 {
 	//光線方向初期値
-	static XMVECTOR lightDir = { 0, 1, 5, 0 };
+	static XMVECTOR lightDir = { 0, 50, 5, 0 };
 
-	/*if (input->PushKey(DIK_W)) { lightDir.m128_f32[1] += 1.0f; }
-	else if (input->PushKey(DIK_S)) { lightDir.m128_f32[1] -= 1.0f; }
-	if (input->PushKey(DIK_D)) { lightDir.m128_f32[0] += 1.0f; }
-	else if (input->PushKey(DIK_A)) { lightDir.m128_f32[0] -= 1.0f; }*/
+	if (timing == timingMax)
+	{
+		if (lightDir.m128_f32[1] < 0) { lightDir.m128_f32[1] += 50.0f; }
+		else { lightDir.m128_f32[1] -= 50.0f; }
+	}
 
 	light->SetLightDir(lightDir);
 
@@ -1608,35 +1616,38 @@ void GameScene::EnemyMove(XMFLOAT3& epos, int& emove, bool eflag)
 			emove = 0;
 		}
 	}
-	if ((emove < 60) || (emove > 420 && emove < 480))
+	if (emove > 0)
 	{
-		epos.x += 0.1;
-	}
+		if ((emove < 60) || (emove > 420 && emove < 480))
+		{
+			epos.x += 0.1;
+		}
 
-	if ((emove > 60 && emove < 120) || (emove > 300 && emove < 360))
-	{
-		epos.x -= 0.1;
-		epos.z += 0.1;
-	}
-	if (emove > 120 && emove < 180)
-	{
-		epos.x -= 0.1;
-		epos.z -= 0.1;
-	}
-	if ((emove > 180 && emove < 210) || (emove > 240 && emove < 270))
-	{
-		epos.x += 0.1;
-		epos.z -= 0.1;
-	}
-	if ((emove > 210 && emove < 240) || (emove > 270 && emove < 300))
-	{
-		epos.x += 0.1;
-		epos.z += 0.1;
-	}
-	if (emove > 360 && emove < 420)
-	{
-		epos.x -= 0.1;
-		epos.z -= 0.1;
+		if ((emove > 60 && emove < 120) || (emove > 300 && emove < 360))
+		{
+			epos.x -= 0.1;
+			epos.z += 0.1;
+		}
+		if (emove > 120 && emove < 180)
+		{
+			epos.x -= 0.1;
+			epos.z -= 0.1;
+		}
+		if ((emove > 180 && emove < 210) || (emove > 240 && emove < 270))
+		{
+			epos.x += 0.1;
+			epos.z -= 0.1;
+		}
+		if ((emove > 210 && emove < 240) || (emove > 270 && emove < 300))
+		{
+			epos.x += 0.1;
+			epos.z += 0.1;
+		}
+		if (emove > 360 && emove < 420)
+		{
+			epos.x -= 0.1;
+			epos.z -= 0.1;
+		}
 	}
 }
 
