@@ -93,6 +93,12 @@ public: // メンバ関数
 
 	void EnemyMove(XMFLOAT3& epos, int& emove, bool eflag);
 
+	void Reload(int& reloadCount, bool& isReload, bool& justTiming, int& bulCount, int& maxMagazine);
+
+	void JumpStart(bool timing, int& isJump, float& jCount, bool& isJust);
+
+	void Jump(int& isJump, float& jCount, XMFLOAT3& playerPos, XMFLOAT3& targetPos);
+
 	void XMcalculation(XMFLOAT3& firstScore, XMFLOAT3 Score1, XMFLOAT3 Score2, int type);
 
 	bool Collide(XMFLOAT3& pos, XMFLOAT3 scale, const XMFLOAT3& bulPos, XMFLOAT3 bulSize, bool alive);
@@ -205,6 +211,11 @@ private: // メンバ変数
 	{
 		Stop, Streat, Anime,
 	};
+
+	enum Timing
+	{
+		Bad, Normal, Good,
+	};
 	int SceneNum = Title;
 
 	int		 bulCount = 30;
@@ -217,8 +228,7 @@ private: // メンバ変数
 	int		 timing = 75;
 	bool	 isJust = false;
 	int		 justCount = 0;
-	bool	 isJump = false;
-	bool	 isJustJump = false;
+	int      isJump = Bad;
 	float    viewMatrix = 0;
 	bool	 isAlive = true;
 	int		 hitTimer = 0;
@@ -328,6 +338,7 @@ private: // メンバ変数
 	Camera* camera = nullptr;
 	//Sprite* spriteBG = nullptr;
 	Sprite* sprite[6] = { nullptr };
+	Sprite* spriteEnterUI = { nullptr };
 	Sprite* spriteNum[4] = { nullptr };
 	Sprite* spriteLife[5] = { nullptr };
 	Sprite* spriteMagazineUI = nullptr;

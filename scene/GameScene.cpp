@@ -34,6 +34,7 @@ GameScene::~GameScene()
 	safe_delete(reloadText);
 	safe_delete(diedText);
 	safe_delete(brinkEffect);
+	safe_delete(spriteEnterUI);
 
 	//オブジェクトのdelete
 	safe_delete(objSkydome);
@@ -216,6 +217,10 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
+	if (!Sprite::LoadTexture(26, L"Resources/pushEnter.png")) {
+		assert(0);
+		return;
+	}
 	
 
 	// スプライト生成
@@ -235,6 +240,8 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	reloadText = Sprite::Create(20, { 0.0f,0.0f });
 	diedText = Sprite::Create(22, { 0.0f,0.0f });
 	brinkEffect = Sprite::Create(23, { 0.0f,0.0f });
+	spriteEnterUI = Sprite::Create(26, {0.0f, 0.0f});
+	spriteEnterUI->SetPosition({ WinApp::window_width / 2 - 192, WinApp::window_height - 80 });
 	diedText->SetPosition({ WinApp::window_width / 2 - 254,WinApp::window_height / 2 - 38 });
 	diedText->SetColor(diedTextColor);
 	for (int i = 0; i < _countof(spriteLife); i++)
@@ -465,8 +472,7 @@ void GameScene::Update()
 		enemyTimer = 0;
 		timing = 75;
 		isJust = false;
-		isJump = false;
-		isJustJump = false;
+		isJump = Bad;
 		isAlive = true;
 		hitTimer = 0;
 		jCount = 0.6;
@@ -724,6 +730,7 @@ void GameScene::Update()
 				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isJustTiming && isReload == false))
 			{
 				reloadCount = BigMag;
+				maxMagazine = BigMag;
 				justTiming = true;
 				isReload = true;
 				isJust = true;
@@ -737,29 +744,9 @@ void GameScene::Update()
 			}
 		}
 
-		//リロード音を鳴らす
-		if (reloadCount > 0 && isReload == true)
-		{
-			reloadCount--;
-			Audio::GetInstance()->PlayWave("SE/reload.wav", 0.3, false);
-		}
+		//リロード実行
+		Reload(reloadCount, isReload, justTiming, bulCount, maxMagazine);
 
-		//リロード内部実行(タイミングジャスト)
-		if (reloadCount == 0 && isReload == true && justTiming == true)
-		{
-			bulCount = MinMag;
-			maxMagazine = BigMag;
-			isReload = false;
-			
-			Audio::GetInstance()->SoundStop("SE/reload.wav");
-		}
-		//リロード内部実行
-		else if (reloadCount == 0 && isReload == true)
-		{
-			bulCount = BigMag;
-			isReload = false;
-			Audio::GetInstance()->SoundStop("SE/reload.wav");
-		}
 
 		//弾を撃つ
 
@@ -815,54 +802,11 @@ void GameScene::Update()
 				CircularMotionLR(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleX, mousePos.x);
 			}
 
-			// ジャンプ
-			if (input->TriggerKey(DIK_SPACE) && isJump == false && isJustJump == false)
-			{
-				if (isJustTiming)
-				{
-					isJustJump = true;
-					jCount = jCountMax;
-					isJust = true;
-				}
-				else
-				{
-					isJump = true;
-					jCount = jCountMin;
-				}
-			}
+			// ジャンプ選定
+			JumpStart(isJustTiming, isJump, jCount, isJust);
 		}
-		//ジャンプしたとき
-		if (isJump == true)
-		{
-			Audio::GetInstance()->PlayWave("SE/jump.wav", 0.03, false);
-			jCount -= 0.025;
-			if (jCount > -jCountMin)
-			{
-				playerPos.y += jCount;
-				targetCameraPos.y += jCount;
-			}
-			else
-			{
-				isJump = false;
-				Audio::GetInstance()->SoundStop("SE/jump.wav");
-			}
-		}
-		//ジャストタイミングでジャンプしたとき
-		if (isJustJump == true)
-		{
-			Audio::GetInstance()->PlayWave("SE/jump.wav", 0.03, false);
-			jCount -= 0.025;
-			if (jCount > -jCountMax)
-			{
-				playerPos.y += jCount;
-				targetCameraPos.y += jCount;
-			}
-			else
-			{
-				isJustJump = false;
-				Audio::GetInstance()->SoundStop("SE/jump.wav");
-			}
-		}
+		//ジャンプ
+		Jump(isJump, jCount, playerPos, targetCameraPos);
 
 		//マップ判定
 		for (int y = 0; y < map_max_y; y++)
@@ -1434,6 +1378,7 @@ void GameScene::Draw()
 		if (titleDrowCount % 100 < 50)
 		{
 			sprite[1]->Draw();
+			spriteEnterUI->Draw();
 		}
 	}
 	if (SceneNum == Win)
@@ -1647,6 +1592,86 @@ void GameScene::EnemyMove(XMFLOAT3& epos, int& emove, bool eflag)
 		{
 			epos.x -= 0.1;
 			epos.z -= 0.1;
+		}
+	}
+}
+
+void GameScene::Reload(int& reloadCount, bool& isReload, bool& justTiming, int& bulCount, int& maxMagazine)
+{
+	//リロード音を鳴らす
+	if (reloadCount > 0 && isReload == true)
+	{
+		reloadCount--;
+		Audio::GetInstance()->PlayWave("SE/reload.wav", 0.3, false);
+	}
+	//リロード内部実行(タイミングジャスト)
+	if (reloadCount == 0 && isReload == true && justTiming == true)
+	{
+		bulCount = MinMag;
+		isReload = false;
+
+		Audio::GetInstance()->SoundStop("SE/reload.wav");
+		justTiming = false;
+	}
+	//リロード内部実行
+	else if (reloadCount == 0 && isReload == true)
+	{
+		bulCount = BigMag;
+		isReload = false;
+		Audio::GetInstance()->SoundStop("SE/reload.wav");
+	}
+}
+
+void GameScene::JumpStart(bool timing, int& isJump, float& jCount, bool& isJust)
+{
+	if (input->TriggerKey(DIK_SPACE) && isJump == Bad)
+	{
+		if (timing)
+		{
+			isJump = Good;
+			jCount = jCountMax;
+			isJust = true;
+		}
+		else
+		{
+			isJump = Normal;
+			jCount = jCountMin;
+		}
+	}
+}
+
+void GameScene::Jump(int& isJump, float& jCount, XMFLOAT3& playerPos, XMFLOAT3& targetPos)
+{
+	//ジャンプしたとき
+	if (isJump == Normal)
+	{
+		Audio::GetInstance()->PlayWave("SE/jump.wav", 0.03, false);
+		jCount -= 0.025;
+		if (jCount > -jCountMin)
+		{
+			playerPos.y += jCount;
+			targetPos.y += jCount;
+		}
+		else
+		{
+			isJump = false;
+			Audio::GetInstance()->SoundStop("SE/jump.wav");
+		}
+	}
+	//ジャストタイミングでジャンプしたとき
+	if (isJump == Good)
+	{
+		Audio::GetInstance()->PlayWave("SE/jump.wav", 0.03, false);
+		jCount -= 0.025;
+		if (jCount > -jCountMax)
+		{
+			playerPos.y += jCount;
+			targetPos.y += jCount;
+		}
+		else
+		{
+			isJump = Bad;
+			Audio::GetInstance()->SoundStop("SE/jump.wav");
 		}
 	}
 }
