@@ -61,6 +61,16 @@ GameScene::~GameScene()
 			safe_delete(objBlock[i][j]);
 		}
 	}
+	for (int i = 0; i < map_max_x; i++)
+	{
+		for (int j = 0; j < 5; j++)
+		{
+			safe_delete(objWallFront[i][j]);
+			safe_delete(objWallBack[i][j]);
+			safe_delete(objWallRight[i][j]);
+			safe_delete(objWallLeft[i][j]);
+		}
+	}
 	safe_delete(objGround);
 	safe_delete(objFighter);
 	safe_delete(objFighter2);
@@ -304,6 +314,10 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	modelRed = ReadModel::CreateFromOBJ("red", true);
 
 	Mapchip::CsvToVector(map, "Resources/csv/bigmap.csv");//mapNum=0
+	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=1
+	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=2
+	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=3
+	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=4
 
 	// 3Dオブジェクト生成
 	objSkydome = Object3d::Create(modelSkydome);
@@ -321,6 +335,25 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 			objBlock[y][x] = Object3d::Create(modelBox);
 			objBlock[y][x]->SetScale({ 0.2f,0.2f,0.2f });
 			objBlock[y][x]->SetPosition(OutAriaPos);
+		}
+	}
+
+	for (int y = 0; y < map_max_y; y++)
+	{
+		for (int x = 0; x < 5; x++)
+		{
+			objWallFront[y][x] = Object3d::Create(modelBox);
+			objWallBack[y][x] = Object3d::Create(modelBox);
+			objWallRight[y][x] = Object3d::Create(modelBox);
+			objWallLeft[y][x] = Object3d::Create(modelBox);
+			objWallFront[y][x]->SetScale({ 0.2f,0.2f,0.2f });
+			objWallBack[y][x]->SetScale({ 0.2f,0.2f,0.2f });
+			objWallRight[y][x]->SetScale({ 0.2f,0.2f,0.2f });
+			objWallLeft[y][x]->SetScale({ 0.2f,0.2f,0.2f });
+			objWallFront[y][x]->SetPosition(OutAriaPos);;
+			objWallBack[y][x]->SetPosition(OutAriaPos);
+			objWallRight[y][x]->SetPosition(OutAriaPos);;
+			objWallLeft[y][x]->SetPosition(OutAriaPos);
 		}
 	}
 
@@ -392,12 +425,27 @@ void GameScene::Update()
 	CreateLight(timing);
 	//各種変数関係
 	MapCreate(0);
+	MapCreate(1);
+	MapCreate(2);
+	MapCreate(3);
+	MapCreate(4);
 	for (int y = 0; y < map_max_y; y++)
 	{
 		for (int x = 0; x < map_max_x; x++)
 		{
 			objBlock[y][x]->Update();
 			objBlock[y][x]->GetPosition();
+		}
+		for (int x = 0; x < 5; x++)
+		{
+			objWallFront[y][x]->Update();
+			objWallBack[y][x]->Update();
+			objWallRight[y][x]->Update();
+			objWallLeft[y][x]->Update();
+			objWallFront[y][x]->GetPosition();
+			objWallBack[y][x]->GetPosition();
+			objWallRight[y][x]->GetPosition();
+			objWallLeft[y][x]->GetPosition();
 		}
 	}
 	Input::MouseMove mouseMove = input->GetMouseMove();
@@ -1358,6 +1406,13 @@ void GameScene::Draw()
 				objBlock[y][x]->Draw();
 			}
 		}
+		for (int x = 0; x < 5; x++)
+		{
+			objWallFront[y][x]->Draw();
+			objWallBack[y][x]->Draw();
+			objWallRight[y][x]->Draw();
+			objWallLeft[y][x]->Draw();
+		}
 	}
 	Object3d::PostDraw();
 
@@ -1679,17 +1734,42 @@ void GameScene::Jump(int& isJump, float& jCount, XMFLOAT3& playerPos, XMFLOAT3& 
 void GameScene::MapCreate(int mapNumber)
 {
 	for (int y = 0; y < map_max_y; y++) {//(yが26)
-		for (int x = 0; x < map_max_x; x++) {//(xが26)
-
-			if (Mapchip::GetChipNum(x, y, map[mapNumber]) == Ground)
+		if (mapNumber == 0)
+		{
+			for (int x = 0; x < map_max_x; x++)//(xが26)
 			{
-				//位置と大きさの変更(今は大きさは変更しないで)
-				//objBlock[y][x]->SetScale({ LAND_SCALE, LAND_SCALE, LAND_SCALE });
-				objBlock[y][x]->SetPosition({ x * LAND_SCALE - 26,   1.5f , -y * LAND_SCALE + 50 });
+				if (Mapchip::GetChipNum(x, y, map[mapNumber]) == Ground)
+				{
+					//位置と大きさの変更(今は大きさは変更しないで)
+					//objBlock[y][x]->SetScale({ LAND_SCALE, LAND_SCALE, LAND_SCALE });
+					objBlock[y][x]->SetPosition({ x * LAND_SCALE - 26,   1.5f , -y * LAND_SCALE + 50 });
+				}
+				else
+				{
+					objBlock[y][x]->SetPosition(OutAriaPos);
+				}
 			}
-			else
+		}
+		else
+		{
+			for (int x = 0; x < 5; x++)//(xが26)
 			{
-				objBlock[y][x]->SetPosition(OutAriaPos);
+				if (mapNumber == 4)
+				{
+					objWallLeft[y][x]->SetPosition({ -26 , 1.5f + x * LAND_SCALE , -y * LAND_SCALE + 50 });
+				}
+				if (mapNumber == 3)
+				{
+					objWallRight[y][x]->SetPosition({ 25 , 1.5f + x * LAND_SCALE , -y * LAND_SCALE + 50 });
+				}
+				if (mapNumber == 2)
+				{
+					objWallBack[y][x]->SetPosition({ y * LAND_SCALE - 26 , 1.5f + x * LAND_SCALE , 50 });
+				}
+				if (mapNumber == 1)
+				{
+					objWallFront[y][x]->SetPosition({ y * LAND_SCALE - 26 , 1.5f + x * LAND_SCALE , -1 });
+				}
 			}
 		}
 	}

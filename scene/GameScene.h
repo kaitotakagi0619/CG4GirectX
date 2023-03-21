@@ -110,7 +110,7 @@ public: // メンバ関数
 	//マップチップの番号
 	enum MapNumber
 	{
-		None, Ground
+		None, Ground, WallFront, WallBack, WallRight, WallLeft,
 	};
 
 	enum BossAttack
@@ -140,6 +140,10 @@ private: // メンバ変数
 
 	std::vector<std::vector<int>> map;
 	Object3d* objBlock[map_max_y][map_max_x]; //ステージブロック
+	Object3d* objWallFront[map_max_y][5]; //ステージブロック
+	Object3d* objWallBack[map_max_y][5]; //ステージブロック
+	Object3d* objWallRight[map_max_y][5]; //ステージブロック
+	Object3d* objWallLeft[map_max_y][5]; //ステージブロック
 
 	const int enemyBul = 50;
 	const float circle = 10.0f;
