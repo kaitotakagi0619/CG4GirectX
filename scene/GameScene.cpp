@@ -512,7 +512,7 @@ void GameScene::Update()
 		targetCameraPos = objFighter2->GetPosition();
 		virCameraPos = objFighter3->GetPosition();
 		centerPos = { 0, 2, 50 };
-		bulCount = 30;
+		bulCount = 5;
 		enemyBulCount = 1;
 		plVelocity = { resetFloat3 };
 		virVelocity = { resetFloat3 };
@@ -532,7 +532,7 @@ void GameScene::Update()
 		lastBul = 0;
 		reloadCount = 0;
 		isReload = false;
-		maxMagazine = 20;
+		maxMagazine = 5;
 		enemyAttackCounter = 0;
 		isParticle = false;
 		setParticle = false;
@@ -757,17 +757,17 @@ void GameScene::Update()
 
 			//プレイヤーが弾を撃つ
 			// -----------------------------------------//
-			if (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount < 50)
+			if (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount < 10)
 			{
-				bullet[bulCount].bulFlag = true;
-				bulCount++;
 				if (isJustTiming)
 				{
+					bullet[bulCount].bulFlag = true;
+					bulCount++;
 					isJust = true;
 				}
 			}
 
-			lastBul = 50 - bulCount;
+			lastBul = 10 - bulCount;
 			spriteNum[0]->ChangeTex(lastBul / 10);
 			spriteNum[1]->ChangeTex(lastBul % 10);
 			spriteNum[2]->ChangeTex(maxMagazine / 10);
@@ -775,25 +775,25 @@ void GameScene::Update()
 
 			//リロード
 			if ((input->TriggerKey(DIK_R) && isJustTiming && isReload == false)
-				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isJustTiming && isReload == false))
+				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 10 && isJustTiming && isReload == false))
 			{
-				reloadCount = BigMag;
+				reloadCount = 30;
 				maxMagazine = BigMag;
 				justTiming = true;
 				isReload = true;
 				isJust = true;
 			}
 			else if ((input->TriggerKey(DIK_R) && isReload == false)
-				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isReload == false))
+				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 10 && isReload == false))
 			{
-				reloadCount = BigMag;
+				reloadCount = 30;
 				maxMagazine = MinMag;
 				isReload = true;
 			}
 		}
 
 		//リロード実行
-		Reload(reloadCount, isReload, justTiming, bulCount, maxMagazine);
+		Reload(reloadCount, isReload, justTiming, bulCount);
 
 
 		//弾を撃つ
@@ -1333,6 +1333,9 @@ void GameScene::Update()
 	for (int i = 0; i < _countof(objBul); i++)
 	{
 		objBul[i]->Update();
+	}
+	for (int i = 0; i < _countof(objEnemyBul); i++)
+	{
 		objEnemyBul[i]->Update();
 		particleObject[i]->Update();
 		redParticleObject[i]->Update();
@@ -1464,7 +1467,7 @@ void GameScene::Draw()
 			spritebossHPFrame->Draw();
 			spritebossHP->Draw();
 		}
-		if (bulCount == 50)
+		if (bulCount == 10)
 		{
 			reloadText->Draw();
 		}
@@ -1651,7 +1654,7 @@ void GameScene::EnemyMove(XMFLOAT3& epos, int& emove, bool eflag)
 	}
 }
 
-void GameScene::Reload(int& reloadCount, bool& isReload, bool& justTiming, int& bulCount, int& maxMagazine)
+void GameScene::Reload(int& reloadCount, bool& isReload, bool& justTiming, int& bulCount)
 {
 	//リロード音を鳴らす
 	if (reloadCount > 0 && isReload == true)
@@ -1662,7 +1665,7 @@ void GameScene::Reload(int& reloadCount, bool& isReload, bool& justTiming, int& 
 	//リロード内部実行(タイミングジャスト)
 	if (reloadCount == 0 && isReload == true && justTiming == true)
 	{
-		bulCount = MinMag;
+		bulCount = 0;
 		isReload = false;
 
 		Audio::GetInstance()->SoundStop("SE/reload.wav");
@@ -1671,7 +1674,7 @@ void GameScene::Reload(int& reloadCount, bool& isReload, bool& justTiming, int& 
 	//リロード内部実行
 	else if (reloadCount == 0 && isReload == true)
 	{
-		bulCount = BigMag;
+		bulCount = 5;
 		isReload = false;
 		Audio::GetInstance()->SoundStop("SE/reload.wav");
 	}

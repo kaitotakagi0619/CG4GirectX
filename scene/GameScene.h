@@ -93,7 +93,7 @@ public: // メンバ関数
 
 	void EnemyMove(XMFLOAT3& epos, int& emove, bool eflag);
 
-	void Reload(int& reloadCount, bool& isReload, bool& justTiming, int& bulCount, int& maxMagazine);
+	void Reload(int& reloadCount, bool& isReload, bool& justTiming, int& bulCount);
 
 	void JumpStart(bool timing, int& isJump, float& jCount, bool& isJust);
 
@@ -171,10 +171,10 @@ private: // メンバ変数
 		bool bulFlag = false;
 		bool bulShotFlag = false;
 	};
-	Bullet bullet[50];
+	Bullet bullet[10];
 
-	const int BigMag = 30;
-	const int MinMag = 20;
+	const int BigMag = 10;
+	const int MinMag = 5;
 
 	struct EnemyBullet
 	{
@@ -222,8 +222,8 @@ private: // メンバ変数
 	};
 	int SceneNum = Title;
 
-	int		 bulCount = 30;
-	int		 enemyBulCount = 20;
+	int		 bulCount = 10;
+	int		 enemyBulCount = 0;
 	XMFLOAT3 plVelocity = { resetFloat3 };
 	XMFLOAT3 virVelocity = { resetFloat3 };
 	bool	 bossAlive = true;
@@ -261,7 +261,7 @@ private: // メンバ変数
 	//リロード関係
 	int reloadCount = 0;
 	bool isReload = false;
-	int maxMagazine = 20;
+	int maxMagazine = 10;
 
 	float p_x_radius;
 	float p_z_radius;
@@ -373,7 +373,7 @@ private: // メンバ変数
 	Object3d* objFighter = nullptr;
 	Object3d* objFighter2 = nullptr;
 	Object3d* objFighter3 = nullptr;
-	Object3d* objBul[50] = { nullptr };
+	Object3d* objBul[10] = { nullptr };
 	Object3d* objEnemyBul[50] = { nullptr };
 	Object3d* particleObject[50] = { nullptr };
 	Object3d* bossEnemy = nullptr;
