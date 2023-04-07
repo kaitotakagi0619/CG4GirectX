@@ -4,13 +4,12 @@
 #include <sstream>
 #include <iomanip>
 #include "Audio.h"
-#include "FbxLoader.h"
-#include "FbxObject3d.h"
 
 using namespace DirectX;
 
 GameScene::GameScene()
 {
+
 }
 
 GameScene::~GameScene()
@@ -34,6 +33,8 @@ GameScene::~GameScene()
 	safe_delete(spritebossHPFrame);
 	safe_delete(reloadText);
 	safe_delete(diedText);
+	safe_delete(brinkEffect);
+	safe_delete(spriteEnterUI);
 
 	//オブジェクトのdelete
 	safe_delete(objSkydome);
@@ -60,12 +61,21 @@ GameScene::~GameScene()
 			safe_delete(objBlock[i][j]);
 		}
 	}
+	for (int i = 0; i < map_max_x; i++)
+	{
+		for (int j = 0; j < 5; j++)
+		{
+			safe_delete(objWallFront[i][j]);
+			safe_delete(objWallBack[i][j]);
+			safe_delete(objWallRight[i][j]);
+			safe_delete(objWallLeft[i][j]);
+		}
+	}
 	safe_delete(objGround);
 	safe_delete(objFighter);
 	safe_delete(objFighter2);
 	safe_delete(objFighter3);
 	safe_delete(bossEnemy);
-	safe_delete(objCity);
 
 	//機能のdelete
 	//safe_delete(dxCommon);
@@ -79,14 +89,10 @@ GameScene::~GameScene()
 	safe_delete(modelFighter);
 	safe_delete(modelFighter2);
 	safe_delete(modelSphere);
-	safe_delete(modelCity);
+	safe_delete(modelSphere2);
 	safe_delete(modelBox);
 	safe_delete(modelFire);
 	safe_delete(modelRed);
-
-	//fbxのdelete
-	safe_delete(fbxModel1);
-	safe_delete(fbxObject1);
 }
 
 void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
@@ -111,14 +117,6 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 	// 3Dオブジェクトにカメラをセット
 	Object3d::SetCamera(camera);
-
-	FbxLoader::GetInstance()->LoadModelFromFile("cube");
-
-	FbxObject3d::SetDevice(dxCommon->GetDevice());
-
-	FbxObject3d::SetCamera(camera);
-
-	FbxObject3d::CreateGraphicsPipeline();
 
 	// デバッグテキスト用テクスチャ読み込み
 	if (!Sprite::LoadTexture(debugTextTexNumber, L"Resources/debugfont.png")) {
@@ -209,7 +207,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
-	if (!Sprite::LoadTexture(21, L"Resources/life.png")) {
+	if (!Sprite::LoadTexture(21, L"Resources/heart.png")) {
 		assert(0);
 		return;
 	}
@@ -217,6 +215,23 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
+	if (!Sprite::LoadTexture(23, L"Resources/brink.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(24, L"Resources/damageEffect.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(25, L"Resources/reticleRed.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(26, L"Resources/pushEnter.png")) {
+		assert(0);
+		return;
+	}
+	
 
 	// スプライト生成
 	for (int i = 0; i < _countof(sprite); i++)
@@ -227,24 +242,29 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	spriteNum[1] = Sprite::Create(1, { 0.0f,0.0f });
 	spriteNum[2] = Sprite::Create(2, { 0.0f,0.0f });
 	spriteNum[3] = Sprite::Create(3, { 0.0f,0.0f });
+	spritedamageEffect = Sprite::Create(24, { 0.0f,0.0f });
+	spritedamageEffect->SetSize({ WinApp::window_width,WinApp::window_height });
 	spriteMagazineUI = Sprite::Create(18, { 0.0f,0.0f });
 	spritebossHP = Sprite::Create(11, { 0.0f,0.0f });
 	spritebossHPFrame = Sprite::Create(19, { 0.0f,0.0f });
 	reloadText = Sprite::Create(20, { 0.0f,0.0f });
 	diedText = Sprite::Create(22, { 0.0f,0.0f });
+	brinkEffect = Sprite::Create(23, { 0.0f,0.0f });
+	spriteEnterUI = Sprite::Create(26, {0.0f, 0.0f});
+	spriteEnterUI->SetPosition({ WinApp::window_width / 2 - 192, WinApp::window_height - 80 });
 	diedText->SetPosition({ WinApp::window_width / 2 - 254,WinApp::window_height / 2 - 38 });
-	diedText->SetColor(color);
+	diedText->SetColor(diedTextColor);
 	for (int i = 0; i < _countof(spriteLife); i++)
 	{
 		spriteLife[i] = Sprite::Create(21, { 0.0f,0.0f });
 	}
 	for (int i = 0; i < _countof(spriteLife); i++)
 	{
-		spriteLife[i]->SetSize({ 64,32 });
+		spriteLife[i]->SetSize({ HeartMaxSize,HeartMaxSize });
 	}
 	for (int i = 0; i < _countof(spriteLife); i++)
 	{
-		spriteLife[i]->SetPosition({ 100.0f + (i * 60),600.0f });
+		spriteLife[i]->SetPosition({ heartPos + (i * 80),600.0f });
 	}
 
 	//スプライトの初期変更
@@ -286,14 +306,18 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	modelGround = ReadModel::CreateFromOBJ("ground");
 	modelFighter = ReadModel::CreateFromOBJ("chr_sword");
 	modelFighter2 = ReadModel::CreateFromOBJ("chr_sword");
-	modelSphere = ReadModel::CreateFromOBJ("sphere2", true);
-	modelCity = ReadModel::CreateFromOBJ("city", true);
+	modelSphere = ReadModel::CreateFromOBJ("sphere3", true);
+	modelSphere2 = ReadModel::CreateFromOBJ("sphere2", true);
 	modelcowgirl = ReadModel::CreateFromOBJ("cowgirl", true);
 	modelBox = ReadModel::CreateFromOBJ("block", true);
 	modelFire = ReadModel::CreateFromOBJ("fire", true);
 	modelRed = ReadModel::CreateFromOBJ("red", true);
 
 	Mapchip::CsvToVector(map, "Resources/csv/bigmap.csv");//mapNum=0
+	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=1
+	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=2
+	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=3
+	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=4
 
 	// 3Dオブジェクト生成
 	objSkydome = Object3d::Create(modelSkydome);
@@ -301,7 +325,6 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	objFighter = Object3d::Create(modelFighter);
 	objFighter2 = Object3d::Create(modelFighter2);
 	objFighter3 = Object3d::Create(modelFighter2);
-	objCity = Object3d::Create(modelCity);
 	bossEnemy = Object3d::Create(modelcowgirl);
 
 	//マップチップ用のオブジェクトの初期化
@@ -311,7 +334,26 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		{
 			objBlock[y][x] = Object3d::Create(modelBox);
 			objBlock[y][x]->SetScale({ 0.2f,0.2f,0.2f });
-			objBlock[y][x]->SetPosition({ 1000.0f,1000.0f,0.0f });
+			objBlock[y][x]->SetPosition(OutAriaPos);
+		}
+	}
+
+	for (int y = 0; y < map_max_y; y++)
+	{
+		for (int x = 0; x < 5; x++)
+		{
+			objWallFront[y][x] = Object3d::Create(modelBox);
+			objWallBack[y][x] = Object3d::Create(modelBox);
+			objWallRight[y][x] = Object3d::Create(modelBox);
+			objWallLeft[y][x] = Object3d::Create(modelBox);
+			objWallFront[y][x]->SetScale({ 0.2f,0.2f,0.2f });
+			objWallBack[y][x]->SetScale({ 0.2f,0.2f,0.2f });
+			objWallRight[y][x]->SetScale({ 0.2f,0.2f,0.2f });
+			objWallLeft[y][x]->SetScale({ 0.2f,0.2f,0.2f });
+			objWallFront[y][x]->SetPosition(OutAriaPos);;
+			objWallBack[y][x]->SetPosition(OutAriaPos);
+			objWallRight[y][x]->SetPosition(OutAriaPos);;
+			objWallLeft[y][x]->SetPosition(OutAriaPos);
 		}
 	}
 
@@ -319,16 +361,17 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	{
 		particleObject[i] = Object3d::Create(modelFire);
 		particleObject[i]->SetScale({ 0.2f,0.2f,0.2f });
-		particleObject[i]->SetPosition({ 1000.0f,1000.0f,0.0f });
+		particleObject[i]->SetPosition(OutAriaPos);
 	}
 
 	for (int i = 0; i < _countof(redParticleObject); i++)
 	{
 		redParticleObject[i] = Object3d::Create(modelRed);
 		redParticleObject[i]->SetScale({ 0.05f,0.05f,0.05f });
-		redParticleObject[i]->SetPosition({ 1000.0f,1000.0f,0.0f });
+		redParticleObject[i]->SetPosition(OutAriaPos);
 	}
 
+	//プレイヤー、敵、カメラの初期セット
 	objFighter->SetPosition({ 0,2,30 });
 	objFighter2->SetPosition({ 0,12,30 });
 	objFighter3->SetPosition({ 0,12,30 });
@@ -350,58 +393,63 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	objFighter2->SetRotation({ 0,180,0 });
 	objFighter3->SetRotation({ 0,180,0 });
 	bossEnemy->SetRotation({ 0,180,0 });
-	objCity->SetPosition({ 0,0,20 });
-	objCity->SetRotation({ 0,90,0 });
-	objCity->SetScale({ 3,3,3 });
 
 	for (int i = 0; i < _countof(objBul); i++)
 	{
-		objBul[i] = Object3d::Create(modelSphere);
-		objBul[i]->SetPosition({ +1000,-10,1000 });
+		objBul[i] = Object3d::Create(modelSphere2);
+		objBul[i]->SetPosition(OutAriaPos);
 		objBul[i]->SetScale({ 0.2,0.2,0.2 });
 	}
 
 	for (int i = 0; i < _countof(objEnemyBul); i++)
 	{
 		objEnemyBul[i] = Object3d::Create(modelSphere);
-		objEnemyBul[i]->SetPosition({ +1000,-10,1000 });
+		objEnemyBul[i]->SetPosition(OutAriaPos);
 		objEnemyBul[i]->SetScale({ 0.5,0.5,0.5 });
 	}
 
 	// カメラ注視点をセット
 	camera->SetTarget({ 0, 0, 0 });
-	camera->SetEye({ 0,0,0 });
+	camera->SetEye({ resetFloat3 });
 
 	light = Light::Create();
 	light->SetLightColor({ 1,1,1 });
 	Object3d::SetLight(light);
-
-	//モデル名を指定してファイル読み込み
-	fbxModel1 = FbxLoader::GetInstance()->LoadModelFromFile("boneTest");
-	//3Dオブジェクト生成とモデルのセット
-	fbxObject1 = new FbxObject3d;
-	fbxObject1->Initialize();
-	fbxObject1->SetModel(fbxModel1);
-	fbxObject1->SetRotation({ 0,90,0 });
 
 	SceneNum = Title;
 }
 
 void GameScene::Update()
 {
-	SetCursorPos(640, 400);
-	CreateLight();
+	SetCursorPos(mousePosX, mousePosY);
+	CreateLight(timing);
 	//各種変数関係
 	MapCreate(0);
+	MapCreate(1);
+	MapCreate(2);
+	MapCreate(3);
+	MapCreate(4);
 	for (int y = 0; y < map_max_y; y++)
 	{
 		for (int x = 0; x < map_max_x; x++)
 		{
 			objBlock[y][x]->Update();
+			objBlock[y][x]->GetPosition();
+		}
+		for (int x = 0; x < 5; x++)
+		{
+			objWallFront[y][x]->Update();
+			objWallBack[y][x]->Update();
+			objWallRight[y][x]->Update();
+			objWallLeft[y][x]->Update();
+			objWallFront[y][x]->GetPosition();
+			objWallBack[y][x]->GetPosition();
+			objWallRight[y][x]->GetPosition();
+			objWallLeft[y][x]->GetPosition();
 		}
 	}
 	Input::MouseMove mouseMove = input->GetMouseMove();
-	mousePos = { (float)mouseMove.lX / 50,(float)mouseMove.lY / 50 };
+	mousePos = { (float)mouseMove.lX / sensitivity,(float)mouseMove.lY / sensitivity };
 	playerPos = objFighter->GetPosition();
 	bossPos = bossEnemy->GetPosition();
 	playerScale = objFighter->GetScale();
@@ -425,6 +473,7 @@ void GameScene::Update()
 	//タイトルシーン
 	if (SceneNum == Title)
 	{
+		titleDrowCount++;
 		objFighter->SetPosition({ 0,2,30 });
 		objFighter2->SetPosition({ 0,12,30 });
 		objFighter3->SetPosition({ 0,12,30 });
@@ -447,13 +496,13 @@ void GameScene::Update()
 
 		for (int i = 0; i < _countof(objBul); i++)
 		{
-			objBul[i]->SetPosition({ +1000,-10,1000 });
+			objBul[i]->SetPosition(OutAriaPos);
 			objBul[i]->SetScale({ 0.2,0.2,0.2 });
 		}
 
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
-			objEnemyBul[i]->SetPosition({ +1000,-10,1000 });
+			objEnemyBul[i]->SetPosition(OutAriaPos);
 			objEnemyBul[i]->SetScale({ 0.5,0.5,0.5 });
 		}
 		mousePos = { (float)mouseMove.lX / 50,(float)mouseMove.lY / 50 };
@@ -465,21 +514,21 @@ void GameScene::Update()
 		centerPos = { 0, 2, 50 };
 		bulCount = 30;
 		enemyBulCount = 1;
-		plVelocity = { 0,0,0 };
-		virVelocity = { 0,0,0 };
+		plVelocity = { resetFloat3 };
+		virVelocity = { resetFloat3 };
 		bossAlive = true;
 		enemyTimer = 0;
 		timing = 75;
 		isJust = false;
-		isJump = false;
-		isJustJump = false;
+		isJump = Bad;
 		isAlive = true;
 		hitTimer = 0;
 		jCount = 0.6;
 		isHit = false;
 		centerPos = { 0, 2, 50 };
-		color = { 1,1,1,0 };
+		diedTextColor = { 1,1,1,0 };
 		justTiming = false;
+		isJustTiming = false;
 		lastBul = 0;
 		reloadCount = 0;
 		isReload = false;
@@ -494,27 +543,25 @@ void GameScene::Update()
 		fiveAttack2 = false;
 		viewMatrix = camera->GetMatrix();
 		justCount = 0;
+		bossVelocity = { resetFloat3 };
 
 		clearTimer = 0;
-		randUIX = 0;
-		randUIY = 0;
+		randUIX = 30;
+		randUIY = 30;
 
 		selectAttack = 0;
-		enemySinpleAttack = false;
-		enemyTripleAttack = false;
-		enemyBirdAttack = false;
-		enemyStarAttack = false;
+		howAttack = Non;
 		enemyIsAttack = false;
 
-		enemyMove = 0;
+		enemyMove = -15;
 		isPlus = true;
 
 		firstBossHP = 20;
-		playerHP = 4;
+		playerHP = 5;
 		skyBul = 0;
 
 
-		if (input->TriggerKey(DIK_RETURN))
+		if (input->TriggerKey(DIK_RETURN) || input->TriggerMouseLeft())
 		{
 			isEase = true;
 			Audio::GetInstance()->PlayWave("SE/enter.wav", 0.3, false);
@@ -532,10 +579,11 @@ void GameScene::Update()
 			//カウントダウンがマックスならbattleに移る
 			if (nowCount > maxTime) {
 				SceneNum = Game;
-				CircularMotionUD(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleY, +1);
-				CircularMotionLR(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleX, +1);
-				CircularMotionUD(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleY, +1);
-				CircularMotionLR(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleX, +1);
+				titleDrowCount = 0;
+				CircularMotionUD(targetCameraPos, playerPos, circle, camera_data.angleZ, camera_data.angleY, circleAdd);
+				CircularMotionLR(targetCameraPos, playerPos, circle, camera_data.angleZ, camera_data.angleX, circleAdd);
+				CircularMotionUD(virCameraPos, playerPos, circle, camera_data.virangleZ, camera_data.virangleY, circleAdd);
+				CircularMotionLR(virCameraPos, playerPos, circle, camera_data.virangleZ, camera_data.virangleX, circleAdd);
 				nowCount = 0.0f;
 				timeRate = 0.0f;
 
@@ -544,11 +592,22 @@ void GameScene::Update()
 				isEase = false;
 			}
 		}
+		if (skyDomeRota < 360)
+		{
+			skyDomeRota += 0.1f;
+		}
+		else
+		{
+			skyDomeRota = 0;
+		}
+		objSkydome->SetRotation({ 0, skyDomeRota, 0 });
+
 		camera->SetEye(titleEye);
 		camera->SetTarget(titleTarget);
 		camera->Update();
 	}
 
+	//ゲームシーン
 	if (SceneNum == Game)
 	{
 		oldPlayerPos = playerPos;
@@ -563,29 +622,62 @@ void GameScene::Update()
 		}
 		else
 		{
-			timing = 60;
+			if (mapRotaY == 0)
+			{
+				mapRotaY = 180.0f;
+			}
+			else
+			{
+				mapRotaY = 0.0f;
+			}
+
+			timing = timingMax;
+			for (int y = 0; y < map_max_y; y++) {//(yが26)
+				for (int x = 0; x < map_max_x; x++) {//(xが26)
+					objBlock[y][x]->SetRotation({ mapRotaY, 0, 0 });
+					objBlock[y][x]->Update();
+				}
+			}
 		}
 
+		if (TimingCheck(timing))
+		{
+			isJustTiming = true;
+		}
+		else
+		{
+			isJustTiming = false;
+		}
+		//---------------スプライトを変更する処理--------------//
+
+		timeHeart = (timing / 60.0f);
 		sprite[4]->SetPosition({ (WinApp::window_width / 2) - (4 * (float)timing + 32),WinApp::window_height - 160 });
 		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height - 160 });
-
+		heartSize = static_cast<float>(Ease::easeIn(HeartMaxSize, HeartMinSize, timeHeart));
+		heartPos = static_cast<float>(Ease::easeIn(MaxPos, MinPos, timeHeart));
+		for (int i = 0; i < _countof(spriteLife); i++)
+		{
+			spriteLife[i]->SetSize({heartSize,heartSize});
+		}
+		for (int i = 0; i < _countof(spriteLife); i++)
+		{
+			spriteLife[i]->SetPosition({ heartPos + (i * 80),600.0f });
+		}
+		//---------------スプライトを変更する処理ここまで-------//
+		//タイミングがジャストだった時にUIを揺らす処理
 		if (isJust)
 		{
-			randUIX = 30;
-			randUIY = 30;
-			sprite[0]->SetSize({ 64.0f + randUIX,64.0f + randUIY });
-			sprite[0]->SetPosition({ spritePos.center.x - (32 + (randUIX / 2)),spritePos.center.y - (32 + (randUIY / 2)) });
 			spritebossHP->SetPosition({ 303 , 47 - (float)randUIY });
 			spritebossHPFrame->SetPosition({ 300 , 0 - (float)randUIY });
-			spriteNum[0]->SetPosition({ WinApp::window_width - 174 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
-			spriteNum[1]->SetPosition({ WinApp::window_width - 150 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
-			spriteNum[2]->SetPosition({ WinApp::window_width - 104 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
-			spriteNum[3]->SetPosition({ WinApp::window_width - 80 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
-			spriteMagazineUI->SetPosition({ WinApp::window_width - 256 + (float)randUIX,WinApp::window_height - 128 + (float)randUIY });
-			for (int i = 0; i < _countof(spriteLife); i++)
+			for (int i = 0; i < 4; i++)
 			{
-				spriteLife[i]->SetPosition({ 100.0f + (i * 60) - (float)randUIX ,600.0f + (float)randUIY });
+				spriteNum[0]->SetPosition({ WinApp::window_width - 174 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
+				spriteNum[1]->SetPosition({ WinApp::window_width - 150 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
+				spriteNum[2]->SetPosition({ WinApp::window_width - 104 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
+				spriteNum[3]->SetPosition({ WinApp::window_width - 80 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
 			}
+			spriteMagazineUI->SetPosition({ WinApp::window_width - 256 + (float)randUIX,WinApp::window_height - 128 + (float)randUIY });
+			//視野角の変更
 			viewMatrix = 55;
 			justCount++;
 			if (justCount > 10)
@@ -595,10 +687,9 @@ void GameScene::Update()
 			}
 			camera->SetMatrix(viewMatrix);
 		}
+		//そうじゃなかったときに戻す処理
 		else
 		{
-			sprite[0]->SetSize({ 64.0f,64.0f });
-			sprite[0]->SetPosition({ spritePos.center.x - 32,spritePos.center.y - 32 });
 			spritebossHP->SetPosition({ 303 , 47 });
 			spritebossHPFrame->SetPosition({ 300 , 0 });
 			spriteNum[0]->SetPosition({ WinApp::window_width - 174,WinApp::window_height - 112 });
@@ -606,155 +697,88 @@ void GameScene::Update()
 			spriteNum[2]->SetPosition({ WinApp::window_width - 104,WinApp::window_height - 64 });
 			spriteNum[3]->SetPosition({ WinApp::window_width - 80,WinApp::window_height - 64 });
 			spriteMagazineUI->SetPosition({ WinApp::window_width - 256,WinApp::window_height - 128 });
-			for (int i = 0; i < _countof(spriteLife); i++)
-			{
-				spriteLife[i]->SetPosition({ 100.0f + (i * 60),600.0f });
-			}
 			justCount = 0;
 		}
 
-		//sprite[0]->SetPosition({ mousePos.x,mousePos.y });
 		if (isAlive == true)
 		{
 			//移動用velocity計算
 			if (input->PushKey(DIK_LSHIFT))
 			{
-				plVelocity.x = (targetCameraPos.x - playerPos.x) * 2;
-				plVelocity.y = (targetCameraPos.y - playerPos.y) * 2;
-				plVelocity.z = (targetCameraPos.z - playerPos.z) * 2;
-
-				virVelocity.x = (virCameraPos.x - playerPos.x) * 2;
-				virVelocity.y = (virCameraPos.y - playerPos.y) * 2;
-				virVelocity.z = (virCameraPos.z - playerPos.z) * 2;
+				VelocityBoost(plVelocity, virVelocity, targetCameraPos, virCameraPos, playerPos);
 				Audio::GetInstance()->PlayWave("SE/swing.wav", 0.3, false);
 			}
 			else
 			{
-				plVelocity.x = targetCameraPos.x - playerPos.x;
-				plVelocity.y = targetCameraPos.y - playerPos.y;
-				plVelocity.z = targetCameraPos.z - playerPos.z;
-
-				virVelocity.x = virCameraPos.x - playerPos.x;
-				virVelocity.y = virCameraPos.y - playerPos.y;
-				virVelocity.z = virCameraPos.z - playerPos.z;
+				VelocityNormal(plVelocity, virVelocity, targetCameraPos, virCameraPos, playerPos);
 				Audio::GetInstance()->SoundStop("SE/swing.wav");
 			}
 
 			// 移動後の座標を計算
 			//タイミングよく移動すると加速
 			// -----------------------------------------//
-			if ((input->TriggerKey(DIK_W) && timing > 55)
-				|| (input->TriggerKey(DIK_W) && timing < 5))
+			if (input->TriggerKey(DIK_W) && isJustTiming)
 			{
-				playerPos.x += (plVelocity.x / 10);
-				playerPos.z += (plVelocity.z / 10);
-				targetCameraPos.x += (plVelocity.x / 10);
-				targetCameraPos.z += (plVelocity.z / 10);
-				virCameraPos.x += (plVelocity.x / 10);
-				virCameraPos.z += (plVelocity.z / 10);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, MinMoveVelocity, Plus);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_W))
 			{
-				playerPos.x += (plVelocity.x / 100);
-				playerPos.z += (plVelocity.z / 100);
-				targetCameraPos.x += (plVelocity.x / 100);
-				targetCameraPos.z += (plVelocity.z / 100);
-				virCameraPos.x += (plVelocity.x / 100);
-				virCameraPos.z += (plVelocity.z / 100);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, MaxMoveVelocity, Plus);
 			}
-
-
-			if ((input->TriggerKey(DIK_S) && timing > 55)
-				|| (input->TriggerKey(DIK_S) && timing < 5))
+			if (input->TriggerKey(DIK_S) && isJustTiming)
 			{
-				playerPos.x -= (plVelocity.x / 10);
-				playerPos.z -= (plVelocity.z / 10);
-				targetCameraPos.x -= (plVelocity.x / 10);
-				targetCameraPos.z -= (plVelocity.z / 10);
-				virCameraPos.x -= (plVelocity.x / 10);
-				virCameraPos.z -= (plVelocity.z / 10);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, MinMoveVelocity, Minus);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_S))
 			{
-				playerPos.x -= (plVelocity.x / 100);
-				playerPos.z -= (plVelocity.z / 100);
-				targetCameraPos.x -= (plVelocity.x / 100);
-				targetCameraPos.z -= (plVelocity.z / 100);
-				virCameraPos.x -= (plVelocity.x / 100);
-				virCameraPos.z -= (plVelocity.z / 100);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, plVelocity, MaxMoveVelocity, Minus);
 			}
-
-
-			if ((input->TriggerKey(DIK_A) && timing > 55)
-				|| (input->TriggerKey(DIK_A) && timing < 5))
+			if (input->TriggerKey(DIK_A) && isJustTiming)
 			{
-				playerPos.x -= (virVelocity.x / 10);
-				playerPos.z -= (virVelocity.z / 10);
-				targetCameraPos.x -= (virVelocity.x / 10);
-				targetCameraPos.z -= (virVelocity.z / 10);
-				virCameraPos.x -= (virVelocity.x / 10);
-				virCameraPos.z -= (virVelocity.z / 10);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, MinMoveVelocity, Minus);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_A))
 			{
-				playerPos.x -= (virVelocity.x / 100);
-				playerPos.z -= (virVelocity.z / 100);
-				targetCameraPos.x -= (virVelocity.x / 100);
-				targetCameraPos.z -= (virVelocity.z / 100);
-				virCameraPos.x -= (virVelocity.x / 100);
-				virCameraPos.z -= (virVelocity.z / 100);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, MaxMoveVelocity, Minus);
 			}
-
-
-			if ((input->TriggerKey(DIK_D) && timing > 55)
-				|| (input->TriggerKey(DIK_D) && timing < 5))
+			if (input->TriggerKey(DIK_D) && isJustTiming)
 			{
-				playerPos.x += (virVelocity.x / 10);
-				playerPos.z += (virVelocity.z / 10);
-				targetCameraPos.x += (virVelocity.x / 10);
-				targetCameraPos.z += (virVelocity.z / 10);
-				virCameraPos.x += (virVelocity.x / 10);
-				virCameraPos.z += (virVelocity.z / 10);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, MinMoveVelocity, Plus);
 				isJust = true;
 			}
 			else if (input->PushKey(DIK_D))
 			{
-				playerPos.x += (virVelocity.x / 100);
-				playerPos.z += (virVelocity.z / 100);
-				targetCameraPos.x += (virVelocity.x / 100);
-				targetCameraPos.z += (virVelocity.z / 100);
-				virCameraPos.x += (virVelocity.x / 100);
-				virCameraPos.z += (virVelocity.z / 100);
+				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, MaxMoveVelocity, Plus);
 			}
 			// -----------------------------------------//
 
-			//弾を撃つ
+			//プレイヤーが弾を撃つ
 			// -----------------------------------------//
 			if (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount < 50)
 			{
 				bullet[bulCount].bulFlag = true;
 				bulCount++;
-				if (timing > 55 || timing < 5)
+				if (isJustTiming)
 				{
 					isJust = true;
 				}
 			}
+
 			lastBul = 50 - bulCount;
 			spriteNum[0]->ChangeTex(lastBul / 10);
 			spriteNum[1]->ChangeTex(lastBul % 10);
 			spriteNum[2]->ChangeTex(maxMagazine / 10);
-			spriteNum[3]->ChangeTex(skyBul);
+			spriteNum[3]->ChangeTex(maxMagazine % 10);
 
 			//リロード
-			if ((input->TriggerKey(DIK_R) && timing > 55 && isReload == false)
-				|| (input->TriggerKey(DIK_R) && timing < 5 && isReload == false)
-				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing > 55 && isReload == false)
-				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && timing < 5 && isReload == false))
+			if ((input->TriggerKey(DIK_R) && isJustTiming && isReload == false)
+				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isJustTiming && isReload == false))
 			{
-				reloadCount = 30;
+				reloadCount = BigMag;
+				maxMagazine = BigMag;
 				justTiming = true;
 				isReload = true;
 				isJust = true;
@@ -762,61 +786,59 @@ void GameScene::Update()
 			else if ((input->TriggerKey(DIK_R) && isReload == false)
 				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isReload == false))
 			{
-				reloadCount = 30;
-				maxMagazine = 20;
+				reloadCount = BigMag;
+				maxMagazine = MinMag;
 				isReload = true;
 			}
 		}
 
+		//リロード実行
+		Reload(reloadCount, isReload, justTiming, bulCount, maxMagazine);
 
-		if (reloadCount > 0 && isReload == true)
-		{
-			reloadCount--;
-			Audio::GetInstance()->PlayWave("SE/reload.wav", 0.3, false);
-		}
-
-		if (reloadCount == 0 && isReload == true && justTiming == true)
-		{
-			bulCount = 20;
-			maxMagazine = 30;
-			isReload = false;
-			justTiming = false;
-			Audio::GetInstance()->SoundStop("SE/reload.wav");
-		}
-		else if (reloadCount == 0 && isReload == true)
-		{
-			bulCount = 30;
-			isReload = false;
-			Audio::GetInstance()->SoundStop("SE/reload.wav");
-		}
 
 		//弾を撃つ
 
-		if (bullet[bulCount - 1].bulFlag == true)
+		if (bullet[bulCount - 1].bulFlag == true && isReload == false)
 		{
+			sprite[0]->SetSize({ 64.0f + randUIX,64.0f + randUIY });
+			sprite[0]->ChangeTex(25);
+			sprite[0]->SetPosition({ spritePos.center.x - (32 + (randUIX / 2)),spritePos.center.y - (32 + (randUIY / 2)) });
 			bullet[bulCount - 1].Pos = playerPos;
 			bullet[bulCount - 1].bulShotFlag = true;
 			bullet[bulCount - 1].bulFlag = false;
 		}
 
+		// 弾の処理
 		for (int i = 0; i < _countof(objBul); i++)
 		{
 			if (bullet[i].bulShotFlag == true)
 			{
-				bullet[i].Pos.x += (plVelocity.x / 2);
-				bullet[i].Pos.y += (plVelocity.y / 2);
-				bullet[i].Pos.z += (plVelocity.z / 2);
-			}
-			if ((bullet[i].Pos.z > 400) || (bullet[i].Pos.z < -400)
-				|| (bullet[i].Pos.x > 400) || (bullet[i].Pos.x < -400))
-			{
-				bullet[i].Pos = { +1000,-10,1000 };
-				bullet[i].bulShotFlag = false;
+				bullet[i].Pos.x += (plVelocity.x / 8);
+				bullet[i].Pos.y += (plVelocity.y / 8);
+				bullet[i].Pos.z += (plVelocity.z / 8);
+				for (int y = 0; y < map_max_y; y++)
+				{
+					for (int x = 0; x < map_max_x; x++)
+					{
+						if ((bullet[i].Pos.z > AriaField) || (bullet[i].Pos.z < -AriaField)
+							|| (bullet[i].Pos.x > AriaField) || (bullet[i].Pos.x < -AriaField)
+							|| MapCollide3D(bullet[i].Pos, objBlock[y][x]->GetPosition()))
+						{
+							bullet[i].Pos = OutAriaPos;
+							bullet[i].bulShotFlag = false;
+							sprite[0]->SetSize({ 64.0f,64.0f });
+							sprite[0]->ChangeTex(12);
+							sprite[0]->SetPosition({ spritePos.center.x - 32,spritePos.center.y - 32 });
+						}
+					}
+				}
 			}
 		}
 
+		//プレイヤーが生きているとき
 		if (isAlive == true)
 		{
+			//マウスを動かすことによる視点移動
 			if (camera_data.angleY < 90 && mousePos.y < 0 || camera_data.angleY > -90 && mousePos.y > 0)
 			{
 				CircularMotionUD(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleY, -mousePos.y);
@@ -827,75 +849,14 @@ void GameScene::Update()
 				CircularMotionLR(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleX, mousePos.x);
 				CircularMotionLR(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleX, mousePos.x);
 			}
-			/*if (input->PushKey(DIK_UP))
-			{
-				CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, +1);
-				CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, +1);
-			}*/
-			/*if (input->PushKey(DIK_DOWN))
-			{
-				CircularMotionUD(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleY, -1);
-				CircularMotionUD(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleY, -1);
-			}*/
-			/*if (input->PushKey(DIK_RIGHT))
-			{
-				CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, +1);
-				CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, +1);
-			}*/
-			/*if (input->PushKey(DIK_LEFT))
-			{
-				CircularMotionLR(targetCameraPos, playerPos, 10.00f, enemy_data.angleZ, enemy_data.angleX, -1);
-				CircularMotionLR(virCameraPos, playerPos, 10.00f, enemy_data.virangleZ, enemy_data.virangleX, -1);
-			}*/
 
+			// ジャンプ選定
+			JumpStart(isJustTiming, isJump, jCount, isJust);
+		}
+		//ジャンプ
+		Jump(isJump, jCount, playerPos, targetCameraPos);
 
-			// ジャンプ
-			if (input->TriggerKey(DIK_SPACE) && isJump == false && isJustJump == false)
-			{
-				if (timing > 55 || timing < 5)
-				{
-					isJustJump = true;
-					jCount = jCountMax;
-					isJust = true;
-				}
-				else
-				{
-					isJump = true;
-					jCount = jCountMin;
-				}
-			}
-		}
-		if (isJump == true)
-		{
-			Audio::GetInstance()->PlayWave("SE/jump.wav", 0.03, false);
-			jCount -= 0.025;
-			if (jCount > -jCountMin)
-			{
-				playerPos.y += jCount;
-				targetCameraPos.y += jCount;
-			}
-			else
-			{
-				isJump = false;
-				Audio::GetInstance()->SoundStop("SE/jump.wav");
-			}
-		}
-		if (isJustJump == true)
-		{
-			Audio::GetInstance()->PlayWave("SE/jump.wav", 0.03, false);
-			jCount -= 0.025;
-			if (jCount > -jCountMax)
-			{
-				playerPos.y += jCount;
-				targetCameraPos.y += jCount;
-			}
-			else
-			{
-				isJustJump = false;
-				Audio::GetInstance()->SoundStop("SE/jump.wav");
-			}
-		}
-
+		//マップ判定
 		for (int y = 0; y < map_max_y; y++)
 		{
 			for (int x = 0; x < map_max_x; x++)
@@ -907,6 +868,7 @@ void GameScene::Update()
 			}
 		}
 
+		//マップと当たってないときにカメラを正常に戻す
 		if (isHit == true && isAlive == true)
 		{
 			playerPos.x = oldPlayerPos.x;
@@ -915,27 +877,26 @@ void GameScene::Update()
 			virCameraPos = oldVirCameraPos;
 			isHit = false;
 		}
+		//カメラ位置更新
 		objFighter->SetPosition(playerPos);
 		objFighter2->SetPosition(targetCameraPos);
 		objFighter3->SetPosition(virCameraPos);
 
+		//弾の初期化
 		for (int i = 0; i < _countof(objBul); i++)
 		{
 			objBul[i]->SetPosition(bullet[i].Pos);
 		}
 
+		//弾がボスに当たったとき
 		for (int i = 0; i < _countof(objBul); i++)
 		{
-			bool bossHit = (bossPos.x - playerScale.x < bullet[i].Pos.x + bullet[i].Size.x)
-				&& (bossPos.x + playerScale.x > bullet[i].Pos.x - bullet[i].Size.x)
-				&& (bossPos.z - playerScale.z < bullet[i].Pos.z + bullet[i].Size.z)
-				&& (bossPos.z + playerScale.z > bullet[i].Pos.z - bullet[i].Size.z)
-				&& (bossAlive == true);
+			bool bossHit = Collide(bossPos, playerScale, bullet[i].Pos, bullet[i].Size, bossAlive);
 			{
 				if (bossHit)
 				{
 					firstBossHP--;
-					objBul[i]->SetPosition({ +1000,-10,1000 });
+					objBul[i]->SetPosition(OutAriaPos);
 					bullet[i].Pos = objBul[i]->GetPosition();
 					bullet[i].Size = objBul[i]->GetScale();
 					setParticle = true;
@@ -943,7 +904,7 @@ void GameScene::Update()
 			}
 		}
 
-
+		//パーティクルをセット
 		if (setParticle == true)
 		{
 			for (int i = 0; i < _countof(redParticleObject); i++)
@@ -957,17 +918,19 @@ void GameScene::Update()
 			isParticle = true;
 			setParticle = false;
 		}
-		if (isParticle == true)
+		//パーティクルを出す
+		for (int i = 0; i < _countof(redParticleObject); i++)
 		{
-			for (int i = 0; i < _countof(redParticleObject); i++)
+			if (isParticle == true)
 			{
 				partPos2[i].x += static_cast<float>(partVelocityx[i]) / 100;
 				partPos2[i].y += static_cast<float>(partVelocityy[i]) / 100;
 				partPos2[i].z += static_cast<float>(partVelocityz[i]) / 100;
-				redParticleObject[i]->SetPosition({ partPos2[i] });
+				redParticleObject[i]->SetPosition({ partPos2[i]});
 			}
 		}
 
+		//一定の時間経過で消える
 		if (isParticle == true)
 		{
 			partTimer++;
@@ -977,7 +940,7 @@ void GameScene::Update()
 				partTimer = 0;
 			}
 		}
-
+		//ボスのHPの描画
 		spritebossHP->SetSize({ 34.7f * (float)firstBossHP , 20 });
 
 		if (firstBossHP <= 0)
@@ -985,22 +948,7 @@ void GameScene::Update()
 			bossAlive = false;
 		}
 
-		//if (bossAlive == false)
-		//{
-		//	enemyTimer++;
-		//}
-
-		//if (enemyTimer > 120)
-		//{
-		//	bossAlive = true;
-		//	firstBossHP = 20;
-		//	enemySinpleAttack = false;
-		//	enemyTripleAttack = false;
-		//	enemyHomingAttack = false;
-		//	/*enemyAttackCounter = 0;*/
-		//	enemyTimer = 0;
-		//}
-
+		//ボスが死んだときのパーティクルを出す
 		for (int i = 0; i < _countof(particleObject); i++)
 		{
 			if (bossAlive == false && oldBossAlive == true)
@@ -1013,6 +961,7 @@ void GameScene::Update()
 			}
 			if (bossAlive == false && oldBossAlive == false)
 			{
+				//ここ指摘されたとこだけどパーティクルのために全部変えていたためやり方がわからなかった
 				partPos[i].x += static_cast<float>(partVelocityx[i]) / 10;
 				partPos[i].y += static_cast<float>(partVelocityy[i]) / 10;
 				partPos[i].z += static_cast<float>(partVelocityz[i]) / 10;
@@ -1020,6 +969,7 @@ void GameScene::Update()
 			}
 		}
 
+		//クリア時
 		if (bossAlive == false && oldBossAlive == false)
 		{
 			clearTimer++;
@@ -1031,111 +981,37 @@ void GameScene::Update()
 		//敵の行動
 		if (bossAlive == true)
 		{
+			//atan2で敵の角度を割り出す
+			bossVelocity.x = (bossPos.x - playerPos.x);
+			bossVelocity.z = (bossPos.z - playerPos.z);
+			bossRota.y = atan2(bossVelocity.x , bossVelocity.z) * 55 + 180.0f;
+			bossEnemy->SetRotation(bossRota);
+
 			if (skyBul == 0)
 			{
 				enemyAttackCounter++;
-				if (enemyMove < 320 && isPlus)
-				{
-					enemyMove++;
-				}
-				if (enemyMove >= 320 && isPlus)
-				{
-					enemyMove = 0;
-				}
-				if (enemyMove < 40)
-				{
-					bossPos.x += 0.1;
-				}
-
-				if (enemyMove > 40 && enemyMove < 80)
-				{
-					bossPos.x -= 0.1;
-					bossPos.z += 0.1;
-				}
-				if (enemyMove > 80 && enemyMove < 120)
-				{
-					bossPos.x -= 0.1;
-					bossPos.z -= 0.1;
-				}
-				if (enemyMove > 120 && enemyMove < 140)
-				{
-					bossPos.x += 0.1;
-					bossPos.z -= 0.1;
-				}if (enemyMove > 140 && enemyMove < 160)
-				{
-					bossPos.x += 0.1;
-					bossPos.z += 0.1;
-				}
-				if (enemyMove > 160 && enemyMove < 180)
-				{
-					bossPos.x += 0.1;
-					bossPos.z -= 0.1;
-				}
-				if (enemyMove > 180 && enemyMove < 200)
-				{
-					bossPos.x += 0.1;
-					bossPos.z += 0.1;
-				}
-				if (enemyMove > 200 && enemyMove < 240)
-				{
-					bossPos.x -= 0.1;
-					bossPos.z += 0.1;
-				}
-				if (enemyMove > 240 && enemyMove < 280)
-				{
-					bossPos.x -= 0.1;
-					bossPos.z -= 0.1;
-				}
-				if (enemyMove > 280 && enemyMove < 320)
-				{
-					bossPos.x += 0.1;
-				}
+				EnemyMove(bossPos, enemyMove, isPlus);
 			}
-
-
 
 			//---------------------ここから攻撃選定と前処理----------------------//
 
 			//攻撃選定
-			if (enemyAttackCounter >= 59)
+			if (enemyAttackCounter >= 59 && skyBul == 0 && enemyBulCount < 46 && timing == timingMax)
 			{
 				selectAttack = rand() % 100;
 				enemyAttackCounter = 0;
 			}
 
-			if (selectAttack < 50 && selectAttack != 0)
-			{
-				enemySinpleAttack = true;
-				enemyAttackCounter = 0;
-				selectAttack = 0;
-			}
-			else if (selectAttack < 75 && selectAttack != 0)
-			{
-				enemyTripleAttack = true;
-				enemyAttackCounter = 0;
-				selectAttack = 0;
-			}
-			else if (selectAttack < 85 && selectAttack != 0 && skyBul <= 4)
-			{
-				enemyBirdAttack = true;
-				enemyAttackCounter = 0;
-				selectAttack = 0;
-			}
-			else if (selectAttack < 100 && selectAttack != 0 && skyBul <= 4)
-			{
-				enemyStarAttack = true;
-				enemyAttackCounter = 0;
-				selectAttack = 0;
-			}
+			SelectAttack(selectAttack, howAttack, skyBul, enemyAttackCounter);
 		}
 
 		//攻撃前処理
-		if (enemySinpleAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
+		if (howAttack == Sinple && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			eBullet[enemyBulCount].bulFlag = true;
 			eBullet[enemyBulCount].type = 1;
 			enemyBulCount++;
-			enemySinpleAttack = false;
+			howAttack = Non;
 		}
 		if (eBullet[enemyBulCount - 1].bulFlag == true && eBullet[enemyBulCount - 1].type == 1)
 		{
@@ -1146,7 +1022,7 @@ void GameScene::Update()
 			eBullet[enemyBulCount - 1].bulFlag = false;
 		}
 
-		if (enemyTripleAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
+		if (howAttack == Triple && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			for (int i = enemyBulCount; i < (enemyBulCount + 3); i++)
 			{
@@ -1156,29 +1032,26 @@ void GameScene::Update()
 				eBullet[i].velocity.z = playerPos.z - bossPos.z;
 			}
 			enemyBulCount += 3;
-			enemyTripleAttack = false;
+			howAttack = Non;
 		}
 
 		if (eBullet[enemyBulCount - 1].bulFlag == true
 			&& eBullet[enemyBulCount - 2].bulFlag == true
 			&& eBullet[enemyBulCount - 3].bulFlag == true)
 		{
-			eBullet[enemyBulCount - 1].Pos = bossPos;
-			eBullet[enemyBulCount - 1].Pos.x = bossPos.x - 2;
-			eBullet[enemyBulCount - 1].bulShotFlag = true;
-			eBullet[enemyBulCount - 1].bulFlag = false;
+			eBullet[enemyBulCount - 1].Pos = XMFLOAT3(bossPos.x - 2, bossPos.y ,bossPos.z);
 
 			eBullet[enemyBulCount - 2].Pos = bossPos;
-			eBullet[enemyBulCount - 2].bulShotFlag = true;
-			eBullet[enemyBulCount - 2].bulFlag = false;
 
-			eBullet[enemyBulCount - 3].Pos = bossPos;
-			eBullet[enemyBulCount - 3].Pos.x = bossPos.x + 2;
-			eBullet[enemyBulCount - 3].bulShotFlag = true;
-			eBullet[enemyBulCount - 3].bulFlag = false;
+			eBullet[enemyBulCount - 3].Pos = XMFLOAT3(bossPos.x + 2, bossPos.y, bossPos.z);
+			for (int i = enemyBulCount - 3; i < enemyBulCount; i++)
+			{
+				eBullet[i].bulShotFlag = true;
+				eBullet[i].bulFlag = false;
+			}
 		}
 
-		if (enemyBirdAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
+		if (howAttack == Bird && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			for (int i = enemyBulCount; i < (enemyBulCount + 5); i++)
 			{
@@ -1187,63 +1060,50 @@ void GameScene::Update()
 			}
 			enemyBulCount += 5;
 			skyBul += 5;
-			enemyBirdAttack = false;
+			howAttack = Non;
 			fiveAttack = true;
 		}
 
+		//5つの弾が三角形に飛んでいく処理
 		if (fiveAttack == true)
 		{
-			animeCount += 3;
+			animeCount += 1;
+			if (animeCount == 30)
+			{
+				eBullet[enemyBulCount - 1].Pos = XMFLOAT3(bossPos.x - 4, bossPos.y, bossPos.z);
+			}
 			if (animeCount == 60)
 			{
-				eBullet[enemyBulCount - 1].Pos = bossPos;
-				eBullet[enemyBulCount - 1].Pos.x = bossPos.x - 4;
-				eBullet[enemyBulCount - 1].bulShotFlag = true;
-				eBullet[enemyBulCount - 1].bulFlag = false;
+				eBullet[enemyBulCount - 2].Pos = XMFLOAT3(bossPos.x - 2, bossPos.y + 1, bossPos.z);
+			}
+			if (animeCount == 90)
+			{
+				eBullet[enemyBulCount - 3].Pos = XMFLOAT3(bossPos.x, bossPos.y + 2, bossPos.z);
 			}
 			if (animeCount == 120)
 			{
-				eBullet[enemyBulCount - 2].Pos = bossPos;
-				eBullet[enemyBulCount - 2].Pos.x = bossPos.x - 2;
-				eBullet[enemyBulCount - 2].Pos.y = bossPos.y + 1;
-				eBullet[enemyBulCount - 2].bulShotFlag = true;
-				eBullet[enemyBulCount - 2].bulFlag = false;
+				eBullet[enemyBulCount - 4].Pos = XMFLOAT3(bossPos.x + 2, bossPos.y + 1, bossPos.z);
+			}
+			if (animeCount == 150)
+			{
+				eBullet[enemyBulCount - 5].Pos = XMFLOAT3(bossPos.x + 4, bossPos.y, bossPos.z);
 			}
 			if (animeCount == 180)
-			{
-				eBullet[enemyBulCount - 3].Pos = bossPos;
-				eBullet[enemyBulCount - 3].Pos.y = bossPos.y + 2;
-				eBullet[enemyBulCount - 3].bulShotFlag = true;
-				eBullet[enemyBulCount - 3].bulFlag = false;
-			}
-			if (animeCount == 240)
-			{
-				eBullet[enemyBulCount - 4].Pos = bossPos;
-				eBullet[enemyBulCount - 4].Pos.x = bossPos.x + 2;
-				eBullet[enemyBulCount - 4].Pos.y = bossPos.y + 1;
-				eBullet[enemyBulCount - 4].bulShotFlag = true;
-				eBullet[enemyBulCount - 4].bulFlag = false;
-			}
-			if (animeCount == 300)
-			{
-				eBullet[enemyBulCount - 5].Pos = bossPos;
-				eBullet[enemyBulCount - 5].Pos.x = bossPos.x + 4;
-				eBullet[enemyBulCount - 5].bulShotFlag = true;
-				eBullet[enemyBulCount - 5].bulFlag = false;
-			}
-			if (animeCount == 360)
 			{
 				for (int i = enemyBulCount - 5; i < enemyBulCount; i++)
 				{
 					eBullet[i].velocity.x = playerPos.x - bossPos.x;
 					eBullet[i].velocity.z = playerPos.z - bossPos.z;
+					eBullet[i].bulShotFlag = true;
+					eBullet[i].bulFlag = false;
 				}
 				fiveAttack = false;
 				animeCount = 0;
 			}
 		}
 
-		if (enemyStarAttack == true && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
+		//5つの弾が五角形に飛んでいく前処理
+		if (howAttack == Star && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
 			for (int i = enemyBulCount; i < (enemyBulCount + 5); i++)
 			{
@@ -1252,75 +1112,63 @@ void GameScene::Update()
 			}
 			enemyBulCount += 5;
 			skyBul += 5;
-			enemyStarAttack = false;
+			howAttack = Non;
 			fiveAttack2 = true;
 		}
 
+		//5つの弾が五角形に飛んでいく処理
 		if (fiveAttack2 == true)
 		{
-			animeCount += 3;
+			animeCount += 1;
+			if (animeCount == 30)
+			{
+				eBullet[enemyBulCount - 1].Pos = XMFLOAT3(bossPos.x - 1, bossPos.y, bossPos.z);
+			}
 			if (animeCount == 60)
 			{
-				eBullet[enemyBulCount - 1].Pos = bossPos;
-				eBullet[enemyBulCount - 1].Pos.x = bossPos.x - 1;
-				eBullet[enemyBulCount - 1].bulShotFlag = true;
-				eBullet[enemyBulCount - 1].bulFlag = false;
+				eBullet[enemyBulCount - 2].Pos = XMFLOAT3(bossPos.x - 2, bossPos.y + 2,bossPos.z);
+			}
+			if (animeCount == 90)
+			{
+				eBullet[enemyBulCount - 3].Pos = XMFLOAT3(bossPos.x, bossPos.y + 4, bossPos.z);
 			}
 			if (animeCount == 120)
 			{
-				eBullet[enemyBulCount - 2].Pos = bossPos;
-				eBullet[enemyBulCount - 2].Pos.x = bossPos.x - 2;
-				eBullet[enemyBulCount - 2].Pos.y = bossPos.y + 2;
-				eBullet[enemyBulCount - 2].bulShotFlag = true;
-				eBullet[enemyBulCount - 2].bulFlag = false;
+				eBullet[enemyBulCount - 4].Pos = XMFLOAT3(bossPos.x + 2, bossPos.y + 2, bossPos.z);
+			}
+			if (animeCount == 150)
+			{
+				eBullet[enemyBulCount - 5].Pos = XMFLOAT3(bossPos.x + 1, bossPos.y, bossPos.z);
 			}
 			if (animeCount == 180)
-			{
-				eBullet[enemyBulCount - 3].Pos = bossPos;
-				eBullet[enemyBulCount - 3].Pos.y = bossPos.y + 4;
-				eBullet[enemyBulCount - 3].bulShotFlag = true;
-				eBullet[enemyBulCount - 3].bulFlag = false;
-			}
-			if (animeCount == 240)
-			{
-				eBullet[enemyBulCount - 4].Pos = bossPos;
-				eBullet[enemyBulCount - 4].Pos.x = bossPos.x + 2;
-				eBullet[enemyBulCount - 4].Pos.y = bossPos.y + 2;
-				eBullet[enemyBulCount - 4].bulShotFlag = true;
-				eBullet[enemyBulCount - 4].bulFlag = false;
-			}
-			if (animeCount == 300)
-			{
-				eBullet[enemyBulCount - 5].Pos = bossPos;
-				eBullet[enemyBulCount - 5].Pos.x = bossPos.x + 1;
-				eBullet[enemyBulCount - 5].bulShotFlag = true;
-				eBullet[enemyBulCount - 5].bulFlag = false;
-			}
-			if (animeCount == 360)
 			{
 				for (int i = enemyBulCount - 5; i < enemyBulCount; i++)
 				{
 					eBullet[i].velocity.x = playerPos.x - bossPos.x;
 					eBullet[i].velocity.z = playerPos.z - bossPos.z;
+					eBullet[i].bulShotFlag = true;
+					eBullet[i].bulFlag = false;
 				}
 				fiveAttack2 = false;
 				animeCount = 0;
 			}
 		}
 
-		//----------------ここから撃つ処理-----------------//
+		//----------------ここから敵の撃つ処理-----------------//
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
-			if (eBullet[i].type == 1)
+			//タイプごとに飛ばし方を変える
+			if (eBullet[i].type == Streat)
 			{
 				if (eBullet[i].bulShotFlag == true)
 				{
-					eBullet[i].Pos.x += eBullet[i].velocity.x / 40;
-					eBullet[i].Pos.z += eBullet[i].velocity.z / 40;
+					eBullet[i].normalize = sqrtf((eBullet[i].velocity.x * eBullet[i].velocity.x) + (eBullet[i].velocity.z * eBullet[i].velocity.z));
+					eBullet[i].Pos.x += eBullet[i].velocity.x / (eBullet[i].normalize * 3);
+					eBullet[i].Pos.z += eBullet[i].velocity.z / (eBullet[i].normalize * 3);
 				}
 			}
-			else if (eBullet[i].type == 2 && fiveAttack == false
-				|| eBullet[i].type == 2 && fiveAttack2 == false)
+			else if (eBullet[i].type == Anime && fiveAttack == false
+				|| eBullet[i].type == Anime && fiveAttack2 == false)
 			{
 				if (eBullet[i].bulShotFlag == true)
 				{
@@ -1331,99 +1179,115 @@ void GameScene::Update()
 			}
 			if (eBullet[i].bulShotFlag == true)
 			{
-				if ((eBullet[i].Pos.z > 400) || (eBullet[i].Pos.z < -400)
-					|| (eBullet[i].Pos.x > 400) || (eBullet[i].Pos.x < -400))
+				if ((eBullet[i].Pos.z > AriaField) || (eBullet[i].Pos.z < -AriaField)
+					|| (eBullet[i].Pos.x > AriaField) || (eBullet[i].Pos.x < -AriaField))
 				{
-					if (skyBul > 0)
+					if (eBullet[i].type == 2)
 					{
-						skyBul--;
+						if (skyBul > 0)
+						{
+							skyBul--;
+						}
 					}
-					eBullet[i].Pos = { +1000,-10,1000 };
+					eBullet[i].Pos = OutAriaPos;
 					eBullet[i].bulShotFlag = false;
 				}
 				for (int y = 0; y < map_max_y; y++)
 				{
 					for (int x = 0; x < map_max_x; x++)
 					{
+						//マップチップとの当たり判定
 						if (MapCollide(eBullet[i].Pos, objBlock[y][x]->GetPosition()))
 						{
-							if (skyBul > 0)
+							if (eBullet[i].type == 2)
 							{
-								skyBul--;
+								if (skyBul > 0)
+								{
+									skyBul--;
+								}
 							}
-							eBullet[i].Pos = { +1000,-10,1000 };
+							eBullet[i].Pos = OutAriaPos;
 							eBullet[i].bulShotFlag = false;
+							eBullet[i].bulFlag = false;
+							eBullet[i].attackAnimation = false;
+							eBullet[i].type = 0;
+							eBullet[i].velocity = { resetFloat3 };
 						}
 					}
 				}
 			}
 		}
 
-		if (enemyBulCount > 42 && skyBul == 0)
+		//----------------ここまで敵の撃つ処理-----------------//
+
+		// 弾の初期化と弾数リセット
+		if (enemyBulCount > 42 && skyBul == 0 && enemyAttackCounter <= 59)
 		{
+			//弾の初期化処理が必要
+			for (int i = 0; i < _countof(objEnemyBul); i++)
+			{
+				eBullet[i].bulShotFlag = false;
+				eBullet[i].bulFlag = false;
+				eBullet[i].attackAnimation = false;
+				eBullet[i].type = 0;
+				eBullet[i].velocity = { resetFloat3 };
+				eBullet[i].Pos = OutAriaPos;
+			}
 			enemyBulCount = 1;
 		}
-		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
-		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
+		camera->SetEye(playerPos);
+		camera->SetTarget(targetCameraPos);
 		camera->Update();
 
+		//敵の攻撃と自分との当たり判定
 		for (int i = 0; i < _countof(objEnemyBul); i++)
 		{
-			bool playerHit = (playerPos.x - (playerScale.x / 3) < eBullet[i].Pos.x + eBullet[i].Size.x)
-				&& (playerPos.x + (playerScale.x / 3) > eBullet[i].Pos.x - eBullet[i].Size.x)
-				&& (playerPos.z - (playerScale.z / 3) < eBullet[i].Pos.z + eBullet[i].Size.z)
-				&& (playerPos.z + (playerScale.z / 3) > eBullet[i].Pos.z - eBullet[i].Size.z)
-				&& (isAlive == true);
+			XMcalculation(playerCollideScale,playerScale,collideSize,4);
+			bool playerHit = Collide(playerPos, playerCollideScale, eBullet[i].Pos, eBullet[i].Size, isAlive);
 			{
-				//ノックバック
-				if (playerHit)
+				//ノックバックとダメージ
+				if (playerHit && hitTimer == 0)
 				{
 					hitTimer = 20;
-					playerPos.x -= (plVelocity.x / 10);
-					playerPos.z -= (plVelocity.z / 10);
-					targetCameraPos.x -= (plVelocity.x / 10);
-					targetCameraPos.z -= (plVelocity.z / 10);
-					virCameraPos.x -= (plVelocity.x / 10);
-					virCameraPos.z -= (plVelocity.z / 10);
-					objFighter->SetPosition(playerPos);
-					objFighter2->SetPosition(targetCameraPos);
-					objFighter3->SetPosition(virCameraPos);
 					playerHP--;
 					if (skyBul > 0)
 					{
 						skyBul--;
 					}
-					eBullet[i].Pos = { +1000,-10,1000 };
+					eBullet[i].Pos = OutAriaPos;
 					eBullet[i].bulShotFlag = false;
 				}
 			}
 		}
 
+		//プレイヤーのHPが0になったら死ぬ
 		if (playerHP <= 0)
 		{
 			isAlive = false;
 		}
-
+		//プレイヤーが死んだら
 		if (isAlive == false)
 		{
 			targetCameraPos.y -= 0.2;
 			objFighter2->SetPosition(targetCameraPos);
-			if (color.w < 1.0f)
+			if (diedTextColor.w < 1.0f)
 			{
-				color.w += 0.01;
+				diedTextColor.w += 0.01;
 			}
-			diedText->SetColor(color);
-			if (color.w >= 1.0f)
+			diedText->SetColor(diedTextColor);
+			if (diedTextColor.w >= 1.0f)
 			{
 				SceneNum = Title;
 			}
 		}
 
+		//ヒット時の無敵時間
 		if (hitTimer > 0)
 		{
 			hitTimer--;
 			Audio::GetInstance()->PlayWave("SE/damage.wav", 0.03, false);
 		}
+		//当たり判定が消えたら音をリセットする
 		else
 		{
 			Audio::GetInstance()->SoundStop("SE/damage.wav");
@@ -1441,11 +1305,22 @@ void GameScene::Update()
 		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
 		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
 		camera->Update();
-
-		fbxObject1->AnimationFlag = true;
+		if (timing == timingMax)
+		{
+			if (skyDomeRota < 360)
+			{
+				skyDomeRota += 10.0f;
+			}
+			else
+			{
+				skyDomeRota = 0;
+			}
+		}
+		objSkydome->SetRotation({ 0, skyDomeRota, 0 });
 	}
 
 	objGround->SetPosition({ 0,1,0 });
+	objGround->SetScale({ 10,1,10 });
 
 	particleMan->Update();
 
@@ -1455,25 +1330,14 @@ void GameScene::Update()
 	objFighter->Update();
 	objFighter2->Update();
 	objFighter3->Update();
-	objCity->Update();
 	for (int i = 0; i < _countof(objBul); i++)
 	{
 		objBul[i]->Update();
-	}
-	for (int i = 0; i < _countof(objEnemyBul); i++)
-	{
 		objEnemyBul[i]->Update();
-	}
-	for (int i = 0; i < _countof(particleObject); i++)
-	{
 		particleObject[i]->Update();
-	}
-	for (int i = 0; i < _countof(redParticleObject); i++)
-	{
 		redParticleObject[i]->Update();
 	}
 	light->Update();
-	fbxObject1->Update();
 }
 
 void GameScene::Draw()
@@ -1503,8 +1367,7 @@ void GameScene::Draw()
 	Object3d::PreDraw(cmdList);
 	objSkydome->Draw();
 	// 3Dオブジェクトの描画
-	/*objGround->Draw();*/
-	//objCity->Draw();
+	objGround->Draw();
 	//objFighter2->Draw();
 	if (bossAlive == true)
 	{
@@ -1538,12 +1401,20 @@ void GameScene::Draw()
 	{
 		for (int x = 0; x < map_max_x; x++)
 		{
-			objBlock[y][x]->Draw();
+			if (Mapchip::GetChipNum(x, y, map[0]) == Ground)
+			{
+				objBlock[y][x]->Draw();
+			}
+		}
+		for (int x = 0; x < 5; x++)
+		{
+			objWallFront[y][x]->Draw();
+			objWallBack[y][x]->Draw();
+			objWallRight[y][x]->Draw();
+			objWallLeft[y][x]->Draw();
 		}
 	}
 	Object3d::PostDraw();
-
-	//fbxObject1->Draw(cmdList);
 
 	// パーティクルの描画
 	particleMan->Draw(cmdList);
@@ -1559,7 +1430,11 @@ void GameScene::Draw()
 	sprite[0]->Draw();
 	if (SceneNum == Title && isEase == false)
 	{
-		sprite[1]->Draw();
+		if (titleDrowCount % 100 < 50)
+		{
+			sprite[1]->Draw();
+			spriteEnterUI->Draw();
+		}
 	}
 	if (SceneNum == Win)
 	{
@@ -1567,6 +1442,11 @@ void GameScene::Draw()
 	}
 	if (SceneNum == Game)
 	{
+		if (hitTimer > 0)
+		{
+			spritedamageEffect->SetColor({ 1, 0, 0, 0.5 });
+			spritedamageEffect->Draw();
+		}
 		sprite[3]->Draw();
 		sprite[4]->Draw();
 		sprite[5]->Draw();
@@ -1629,15 +1509,16 @@ void GameScene::CreateParticles()
 	}
 }
 
-void GameScene::CreateLight()
+void GameScene::CreateLight(int timing)
 {
 	//光線方向初期値
-	static XMVECTOR lightDir = { 0, 1, 5, 0 };
+	static XMVECTOR lightDir = { 0, 50, 5, 0 };
 
-	/*if (input->PushKey(DIK_W)) { lightDir.m128_f32[1] += 1.0f; }
-	else if (input->PushKey(DIK_S)) { lightDir.m128_f32[1] -= 1.0f; }
-	if (input->PushKey(DIK_D)) { lightDir.m128_f32[0] += 1.0f; }
-	else if (input->PushKey(DIK_A)) { lightDir.m128_f32[0] -= 1.0f; }*/
+	if (timing == timingMax)
+	{
+		if (lightDir.m128_f32[1] < 0) { lightDir.m128_f32[1] += 50.0f; }
+		else { lightDir.m128_f32[1] -= 50.0f; }
+	}
 
 	light->SetLightDir(lightDir);
 
@@ -1660,25 +1541,48 @@ void GameScene::CreateLight()
 	debugText.Print(debugstr.str(), 50, 70, 1.0f);
 }
 
-void GameScene::CharactorMove(XMFLOAT3 pos)
+void GameScene::CharactorMove(XMFLOAT3 &pos, XMFLOAT3 &camera, XMFLOAT3 &vir, XMFLOAT3 vec, int size,int type)
 {
-	if (input->PushKey(DIK_W) && pos.z < 15.0f)
+	if (type == 1)
 	{
-		pos.z += 0.1f;
+		pos.x += (vec.x / size);
+		pos.z += (vec.z / size);
+		camera.x += (vec.x / size);
+		camera.z += (vec.z / size);
+		vir.x += (vec.x / size);
+		vir.z += (vec.z / size);
 	}
-	else if (input->PushKey(DIK_S) && pos.z > -15.0f)
+	if (type == 2)
 	{
-		pos.z -= 0.1f;
+		pos.x -= (vec.x / size);
+		pos.z -= (vec.z / size);
+		camera.x -= (vec.x / size);
+		camera.z -= (vec.z / size);
+		vir.x -= (vec.x / size);
+		vir.z -= (vec.z / size);
 	}
+}
 
-	if (input->PushKey(DIK_D) && pos.x < 15.0f)
-	{
-		pos.x += 0.1f;
-	}
-	else if (input->PushKey(DIK_A) && pos.x > -15.0f)
-	{
-		pos.x -= 0.1f;
-	}
+void GameScene::VelocityBoost(XMFLOAT3& vel, XMFLOAT3& vel2, XMFLOAT3 camera, XMFLOAT3 vir, XMFLOAT3 pos)
+{
+	vel.x = (camera.x - pos.x) * 2;
+	vel.y = (camera.y - pos.y) * 2;
+	vel.z = (camera.z - pos.z) * 2;
+
+	vel2.x = (vir.x - pos.x) * 2;
+	vel2.y = (vir.y - pos.y) * 2;
+	vel2.z = (vir.z - pos.z) * 2;
+}
+
+void GameScene::VelocityNormal(XMFLOAT3& vel, XMFLOAT3& vel2, XMFLOAT3 camera, XMFLOAT3 vir, XMFLOAT3 pos)
+{
+	vel.x = (camera.x - pos.x);
+	vel.y = (camera.y - pos.y);
+	vel.z = (camera.z - pos.z);
+
+	vel2.x = (vir.x - pos.x);
+	vel2.y = (vir.y - pos.y);
+	vel2.z = (vir.z - pos.z);
 }
 
 void GameScene::CircularMotionUD(XMFLOAT3& pos, const XMFLOAT3 center_pos, const float r, float& angleZ, float& angleY, const float add)
@@ -1699,20 +1603,173 @@ void GameScene::CircularMotionLR(XMFLOAT3& pos, const XMFLOAT3 center_pos, const
 	pos.x = (sinf(3.14 / 180.0f * angleX) * r) + center_pos.x;//円運動の処理
 }
 
+void GameScene::EnemyMove(XMFLOAT3& epos, int& emove, bool eflag)
+{
+	if (eflag)
+	{
+		if (emove < 480)
+		{
+			emove++;
+		}
+		if (emove >= 480)
+		{
+			emove = 0;
+		}
+	}
+	if (emove > 0)
+	{
+		if ((emove < 60) || (emove > 420 && emove < 480))
+		{
+			epos.x += 0.1;
+		}
+
+		if ((emove > 60 && emove < 120) || (emove > 300 && emove < 360))
+		{
+			epos.x -= 0.1;
+			epos.z += 0.1;
+		}
+		if (emove > 120 && emove < 180)
+		{
+			epos.x -= 0.1;
+			epos.z -= 0.1;
+		}
+		if ((emove > 180 && emove < 210) || (emove > 240 && emove < 270))
+		{
+			epos.x += 0.1;
+			epos.z -= 0.1;
+		}
+		if ((emove > 210 && emove < 240) || (emove > 270 && emove < 300))
+		{
+			epos.x += 0.1;
+			epos.z += 0.1;
+		}
+		if (emove > 360 && emove < 420)
+		{
+			epos.x -= 0.1;
+			epos.z -= 0.1;
+		}
+	}
+}
+
+void GameScene::Reload(int& reloadCount, bool& isReload, bool& justTiming, int& bulCount, int& maxMagazine)
+{
+	//リロード音を鳴らす
+	if (reloadCount > 0 && isReload == true)
+	{
+		reloadCount--;
+		Audio::GetInstance()->PlayWave("SE/reload.wav", 0.3, false);
+	}
+	//リロード内部実行(タイミングジャスト)
+	if (reloadCount == 0 && isReload == true && justTiming == true)
+	{
+		bulCount = MinMag;
+		isReload = false;
+
+		Audio::GetInstance()->SoundStop("SE/reload.wav");
+		justTiming = false;
+	}
+	//リロード内部実行
+	else if (reloadCount == 0 && isReload == true)
+	{
+		bulCount = BigMag;
+		isReload = false;
+		Audio::GetInstance()->SoundStop("SE/reload.wav");
+	}
+}
+
+void GameScene::JumpStart(bool timing, int& isJump, float& jCount, bool& isJust)
+{
+	if (input->TriggerKey(DIK_SPACE) && isJump == Bad)
+	{
+		if (timing)
+		{
+			isJump = Good;
+			jCount = jCountMax;
+			isJust = true;
+		}
+		else
+		{
+			isJump = Normal;
+			jCount = jCountMin;
+		}
+	}
+}
+
+void GameScene::Jump(int& isJump, float& jCount, XMFLOAT3& playerPos, XMFLOAT3& targetPos)
+{
+	//ジャンプしたとき
+	if (isJump == Normal)
+	{
+		Audio::GetInstance()->PlayWave("SE/jump.wav", 0.03, false);
+		jCount -= 0.025;
+		if (jCount > -jCountMin)
+		{
+			playerPos.y += jCount;
+			targetPos.y += jCount;
+		}
+		else
+		{
+			isJump = false;
+			Audio::GetInstance()->SoundStop("SE/jump.wav");
+		}
+	}
+	//ジャストタイミングでジャンプしたとき
+	if (isJump == Good)
+	{
+		Audio::GetInstance()->PlayWave("SE/jump.wav", 0.03, false);
+		jCount -= 0.025;
+		if (jCount > -jCountMax)
+		{
+			playerPos.y += jCount;
+			targetPos.y += jCount;
+		}
+		else
+		{
+			isJump = Bad;
+			Audio::GetInstance()->SoundStop("SE/jump.wav");
+		}
+	}
+}
+
 void GameScene::MapCreate(int mapNumber)
 {
 	for (int y = 0; y < map_max_y; y++) {//(yが26)
-		for (int x = 0; x < map_max_x; x++) {//(xが26)
-
-			if (Mapchip::GetChipNum(x, y, map[mapNumber]) == Ground)
+		if (mapNumber == 0)
+		{
+			for (int x = 0; x < map_max_x; x++)//(xが26)
 			{
-				//位置と大きさの変更(今は大きさは変更しないで)
-				//objBlock[y][x]->SetScale({ LAND_SCALE, LAND_SCALE, LAND_SCALE });
-				objBlock[y][x]->SetPosition({ x * LAND_SCALE - 26,   2 , -y * LAND_SCALE + 50 });
+				if (Mapchip::GetChipNum(x, y, map[mapNumber]) == Ground)
+				{
+					//位置と大きさの変更(今は大きさは変更しないで)
+					//objBlock[y][x]->SetScale({ LAND_SCALE, LAND_SCALE, LAND_SCALE });
+					objBlock[y][x]->SetPosition({ x * LAND_SCALE - 26,   1.5f , -y * LAND_SCALE + 50 });
+				}
+				else
+				{
+					objBlock[y][x]->SetPosition(OutAriaPos);
+				}
 			}
-			else
+		}
+		else
+		{
+			for (int x = 0; x < 5; x++)//(xが26)
 			{
-				objBlock[y][x]->SetPosition({ 1000, 1000, 0 });
+				if (mapNumber == 4)
+				{
+					objWallLeft[y][x]->SetPosition({ -26 , 1.5f + x * LAND_SCALE , -y * LAND_SCALE + 50 });
+				}
+				if (mapNumber == 3)
+				{
+					objWallRight[y][x]->SetPosition({ 25 , 1.5f + x * LAND_SCALE , -y * LAND_SCALE + 50 });
+				}
+				if (mapNumber == 2)
+				{
+					objWallBack[y][x]->SetPosition({ y * LAND_SCALE - 26 , 1.5f + x * LAND_SCALE , 50 });
+				}
+				if (mapNumber == 1)
+				{
+					objWallFront[y][x]->SetPosition({ y * LAND_SCALE - 26 , 1.5f + x * LAND_SCALE , -1 });
+				}
 			}
 		}
 	}
@@ -1730,5 +1787,106 @@ bool GameScene::MapCollide(XMFLOAT3& playerPos, const XMFLOAT3& blockPos)
 	else
 	{
 		return false;
+	}
+}
+
+bool GameScene::MapCollide3D(XMFLOAT3& playerPos, const XMFLOAT3& blockPos)
+{
+	if ((playerPos.x - (playerScale.x / 2) < blockPos.x + (LAND_SCALE / 2))
+		&& (playerPos.x + (playerScale.x / 2) > blockPos.x - (LAND_SCALE / 2))
+		&& (playerPos.y - (playerScale.y / 2) < blockPos.y + (LAND_SCALE / 2))
+		&& (playerPos.y + (playerScale.y / 2) > blockPos.y - (LAND_SCALE / 2))
+		&& (playerPos.z - (playerScale.z / 2) < blockPos.z + (LAND_SCALE / 2))
+		&& (playerPos.z + (playerScale.z / 2) > blockPos.z - (LAND_SCALE / 2)))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool GameScene::TimingCheck(int time)
+{
+	if (time > timingStart || time < timingEnd)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool GameScene::Collide(XMFLOAT3& pos, XMFLOAT3 scale, const XMFLOAT3& bulPos, XMFLOAT3 bulSize, bool alive)
+{
+	if ((pos.x - scale.x < bulPos.x + bulSize.x)
+		&& (pos.x + scale.x > bulPos.x - bulSize.x)
+		&& (pos.y - scale.y < bulPos.y + bulSize.y)
+		&& (pos.y + scale.y > bulPos.y - bulSize.y)
+		&& (pos.z - scale.z < bulPos.z + bulSize.z)
+		&& (pos.z + scale.z > bulPos.z - bulSize.z)
+		&& (alive == true))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void GameScene::SelectAttack(int& selectAttack, int& howAttack, int skyBul, int& enemyAttackCounter)
+{
+	if (selectAttack != 0)
+	{
+		if (selectAttack < 50)
+		{
+			howAttack = Sinple;
+		}
+		else if (selectAttack < 75)
+		{
+			howAttack = Triple;
+		}
+		//元々skybul4以下だった
+		else if (selectAttack < 85 && skyBul == 0)
+		{
+			howAttack = Bird;
+		}
+		else if (selectAttack < 100 && skyBul == 0)
+		{
+			howAttack = Star;
+		}
+		enemyAttackCounter = 0;
+		selectAttack = 0;
+	}
+}
+
+void GameScene::XMcalculation(XMFLOAT3& firstScore, XMFLOAT3 Score1, XMFLOAT3 Score2, int type)
+{
+	if (type == 1)
+	{
+		firstScore.x = Score1.x + Score2.x;
+		firstScore.y = Score1.y + Score2.y;
+		firstScore.z = Score1.z + Score2.z;
+	}
+	if (type == 2)
+	{
+		firstScore.x = Score1.x - Score2.x;
+		firstScore.y = Score1.y - Score2.y;
+		firstScore.z = Score1.z - Score2.z;
+	}
+	if (type == 3)
+	{
+		firstScore.x = Score1.x* Score2.x;
+		firstScore.y = Score1.y* Score2.y;
+		firstScore.z = Score1.z* Score2.z;
+	}
+	if (type == 4)
+	{
+		firstScore.x = Score1.x / Score2.x;
+		firstScore.y = Score1.y / Score2.y;
+		firstScore.z = Score1.z / Score2.z;
 	}
 }
