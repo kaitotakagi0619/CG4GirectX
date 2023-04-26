@@ -193,9 +193,6 @@
     <ClInclude Include="input\Input.h">
       <Filter>Base</Filter>
     </ClInclude>
-    <ClInclude Include="scene\GameScene.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
     <ClInclude Include="Light\Light.h">
       <Filter>Light</Filter>
     </ClInclude>
@@ -241,6 +238,9 @@
     </ClInclude>
     <ClInclude Include="FpsCamera.h">
       <Filter>Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="scene\GameScene.h">
+      <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

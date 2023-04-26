@@ -28,13 +28,21 @@ GameScene::~GameScene()
 	{
 		safe_delete(spriteLife[i]);
 	}
-	safe_delete(spriteMagazineUI);
+	for (int i = 0; i < _countof(spriteBul); i++)
+	{
+		safe_delete(spriteBul[i]);
+	}
+	for (int i = 0; i < _countof(lightParticle); i++)
+	{
+		safe_delete(lightParticle[i]);
+	}
 	safe_delete(spritebossHP);
 	safe_delete(spritebossHPFrame);
 	safe_delete(reloadText);
 	safe_delete(diedText);
 	safe_delete(brinkEffect);
 	safe_delete(spriteEnterUI);
+	safe_delete(spriteGood);
 
 	//オブジェクトのdelete
 	safe_delete(objSkydome);
@@ -59,6 +67,7 @@ GameScene::~GameScene()
 		for (int j = 0; j < map_max_y; j++)
 		{
 			safe_delete(objBlock[i][j]);
+			safe_delete(objSecondBlock[i][j]);
 		}
 	}
 	for (int i = 0; i < map_max_x; i++)
@@ -76,6 +85,8 @@ GameScene::~GameScene()
 	safe_delete(objFighter2);
 	safe_delete(objFighter3);
 	safe_delete(bossEnemy);
+	safe_delete(shotgun);
+	safe_delete(pistol);
 
 	//機能のdelete
 	//safe_delete(dxCommon);
@@ -93,6 +104,12 @@ GameScene::~GameScene()
 	safe_delete(modelBox);
 	safe_delete(modelFire);
 	safe_delete(modelRed);
+	safe_delete(modelGun);
+	safe_delete(modelPistol);
+	for (int i = 0; i < _countof(timingParticle); i++)
+	{
+		safe_delete(timingParticle[i]);
+	}
 }
 
 void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
@@ -231,6 +248,23 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		assert(0);
 		return;
 	}
+	if (!Sprite::LoadTexture(27, L"Resources/good.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(28, L"Resources/bullet.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(29, L"Resources/light.png")) {
+		assert(0);
+		return;
+	}
+	if (!Sprite::LoadTexture(30, L"Resources/blood.png")) {
+		assert(0);
+		return;
+	}
+
 	
 
 	// スプライト生成
@@ -238,22 +272,29 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	{
 		sprite[i] = Sprite::Create((12 + i), { 0.0f,0.0f });
 	}
+	for (int i = 0; i < _countof(spriteBul); i++)
+	{
+		spriteBul[i] = Sprite::Create(28, { 0.0f,0.0f });
+	}
+
 	spriteNum[0] = Sprite::Create(0, { 0.0f,0.0f });
 	spriteNum[1] = Sprite::Create(1, { 0.0f,0.0f });
 	spriteNum[2] = Sprite::Create(2, { 0.0f,0.0f });
 	spriteNum[3] = Sprite::Create(3, { 0.0f,0.0f });
 	spritedamageEffect = Sprite::Create(24, { 0.0f,0.0f });
 	spritedamageEffect->SetSize({ WinApp::window_width,WinApp::window_height });
-	spriteMagazineUI = Sprite::Create(18, { 0.0f,0.0f });
 	spritebossHP = Sprite::Create(11, { 0.0f,0.0f });
 	spritebossHPFrame = Sprite::Create(19, { 0.0f,0.0f });
 	reloadText = Sprite::Create(20, { 0.0f,0.0f });
 	diedText = Sprite::Create(22, { 0.0f,0.0f });
 	brinkEffect = Sprite::Create(23, { 0.0f,0.0f });
 	spriteEnterUI = Sprite::Create(26, {0.0f, 0.0f});
+	spriteGood = Sprite::Create(27, { 0.0f,0.0f });
 	spriteEnterUI->SetPosition({ WinApp::window_width / 2 - 192, WinApp::window_height - 80 });
 	diedText->SetPosition({ WinApp::window_width / 2 - 254,WinApp::window_height / 2 - 38 });
 	diedText->SetColor(diedTextColor);
+	spriteBlood = Sprite::Create(30, { 0.0f,0.0f });
+	//spriteBlood->SetSize({ 720.0f,1280.0f });
 	for (int i = 0; i < _countof(spriteLife); i++)
 	{
 		spriteLife[i] = Sprite::Create(21, { 0.0f,0.0f });
@@ -265,6 +306,18 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	for (int i = 0; i < _countof(spriteLife); i++)
 	{
 		spriteLife[i]->SetPosition({ heartPos + (i * 80),600.0f });
+	}
+	for (int i = 0; i < _countof(spriteBul); i++)
+	{
+		spriteBul[i]->SetSize({ 64,64 });
+	}
+	for (int i = 0; i < _countof(lightParticle); i++)
+	{
+		lightParticle[i] = Sprite::Create(29, { WinApp::window_width / 2 - 8, WinApp::window_height / 2 - 8 });
+	}
+	for (int i = 0; i < _countof(spriteBul); i++)
+	{
+		spriteBul[i]->SetPosition({ (float)WinApp::window_width - 64.0f, 128.0f + (i * 32.0f)});
 	}
 
 	//スプライトの初期変更
@@ -281,11 +334,9 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	spriteNum[1]->SetPosition({ WinApp::window_width - 150,WinApp::window_height - 112 });
 	spriteNum[2]->SetPosition({ WinApp::window_width - 104,WinApp::window_height - 64 });
 	spriteNum[3]->SetPosition({ WinApp::window_width - 80,WinApp::window_height - 64 });
-	sprite[3]->SetPosition({ spritePos.center.x - 32,WinApp::window_height - 160 });
+	sprite[3]->SetPosition({ spritePos.center.x - 32,WinApp::window_height / 2 - 32 });
 	sprite[4]->SetPosition({ spritePos.center.x - 272,WinApp::window_height - 160 });
 	sprite[5]->SetPosition({ spritePos.center.x + 208,WinApp::window_height - 160 });
-	spriteMagazineUI->SetSize({ 256.0f,128.0f });
-	spriteMagazineUI->SetPosition({ WinApp::window_width - 256,WinApp::window_height - 128 });
 	reloadText->SetPosition({ WinApp::window_width / 2 - 80,WinApp::window_height / 2 + 80 });
 
 	spritebossHP->SetPosition({ 303 , 47 });
@@ -293,6 +344,8 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 	spritebossHPFrame->SetPosition({ 300 , 00 });
 	spritebossHPFrame->SetSize({ 700 , 70 });
+
+	spriteGood->SetPosition({ WinApp::window_width / 2 - 80, WinApp::window_height / 2 + 80 });
 
 
 
@@ -312,12 +365,15 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	modelBox = ReadModel::CreateFromOBJ("block", true);
 	modelFire = ReadModel::CreateFromOBJ("fire", true);
 	modelRed = ReadModel::CreateFromOBJ("red", true);
+	modelGun = ReadModel::CreateFromOBJ("Shotgun", true);
+	modelPistol = ReadModel::CreateFromOBJ("Pistol", true);
 
 	Mapchip::CsvToVector(map, "Resources/csv/bigmap.csv");//mapNum=0
 	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=1
 	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=2
 	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=3
 	Mapchip::CsvToVector(map, "Resources/csv/Wall.csv");//mapNum=4
+	Mapchip::CsvToVector(map, "Resources/csv/bigmap2.csv");//mapNum=5
 
 	// 3Dオブジェクト生成
 	objSkydome = Object3d::Create(modelSkydome);
@@ -326,6 +382,14 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	objFighter2 = Object3d::Create(modelFighter2);
 	objFighter3 = Object3d::Create(modelFighter2);
 	bossEnemy = Object3d::Create(modelcowgirl);
+	shotgun = Object3d::Create(modelGun);
+	pistol = Object3d::Create(modelPistol);
+
+	shotgun->SetScale({ 0.2,0.2,0.2 });
+	shotgun->SetPosition({ dropGun.Pos });
+
+	pistol->SetScale({ 0.01f,0.01f,0.01f });
+	pistol->SetRotation({ 0,270,0 });
 
 	//マップチップ用のオブジェクトの初期化
 	for (int y = 0; y < map_max_y; y++)
@@ -335,6 +399,9 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 			objBlock[y][x] = Object3d::Create(modelBox);
 			objBlock[y][x]->SetScale({ 0.2f,0.2f,0.2f });
 			objBlock[y][x]->SetPosition(OutAriaPos);
+			objSecondBlock[y][x] = Object3d::Create(modelBox);
+			objSecondBlock[y][x]->SetScale({ 0.2f,0.2f,0.2f });
+			objSecondBlock[y][x]->SetPosition(OutAriaPos);
 		}
 	}
 
@@ -429,12 +496,15 @@ void GameScene::Update()
 	MapCreate(2);
 	MapCreate(3);
 	MapCreate(4);
+	MapCreate(5);
 	for (int y = 0; y < map_max_y; y++)
 	{
 		for (int x = 0; x < map_max_x; x++)
 		{
 			objBlock[y][x]->Update();
 			objBlock[y][x]->GetPosition();
+			objSecondBlock[y][x]->Update();
+			objSecondBlock[y][x]->GetPosition();
 		}
 		for (int x = 0; x < 5; x++)
 		{
@@ -505,14 +575,13 @@ void GameScene::Update()
 			objEnemyBul[i]->SetPosition(OutAriaPos);
 			objEnemyBul[i]->SetScale({ 0.5,0.5,0.5 });
 		}
-		mousePos = { (float)mouseMove.lX / 50,(float)mouseMove.lY / 50 };
 		playerPos = objFighter->GetPosition();
 		bossPos = bossEnemy->GetPosition();
 		playerScale = objFighter->GetScale();
 		targetCameraPos = objFighter2->GetPosition();
 		virCameraPos = objFighter3->GetPosition();
 		centerPos = { 0, 2, 50 };
-		bulCount = 30;
+		bulCount = 45;
 		enemyBulCount = 1;
 		plVelocity = { resetFloat3 };
 		virVelocity = { resetFloat3 };
@@ -532,7 +601,7 @@ void GameScene::Update()
 		lastBul = 0;
 		reloadCount = 0;
 		isReload = false;
-		maxMagazine = 20;
+		maxMagazine = 5;
 		enemyAttackCounter = 0;
 		isParticle = false;
 		setParticle = false;
@@ -634,8 +703,8 @@ void GameScene::Update()
 			timing = timingMax;
 			for (int y = 0; y < map_max_y; y++) {//(yが26)
 				for (int x = 0; x < map_max_x; x++) {//(xが26)
-					objBlock[y][x]->SetRotation({ mapRotaY, 0, 0 });
-					objBlock[y][x]->Update();
+					//objBlock[y][x]->SetRotation({ mapRotaY, 0, 0 });
+					//objBlock[y][x]->Update();
 				}
 			}
 		}
@@ -651,8 +720,8 @@ void GameScene::Update()
 		//---------------スプライトを変更する処理--------------//
 
 		timeHeart = (timing / 60.0f);
-		sprite[4]->SetPosition({ (WinApp::window_width / 2) - (4 * (float)timing + 32),WinApp::window_height - 160 });
-		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height - 160 });
+		sprite[4]->SetPosition({ (WinApp::window_width / 2) - (4 * (float)timing + 32),WinApp::window_height  / 2 - 32 });
+		sprite[5]->SetPosition({ (WinApp::window_width / 2) + (4 * (float)timing),WinApp::window_height / 2 - 32 });
 		heartSize = static_cast<float>(Ease::easeIn(HeartMaxSize, HeartMinSize, timeHeart));
 		heartPos = static_cast<float>(Ease::easeIn(MaxPos, MinPos, timeHeart));
 		for (int i = 0; i < _countof(spriteLife); i++)
@@ -664,39 +733,16 @@ void GameScene::Update()
 			spriteLife[i]->SetPosition({ heartPos + (i * 80),600.0f });
 		}
 		//---------------スプライトを変更する処理ここまで-------//
-		//タイミングがジャストだった時にUIを揺らす処理
 		if (isJust)
 		{
-			spritebossHP->SetPosition({ 303 , 47 - (float)randUIY });
-			spritebossHPFrame->SetPosition({ 300 , 0 - (float)randUIY });
-			for (int i = 0; i < 4; i++)
-			{
-				spriteNum[0]->SetPosition({ WinApp::window_width - 174 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
-				spriteNum[1]->SetPosition({ WinApp::window_width - 150 + (float)randUIX,WinApp::window_height - 112 + (float)randUIY });
-				spriteNum[2]->SetPosition({ WinApp::window_width - 104 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
-				spriteNum[3]->SetPosition({ WinApp::window_width - 80 + (float)randUIX,WinApp::window_height - 64 + (float)randUIY });
-			}
-			spriteMagazineUI->SetPosition({ WinApp::window_width - 256 + (float)randUIX,WinApp::window_height - 128 + (float)randUIY });
-			//視野角の変更
-			viewMatrix = 55;
 			justCount++;
 			if (justCount > 10)
 			{
 				isJust = false;
-				viewMatrix = 60;
 			}
-			camera->SetMatrix(viewMatrix);
 		}
-		//そうじゃなかったときに戻す処理
 		else
 		{
-			spritebossHP->SetPosition({ 303 , 47 });
-			spritebossHPFrame->SetPosition({ 300 , 0 });
-			spriteNum[0]->SetPosition({ WinApp::window_width - 174,WinApp::window_height - 112 });
-			spriteNum[1]->SetPosition({ WinApp::window_width - 150,WinApp::window_height - 112 });
-			spriteNum[2]->SetPosition({ WinApp::window_width - 104,WinApp::window_height - 64 });
-			spriteNum[3]->SetPosition({ WinApp::window_width - 80,WinApp::window_height - 64 });
-			spriteMagazineUI->SetPosition({ WinApp::window_width - 256,WinApp::window_height - 128 });
 			justCount = 0;
 		}
 
@@ -753,6 +799,8 @@ void GameScene::Update()
 			{
 				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, MaxMoveVelocity, Plus);
 			}
+			pistol->SetPosition({ playerPos.x + 0.05f, playerPos.y - 0.05f, playerPos.z + 0.18f });
+			pistol->Update();
 			// -----------------------------------------//
 
 			//プレイヤーが弾を撃つ
@@ -764,20 +812,39 @@ void GameScene::Update()
 				if (isJustTiming)
 				{
 					isJust = true;
+					setParticleTiming = true;
+				}
+			}
+			if (setParticleTiming == true)
+			{
+				for (int i = 0; i < _countof(lightParticle); i++)
+				{
+					spriteVelX[i] = rand() % 20 - 10;
+					spriteVelY[i] = rand() % 20 - 10;
+					partPosition[i] = XMFLOAT2(WinApp::window_width / 2 - 8, WinApp::window_height / 2 - 8);
+				}
+				isParticleTiming = true;
+				setParticleTiming = false;
+			}
+
+			for (int i = 0; i < _countof(lightParticle); i++)
+			{
+				if (isParticleTiming == true)
+				{
+					partPosition[i].x += spriteVelX[i];
+					partPosition[i].y += spriteVelY[i];
+					lightParticle[i]->SetPosition({ partPosition[i] });
 				}
 			}
 
+			//元々の残弾数表示
 			lastBul = 50 - bulCount;
-			spriteNum[0]->ChangeTex(lastBul / 10);
-			spriteNum[1]->ChangeTex(lastBul % 10);
-			spriteNum[2]->ChangeTex(maxMagazine / 10);
-			spriteNum[3]->ChangeTex(maxMagazine % 10);
 
 			//リロード
 			if ((input->TriggerKey(DIK_R) && isJustTiming && isReload == false)
 				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isJustTiming && isReload == false))
 			{
-				reloadCount = BigMag;
+				reloadCount = 30;
 				maxMagazine = BigMag;
 				justTiming = true;
 				isReload = true;
@@ -786,7 +853,7 @@ void GameScene::Update()
 			else if ((input->TriggerKey(DIK_R) && isReload == false)
 				|| (input->TriggerMouseLeft() && bullet[bulCount].bulShotFlag == false && bulCount == 50 && isReload == false))
 			{
-				reloadCount = BigMag;
+				reloadCount = 30;
 				maxMagazine = MinMag;
 				isReload = true;
 			}
@@ -796,7 +863,7 @@ void GameScene::Update()
 		Reload(reloadCount, isReload, justTiming, bulCount, maxMagazine);
 
 
-		//弾を撃つ
+		DropItemInfo();
 
 		if (bullet[bulCount - 1].bulFlag == true && isReload == false)
 		{
@@ -805,6 +872,14 @@ void GameScene::Update()
 			sprite[0]->SetPosition({ spritePos.center.x - (32 + (randUIX / 2)),spritePos.center.y - (32 + (randUIY / 2)) });
 			bullet[bulCount - 1].Pos = playerPos;
 			bullet[bulCount - 1].bulShotFlag = true;
+			if (isJust)
+			{
+				bullet[bulCount - 1].damage = 1.0f;
+			}
+			else
+			{
+				bullet[bulCount - 1].damage = 0.1f;
+			}
 			bullet[bulCount - 1].bulFlag = false;
 		}
 
@@ -835,11 +910,24 @@ void GameScene::Update()
 			}
 		}
 
-		//プレイヤーが生きているとき
-		if (isAlive == true)
+		//マップ判定
+		for (int y = 0; y < map_max_y; y++)
 		{
+			for (int x = 0; x < map_max_x; x++)
+			{
+				if (MapCollide(playerPos, objBlock[y][x]->GetPosition()))
+				{
+					isHit = true;
+				}
+			}
+		}
+
+		//プレイヤーが生きているとき
+		if (isAlive == true && isHit == false)
+		{
+			mousePos = { (float)mouseMove.lX / 50,(float)mouseMove.lY / 50 };
 			//マウスを動かすことによる視点移動
-			if (camera_data.angleY < 90 && mousePos.y < 0 || camera_data.angleY > -90 && mousePos.y > 0)
+			if (camera_data.angleY < 90 && mousePos.y < 0 || camera_data.angleY > -90 && mousePos.y > 0 )
 			{
 				CircularMotionUD(targetCameraPos, playerPos, 10.00f, camera_data.angleZ, camera_data.angleY, -mousePos.y);
 				CircularMotionUD(virCameraPos, playerPos, 10.00f, camera_data.virangleZ, camera_data.virangleY, -mousePos.y);
@@ -856,17 +944,9 @@ void GameScene::Update()
 		//ジャンプ
 		Jump(isJump, jCount, playerPos, targetCameraPos);
 
-		//マップ判定
-		for (int y = 0; y < map_max_y; y++)
-		{
-			for (int x = 0; x < map_max_x; x++)
-			{
-				if (MapCollide(playerPos, objBlock[y][x]->GetPosition()))
-				{
-					isHit = true;
-				}
-			}
-		}
+		pistol->SetPosition({ playerPos.x + 0.05f, playerPos.y - 0.05f, playerPos.z + 0.18f });
+		pistol->Update();
+
 
 		//マップと当たってないときにカメラを正常に戻す
 		if (isHit == true && isAlive == true)
@@ -895,7 +975,7 @@ void GameScene::Update()
 			{
 				if (bossHit)
 				{
-					firstBossHP--;
+					firstBossHP -= bullet[i].damage;
 					objBul[i]->SetPosition(OutAriaPos);
 					bullet[i].Pos = objBul[i]->GetPosition();
 					bullet[i].Size = objBul[i]->GetScale();
@@ -990,7 +1070,7 @@ void GameScene::Update()
 			if (skyBul == 0)
 			{
 				enemyAttackCounter++;
-				EnemyMove(bossPos, enemyMove, isPlus);
+				EnemyMove2(bossPos, enemyMove, isPlus);
 			}
 
 			//---------------------ここから攻撃選定と前処理----------------------//
@@ -1327,6 +1407,8 @@ void GameScene::Update()
 	objSkydome->Update();
 	objGround->Update();
 	bossEnemy->Update();
+	shotgun->Update();
+	pistol->Update();
 	objFighter->Update();
 	objFighter2->Update();
 	objFighter3->Update();
@@ -1368,6 +1450,10 @@ void GameScene::Draw()
 	objSkydome->Draw();
 	// 3Dオブジェクトの描画
 	objGround->Draw();
+	if (dropGun.situation == Drop)
+	{
+		shotgun->Draw();
+	}
 	//objFighter2->Draw();
 	if (bossAlive == true)
 	{
@@ -1404,6 +1490,7 @@ void GameScene::Draw()
 			if (Mapchip::GetChipNum(x, y, map[0]) == Ground)
 			{
 				objBlock[y][x]->Draw();
+				objSecondBlock[y][x]->Draw();
 			}
 		}
 		for (int x = 0; x < 5; x++)
@@ -1414,6 +1501,7 @@ void GameScene::Draw()
 			objWallLeft[y][x]->Draw();
 		}
 	}
+	//pistol->Draw();
 	Object3d::PostDraw();
 
 	// パーティクルの描画
@@ -1427,7 +1515,7 @@ void GameScene::Draw()
 	// ここに前景スプライトの描画処理を追加できる
 	//spriteBG->Draw();
 	// デバッグテキストの描画
-	sprite[0]->Draw();
+	//sprite[0]->Draw();
 	if (SceneNum == Title && isEase == false)
 	{
 		if (titleDrowCount % 100 < 50)
@@ -1446,15 +1534,19 @@ void GameScene::Draw()
 		{
 			spritedamageEffect->SetColor({ 1, 0, 0, 0.5 });
 			spritedamageEffect->Draw();
+			spriteBlood->Draw();
 		}
 		sprite[3]->Draw();
 		sprite[4]->Draw();
 		sprite[5]->Draw();
-		spriteMagazineUI->Draw();
-		spriteNum[0]->Draw();
-		spriteNum[1]->Draw();
-		spriteNum[2]->Draw();
-		spriteNum[3]->Draw();
+		if (isJust)
+		{
+			spriteGood->Draw();
+			for (int i = 0; i < _countof(lightParticle); i++)
+			{
+				lightParticle[i]->Draw();
+			}
+		}
 		for (int i = 0; i < playerHP; i++)
 		{
 			spriteLife[i]->Draw();
@@ -1468,10 +1560,15 @@ void GameScene::Draw()
 		{
 			reloadText->Draw();
 		}
+		for (int i = 0; i < lastBul; i++)
+		{
+			spriteBul[i]->Draw();
+		}
 		if (isAlive == false)
 		{
 			diedText->Draw();
 		}
+
 	}
 
 	// スプライト描画後処理
@@ -1651,6 +1748,62 @@ void GameScene::EnemyMove(XMFLOAT3& epos, int& emove, bool eflag)
 	}
 }
 
+void GameScene::EnemyMove2(XMFLOAT3& epos, int& emove, bool eflag)
+{
+	if (eflag)
+	{
+		if (emove < 1440)
+		{
+			emove++;
+		}
+		if (emove >= 1440)
+		{
+			emove = 0;
+		}
+	}
+	if (emove > 0)
+	{
+		if ((emove < 90) || (emove > 150 && emove < 240) || (emove > 1200 && emove < 1290) || (emove > 1350 && emove < 1440))
+		{
+			epos.x += 0.1;
+		}
+
+		if ((emove > 90 && emove < 150))
+		{
+			epos.x += 0.1;
+			epos.z -= 0.1;
+		}
+
+		if ((emove > 240 && emove < 480))
+		{
+			epos.z -= 0.1;
+		}
+		if ((emove > 480 && emove < 540)|| (emove > 600 && emove < 660) || (emove > 720 && emove < 780))
+		{
+			epos.x -= 0.1;
+			epos.z -= 0.1;
+		}
+		if ((emove > 540 && emove < 600) ||(emove > 660 && emove < 720) || (emove > 780 && emove < 840))
+		{
+			epos.x -= 0.1;
+			epos.z += 0.1;
+		}
+		if ((emove > 840 && emove < 960))
+		{
+			epos.x -= 0.1;
+		}
+		if ((emove > 960 && emove < 1200))
+		{
+			epos.z += 0.1;
+		}
+		if ((emove > 1290 && emove < 1350))
+		{
+			epos.x += 0.1;
+			epos.z += 0.1;
+		}
+	}
+}
+
 void GameScene::Reload(int& reloadCount, bool& isReload, bool& justTiming, int& bulCount, int& maxMagazine)
 {
 	//リロード音を鳴らす
@@ -1662,7 +1815,7 @@ void GameScene::Reload(int& reloadCount, bool& isReload, bool& justTiming, int& 
 	//リロード内部実行(タイミングジャスト)
 	if (reloadCount == 0 && isReload == true && justTiming == true)
 	{
-		bulCount = MinMag;
+		bulCount = 50 - BigMag;
 		isReload = false;
 
 		Audio::GetInstance()->SoundStop("SE/reload.wav");
@@ -1671,7 +1824,7 @@ void GameScene::Reload(int& reloadCount, bool& isReload, bool& justTiming, int& 
 	//リロード内部実行
 	else if (reloadCount == 0 && isReload == true)
 	{
-		bulCount = BigMag;
+		bulCount = 50 - MinMag;
 		isReload = false;
 		Audio::GetInstance()->SoundStop("SE/reload.wav");
 	}
@@ -1734,19 +1887,35 @@ void GameScene::Jump(int& isJump, float& jCount, XMFLOAT3& playerPos, XMFLOAT3& 
 void GameScene::MapCreate(int mapNumber)
 {
 	for (int y = 0; y < map_max_y; y++) {//(yが26)
-		if (mapNumber == 0)
+		if (mapNumber == 0 || mapNumber == 5)
 		{
 			for (int x = 0; x < map_max_x; x++)//(xが26)
 			{
-				if (Mapchip::GetChipNum(x, y, map[mapNumber]) == Ground)
+				if (mapNumber == 0)
 				{
-					//位置と大きさの変更(今は大きさは変更しないで)
-					//objBlock[y][x]->SetScale({ LAND_SCALE, LAND_SCALE, LAND_SCALE });
-					objBlock[y][x]->SetPosition({ x * LAND_SCALE - 26,   1.5f , -y * LAND_SCALE + 50 });
+					if (Mapchip::GetChipNum(x, y, map[mapNumber]) == Ground)
+					{
+						//位置と大きさの変更(今は大きさは変更しないで)
+						//objBlock[y][x]->SetScale({ LAND_SCALE, LAND_SCALE, LAND_SCALE });
+						objBlock[y][x]->SetPosition({ x * LAND_SCALE - 26,   1.5f , -y * LAND_SCALE + 50 });
+					}
+					else
+					{
+						objBlock[y][x]->SetPosition(OutAriaPos);
+					}
 				}
-				else
+				if (mapNumber == 5)
 				{
-					objBlock[y][x]->SetPosition(OutAriaPos);
+					if (Mapchip::GetChipNum(x, y, map[mapNumber]) == Ground)
+					{
+						//位置と大きさの変更(今は大きさは変更しないで)
+						//objBlock[y][x]->SetScale({ LAND_SCALE, LAND_SCALE, LAND_SCALE });
+						objSecondBlock[y][x]->SetPosition({ x * LAND_SCALE - 26,   2.5f , -y * LAND_SCALE + 50 });
+					}
+					else
+					{
+						objSecondBlock[y][x]->SetPosition(OutAriaPos);
+					}
 				}
 			}
 		}
@@ -1809,7 +1978,7 @@ bool GameScene::MapCollide3D(XMFLOAT3& playerPos, const XMFLOAT3& blockPos)
 
 bool GameScene::TimingCheck(int time)
 {
-	if (time > timingStart || time < timingEnd)
+	if (time > timingStart || time < timingEnd /*|| (time > timingBackStart && time < timingBackEnd)*/)
 	{
 		return true;
 	}
@@ -1834,6 +2003,22 @@ bool GameScene::Collide(XMFLOAT3& pos, XMFLOAT3 scale, const XMFLOAT3& bulPos, X
 	else
 	{
 		return false;
+	}
+}
+
+void GameScene::DropItemInfo()
+{
+	if (dropGun.situation == Drop)
+	{
+		if (Collide(playerPos, playerScale, dropGun.Pos, playerScale, dropGun.isDrop) == true)
+		{
+			reloadCount = 30;
+			maxMagazine = BigMag;
+			isReload = true;
+			Reload(reloadCount, isReload, justTiming, bulCount, maxMagazine);
+			dropGun.isDrop = false;
+			dropGun.situation = Have;
+		}
 	}
 }
 

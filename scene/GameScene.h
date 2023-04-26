@@ -93,6 +93,8 @@ public: // メンバ関数
 
 	void EnemyMove(XMFLOAT3& epos, int& emove, bool eflag);
 
+	void EnemyMove2(XMFLOAT3& epos, int& emove, bool eflag);
+
 	void Reload(int& reloadCount, bool& isReload, bool& justTiming, int& bulCount, int& maxMagazine);
 
 	void JumpStart(bool timing, int& isJump, float& jCount, bool& isJust);
@@ -102,6 +104,8 @@ public: // メンバ関数
 	void XMcalculation(XMFLOAT3& firstScore, XMFLOAT3 Score1, XMFLOAT3 Score2, int type);
 
 	bool Collide(XMFLOAT3& pos, XMFLOAT3 scale, const XMFLOAT3& bulPos, XMFLOAT3 bulSize, bool alive);
+
+	void DropItemInfo();
 
 	void SelectAttack(int& selectAttack, int& howAttack, int skyBul, int& enemyAttackCounter);
 	//マップチップ1つの大きさ
@@ -140,6 +144,7 @@ private: // メンバ変数
 
 	std::vector<std::vector<int>> map;
 	Object3d* objBlock[map_max_y][map_max_x]; //ステージブロック
+	Object3d* objSecondBlock[map_max_y][map_max_x]; //ステージブロック
 	Object3d* objWallFront[map_max_y][5]; //ステージブロック
 	Object3d* objWallBack[map_max_y][5]; //ステージブロック
 	Object3d* objWallRight[map_max_y][5]; //ステージブロック
@@ -149,8 +154,10 @@ private: // メンバ変数
 	const float circle = 10.0f;
 	const float circleAdd = 1.0f;
 	const int timingStart = 55;
-	const int timingEnd = 5;
-	const int timingMax = 60;
+	const int timingEnd = 7;
+	const int timingBackStart = 25;
+	const int timingBackEnd = 35;
+	const float timingMax = 57;
 
 	const XMFLOAT3 OutAriaPos = { 1000,-10,1000 };
 	const XMFLOAT3 resetFloat3 = { 0,0,0 };
@@ -165,24 +172,37 @@ private: // メンバ変数
 
 	struct Bullet
 	{
-		XMFLOAT3 Pos;
-		XMFLOAT3 Size;
-		XMFLOAT3 Rotation;
+		XMFLOAT3 Pos = { 0,0,0 };
+		XMFLOAT3 Size = { 0,0,0 };
+		XMFLOAT3 Rotation = { 0,0,0 };
 		bool bulFlag = false;
 		bool bulShotFlag = false;
+		float damage = 0;
 	};
 	Bullet bullet[50];
 
-	const int BigMag = 30;
-	const int MinMag = 20;
+	struct DropGun
+	{
+		XMFLOAT3 Pos = { 15.0f, 1.5f,20.0f };
+		XMFLOAT3 Size = { 0,0,0 };
+		XMFLOAT3 Rotation = { 0,0,0 };
+		float damage = 0;
+		int magazine = 10;
+		int situation = Drop;
+		bool isDrop = true;
+	};
+	DropGun dropGun;
+
+	const int BigMag = 10;
+	const int MinMag = 5;
 
 	struct EnemyBullet
 	{
-		XMFLOAT3 Pos;
-		XMFLOAT3 Size;
-		XMFLOAT3 Rotation;
-		XMFLOAT3 velocity;
-		float normalize;
+		XMFLOAT3 Pos = { 0,0,0 };
+		XMFLOAT3 Size = { 0,0,0 };
+		XMFLOAT3 Rotation = { 0,0,0 };
+		XMFLOAT3 velocity = { 0,0,0 };
+		float normalize = 0.0f;
 		bool attackAnimation = false;
 		bool bulFlag = false;
 		bool bulShotFlag = false;
@@ -222,8 +242,20 @@ private: // メンバ変数
 	};
 	int SceneNum = Title;
 
+	enum GunSituation
+	{
+		NotExist, Drop, Have,
+	};
+
+	enum Weapon
+	{
+		Pistor, Shotgun,
+	};
+
 	int		 bulCount = 30;
 	int		 enemyBulCount = 20;
+	bool isParticleTiming = false;
+	bool setParticleTiming = false;
 	XMFLOAT3 plVelocity = { resetFloat3 };
 	XMFLOAT3 virVelocity = { resetFloat3 };
 	bool	 bossAlive = true;
@@ -261,7 +293,7 @@ private: // メンバ変数
 	//リロード関係
 	int reloadCount = 0;
 	bool isReload = false;
-	int maxMagazine = 20;
+	int maxMagazine = 5;
 
 	float p_x_radius;
 	float p_z_radius;
@@ -289,7 +321,7 @@ private: // メンバ変数
 	int  enemyMove = 0;
 	bool isPlus = true;
 
-	int  firstBossHP = 0;
+	float  firstBossHP = 0;
 	int  playerHP = 1;
 
 	int bossAttack = 0;
@@ -311,6 +343,9 @@ private: // メンバ変数
 	XMFLOAT3 bossVelocity = { resetFloat3 };
 	XMFLOAT3 bossRota = { resetFloat3 };
 
+	float spriteVelX[50];
+	float spriteVelY[50];
+
 	int partVelocityx[50] = { 0 };
 	int partVelocityy[50] = { 0 };
 	int partVelocityz[50] = { 0 };
@@ -326,6 +361,7 @@ private: // メンバ変数
 	float timeHeart = 0.0f;
 	float heartSize = 64.0f;
 
+	XMFLOAT2 partPosition[50] = {};
 
 	int clearTimer = 0;
 
@@ -333,7 +369,6 @@ private: // メンバ変数
 	float mapRotaY = 0.0f;
 
 	int titleDrowCount = 0;
-
 
 	XMFLOAT3 cameraPos = { 0,0,0 };
 	float	 cameraPosZ = 30.0f;
@@ -345,13 +380,16 @@ private: // メンバ変数
 	Sprite* spriteEnterUI = { nullptr };
 	Sprite* spriteNum[4] = { nullptr };
 	Sprite* spriteLife[5] = { nullptr };
-	Sprite* spriteMagazineUI = nullptr;
 	Sprite* spritedamageEffect = nullptr;
 	Sprite* spritebossHP = nullptr;
 	Sprite* spritebossHPFrame = nullptr;
 	Sprite* reloadText = nullptr;
 	Sprite* diedText = nullptr;
 	Sprite* brinkEffect = nullptr;
+	Sprite* spriteGood = nullptr;
+	Sprite* spriteBlood = nullptr;
+	Sprite* spriteBul[10] = { nullptr };
+	Sprite* lightParticle[50] = { nullptr };
 	ParticleManager* particleMan = nullptr;
 	Light* light = nullptr;
 
@@ -366,6 +404,10 @@ private: // メンバ変数
 	ReadModel* modelBox = nullptr;
 	ReadModel* modelFire = nullptr;
 	ReadModel* modelRed = nullptr;
+	ReadModel* modelGun = nullptr;
+	ReadModel* modelPistol = nullptr;
+	ReadModel* modelParticle = nullptr;
+	
 
 	//3dオブジェクト宣言
 	Object3d* objSkydome = nullptr;
@@ -378,4 +420,7 @@ private: // メンバ変数
 	Object3d* particleObject[50] = { nullptr };
 	Object3d* bossEnemy = nullptr;
 	Object3d* redParticleObject[50] = { nullptr };
+	Object3d* shotgun = nullptr;
+	Object3d* pistol = nullptr;
+	Object3d* timingParticle[30] = { nullptr };
 };
