@@ -813,15 +813,16 @@ void GameScene::Update()
 				{
 					isJust = true;
 					setParticleTiming = true;
+					isParticleSprite = true;
 				}
 			}
 			if (setParticleTiming == true)
 			{
 				for (int i = 0; i < _countof(lightParticle); i++)
 				{
+					partPosition[i] = XMFLOAT2(WinApp::window_width / 2 - 8, WinApp::window_height / 2 - 8);
 					spriteVelX[i] = rand() % 20 - 10;
 					spriteVelY[i] = rand() % 20 - 10;
-					partPosition[i] = XMFLOAT2(WinApp::window_width / 2 - 8, WinApp::window_height / 2 - 8);
 				}
 				isParticleTiming = true;
 				setParticleTiming = false;
@@ -829,12 +830,17 @@ void GameScene::Update()
 
 			for (int i = 0; i < _countof(lightParticle); i++)
 			{
-				if (isParticleTiming == true)
+				if (isParticleTiming == true && setParticleTiming == false)
 				{
 					partPosition[i].x += spriteVelX[i];
 					partPosition[i].y += spriteVelY[i];
 					lightParticle[i]->SetPosition({ partPosition[i] });
 				}
+			}
+
+			if (isJust == false)
+			{
+				isParticleSprite = false;
 			}
 
 			//元々の残弾数表示
@@ -1542,9 +1548,12 @@ void GameScene::Draw()
 		if (isJust)
 		{
 			spriteGood->Draw();
-			for (int i = 0; i < _countof(lightParticle); i++)
+			if (isParticleSprite == true)
 			{
-				lightParticle[i]->Draw();
+				for (int i = 0; i < _countof(lightParticle); i++)
+				{
+					lightParticle[i]->Draw();
+				}
 			}
 		}
 		for (int i = 0; i < playerHP; i++)

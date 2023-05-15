@@ -369,6 +369,7 @@ private: // メンバ変数
 	float mapRotaY = 0.0f;
 
 	int titleDrowCount = 0;
+	bool isParticleSprite = false;
 
 	XMFLOAT3 cameraPos = { 0,0,0 };
 	float	 cameraPosZ = 30.0f;
