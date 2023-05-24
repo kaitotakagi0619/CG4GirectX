@@ -81,7 +81,7 @@ GameScene::~GameScene()
 		}
 	}
 	safe_delete(objGround);
-	safe_delete(objFighter);
+	safe_delete(player);
 	safe_delete(objFighter2);
 	safe_delete(objFighter3);
 	safe_delete(bossEnemy);
@@ -378,8 +378,8 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	// 3Dオブジェクト生成
 	objSkydome = Object3d::Create(modelSkydome);
 	objGround = Object3d::Create(modelGround);
-	objFighter = Object3d::Create(modelFighter);
-	objFighter2 = Object3d::Create(modelFighter2);
+	player = Object3d::Create(modelFighter);
+	objFighter2 = Object3d::Create(modelPistol);
 	objFighter3 = Object3d::Create(modelFighter2);
 	bossEnemy = Object3d::Create(modelcowgirl);
 	shotgun = Object3d::Create(modelGun);
@@ -388,6 +388,8 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	shotgun->SetScale({ 0.2,0.2,0.2 });
 	shotgun->SetPosition({ dropGun.Pos });
 
+	objFighter2->SetScale({ 0.01f,0.01f,0.01f });
+	objFighter2->SetRotation({ 0,270,0 });
 	pistol->SetScale({ 0.01f,0.01f,0.01f });
 	pistol->SetRotation({ 0,270,0 });
 
@@ -439,7 +441,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	}
 
 	//プレイヤー、敵、カメラの初期セット
-	objFighter->SetPosition({ 0,2,30 });
+	player->SetPosition({ 0,2,30 });
 	objFighter2->SetPosition({ 0,12,30 });
 	objFighter3->SetPosition({ 0,12,30 });
 	bossEnemy->SetPosition({ 0,2, 40 });
@@ -520,15 +522,15 @@ void GameScene::Update()
 	}
 	Input::MouseMove mouseMove = input->GetMouseMove();
 	mousePos = { (float)mouseMove.lX / sensitivity,(float)mouseMove.lY / sensitivity };
-	playerPos = objFighter->GetPosition();
+	playerPos = player->GetPosition();
 	bossPos = bossEnemy->GetPosition();
-	playerScale = objFighter->GetScale();
+	playerScale = player->GetScale();
 	targetCameraPos = objFighter2->GetPosition();
 	virCameraPos = objFighter3->GetPosition();
 	centerPos = { 0, 2, 50 };
 
-	p_x_radius = objFighter->GetScale().x;
-	p_z_radius = objFighter->GetScale().z;
+	p_x_radius = player->GetScale().x;
+	p_z_radius = player->GetScale().z;
 
 	for (int i = 0; i < _countof(objBul); i++)
 	{
@@ -544,7 +546,7 @@ void GameScene::Update()
 	if (SceneNum == Title)
 	{
 		titleDrowCount++;
-		objFighter->SetPosition({ 0,2,30 });
+		player->SetPosition({ 0,2,30 });
 		objFighter2->SetPosition({ 0,12,30 });
 		objFighter3->SetPosition({ 0,12,30 });
 		bossEnemy->SetPosition({ 0,2, 40 });
@@ -575,9 +577,9 @@ void GameScene::Update()
 			objEnemyBul[i]->SetPosition(OutAriaPos);
 			objEnemyBul[i]->SetScale({ 0.5,0.5,0.5 });
 		}
-		playerPos = objFighter->GetPosition();
+		playerPos = player->GetPosition();
 		bossPos = bossEnemy->GetPosition();
-		playerScale = objFighter->GetScale();
+		playerScale = player->GetScale();
 		targetCameraPos = objFighter2->GetPosition();
 		virCameraPos = objFighter3->GetPosition();
 		centerPos = { 0, 2, 50 };
@@ -799,8 +801,25 @@ void GameScene::Update()
 			{
 				CharactorMove(playerPos, targetCameraPos, virCameraPos, virVelocity, MaxMoveVelocity, Plus);
 			}
-			pistol->SetPosition({ playerPos.x + 0.05f, playerPos.y - 0.05f, playerPos.z + 0.18f });
-			pistol->Update();
+			pistolVec.x = (targetCameraPos.x - playerPos.x) / 50;
+			pistolVec.z = (targetCameraPos.z - playerPos.z) / 50;
+
+			pistolPos.x = playerPos.x + pistolVec.x;
+			pistolPos.y = playerPos.y - 0.08;
+			pistolPos.z = playerPos.z + pistolVec.z;
+
+			pistolVel.x = (targetCameraPos.x - playerPos.x);
+			pistolVel.z = (targetCameraPos.z - playerPos.z);
+			if (playerGun == Pistol)
+			{
+				pistolRotaY = atan2(pistolVel.x, pistolVel.z) * 57 + 270.0f;
+			}
+			else
+			{
+				pistolRotaY = atan2(pistolVel.x, pistolVel.z) * 57 + 180.0f;
+			}
+			pistol->SetRotation({ 0,pistolRotaY,knock });
+
 			// -----------------------------------------//
 
 			//プレイヤーが弾を撃つ
@@ -876,6 +895,7 @@ void GameScene::Update()
 			sprite[0]->SetSize({ 64.0f + randUIX,64.0f + randUIY });
 			sprite[0]->ChangeTex(25);
 			sprite[0]->SetPosition({ spritePos.center.x - (32 + (randUIX / 2)),spritePos.center.y - (32 + (randUIY / 2)) });
+			knock = 30.0f;
 			bullet[bulCount - 1].Pos = playerPos;
 			bullet[bulCount - 1].bulShotFlag = true;
 			if (isJust)
@@ -910,6 +930,7 @@ void GameScene::Update()
 							sprite[0]->SetSize({ 64.0f,64.0f });
 							sprite[0]->ChangeTex(12);
 							sprite[0]->SetPosition({ spritePos.center.x - 32,spritePos.center.y - 32 });
+							knock = 0.0f;
 						}
 					}
 				}
@@ -950,8 +971,6 @@ void GameScene::Update()
 		//ジャンプ
 		Jump(isJump, jCount, playerPos, targetCameraPos);
 
-		pistol->SetPosition({ playerPos.x + 0.05f, playerPos.y - 0.05f, playerPos.z + 0.18f });
-		pistol->Update();
 
 
 		//マップと当たってないときにカメラを正常に戻す
@@ -964,9 +983,21 @@ void GameScene::Update()
 			isHit = false;
 		}
 		//カメラ位置更新
-		objFighter->SetPosition(playerPos);
+		player->SetPosition(playerPos);
 		objFighter2->SetPosition(targetCameraPos);
 		objFighter3->SetPosition(virCameraPos);
+		if (playerGun == Pistol)
+		{
+			pistol->SetPosition({ pistolPos.x,pistolPos.y,pistolPos.z });
+			pistol->Update();
+		}
+		else
+		{
+			shotgun->SetScale({ 0.03f,0.03f,0.03f });
+			shotgun->SetRotation({ knock,pistolRotaY,0 });
+			shotgun->SetPosition({ pistolPos.x,pistolPos.y,pistolPos.z });
+			shotgun->Update();
+		}
 
 		//弾の初期化
 		for (int i = 0; i < _countof(objBul); i++)
@@ -1070,7 +1101,7 @@ void GameScene::Update()
 			//atan2で敵の角度を割り出す
 			bossVelocity.x = (bossPos.x - playerPos.x);
 			bossVelocity.z = (bossPos.z - playerPos.z);
-			bossRota.y = atan2(bossVelocity.x , bossVelocity.z) * 55 + 180.0f;
+			bossRota.y = atan2(bossVelocity.x , bossVelocity.z) * 57 + 180.0f;
 			bossEnemy->SetRotation(bossRota);
 
 			if (skyBul == 0)
@@ -1256,12 +1287,9 @@ void GameScene::Update()
 			else if (eBullet[i].type == Anime && fiveAttack == false
 				|| eBullet[i].type == Anime && fiveAttack2 == false)
 			{
-				if (eBullet[i].bulShotFlag == true)
-				{
-					eBullet[i].Pos.x += eBullet[i].velocity.x / 40;
-					eBullet[i].Pos.y += eBullet[i].velocity.y / 40;
-					eBullet[i].Pos.z += eBullet[i].velocity.z / 40;
-				}
+				eBullet[i].Pos.x += eBullet[i].velocity.x / 40;
+				eBullet[i].Pos.y += eBullet[i].velocity.y / 40;
+				eBullet[i].Pos.z += eBullet[i].velocity.z / 40;
 			}
 			if (eBullet[i].bulShotFlag == true)
 			{
@@ -1285,6 +1313,7 @@ void GameScene::Update()
 						//マップチップとの当たり判定
 						if (MapCollide(eBullet[i].Pos, objBlock[y][x]->GetPosition()))
 						{
+							//アニメーション弾なら
 							if (eBullet[i].type == 2)
 							{
 								if (skyBul > 0)
@@ -1299,6 +1328,7 @@ void GameScene::Update()
 							eBullet[i].type = 0;
 							eBullet[i].velocity = { resetFloat3 };
 						}
+
 					}
 				}
 			}
@@ -1334,7 +1364,7 @@ void GameScene::Update()
 				//ノックバックとダメージ
 				if (playerHit && hitTimer == 0)
 				{
-					hitTimer = 20;
+					hitTimer = 40;
 					playerHP--;
 					if (skyBul > 0)
 					{
@@ -1386,7 +1416,7 @@ void GameScene::Update()
 		bossEnemy->SetPosition(bossPos);
 
 		// 移動後の座標を計算
-		cameraPos = objFighter->GetPosition();
+		cameraPos = player->GetPosition();
 
 		camera->SetEye({ playerPos.x, playerPos.y , playerPos.z });
 		camera->SetTarget({ targetCameraPos.x , targetCameraPos.y , targetCameraPos.z });
@@ -1415,7 +1445,7 @@ void GameScene::Update()
 	bossEnemy->Update();
 	shotgun->Update();
 	pistol->Update();
-	objFighter->Update();
+	player->Update();
 	objFighter2->Update();
 	objFighter3->Update();
 	for (int i = 0; i < _countof(objBul); i++)
@@ -1456,11 +1486,12 @@ void GameScene::Draw()
 	objSkydome->Draw();
 	// 3Dオブジェクトの描画
 	objGround->Draw();
-	if (dropGun.situation == Drop)
-	{
-		shotgun->Draw();
-	}
+	shotgun->Draw();
 	//objFighter2->Draw();
+	if (playerGun == Pistol)
+	{
+		pistol->Draw();
+	}
 	if (bossAlive == true)
 	{
 		//objFighter2->Draw();
@@ -1507,7 +1538,6 @@ void GameScene::Draw()
 			objWallLeft[y][x]->Draw();
 		}
 	}
-	//pistol->Draw();
 	Object3d::PostDraw();
 
 	// パーティクルの描画
@@ -1538,8 +1568,9 @@ void GameScene::Draw()
 	{
 		if (hitTimer > 0)
 		{
-			spritedamageEffect->SetColor({ 1, 0, 0, 0.5 });
+			spritedamageEffect->SetColor({ 1, 0, 0, ((float)hitTimer / 80)});
 			spritedamageEffect->Draw();
+			spriteBlood->SetColor({ 1, 0, 0, ((float)hitTimer / 40) });
 			spriteBlood->Draw();
 		}
 		sprite[3]->Draw();
@@ -2027,6 +2058,7 @@ void GameScene::DropItemInfo()
 			Reload(reloadCount, isReload, justTiming, bulCount, maxMagazine);
 			dropGun.isDrop = false;
 			dropGun.situation = Have;
+			playerGun = Shotgun;
 		}
 	}
 }

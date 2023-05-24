@@ -249,7 +249,7 @@ private: // メンバ変数
 
 	enum Weapon
 	{
-		Pistor, Shotgun,
+		Pistol, Shotgun,
 	};
 
 	int		 bulCount = 30;
@@ -374,6 +374,16 @@ private: // メンバ変数
 	XMFLOAT3 cameraPos = { 0,0,0 };
 	float	 cameraPosZ = 30.0f;
 
+	XMFLOAT3 pistolPos = { 0,0,0 };
+	XMFLOAT3 pistolVec = { 0,0,0 };
+	float pistolRotaY = 0.0f;
+	float knock = 0.0f;
+
+	int playerGun = Pistol;
+
+
+	XMFLOAT3 pistolVel = { 0,0,0 };
+
 	// ゲームシーン用
 	Camera* camera = nullptr;
 	//Sprite* spriteBG = nullptr;
@@ -413,7 +423,7 @@ private: // メンバ変数
 	//3dオブジェクト宣言
 	Object3d* objSkydome = nullptr;
 	Object3d* objGround = nullptr;
-	Object3d* objFighter = nullptr;
+	Object3d* player = nullptr;
 	Object3d* objFighter2 = nullptr;
 	Object3d* objFighter3 = nullptr;
 	Object3d* objBul[50] = { nullptr };
