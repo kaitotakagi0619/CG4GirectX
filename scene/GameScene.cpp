@@ -50,6 +50,10 @@ GameScene::~GameScene()
 	{
 		safe_delete(objBul[i]);
 	}
+	for (int i = 0; i < _countof(objCannonBul); i++)
+	{
+		safe_delete(objCannonBul[i]);
+	}
 	for (int i = 0; i < _countof(objEnemyBul); i++)
 	{
 		safe_delete(objEnemyBul[i]);
@@ -81,6 +85,7 @@ GameScene::~GameScene()
 		}
 	}
 	safe_delete(objGround);
+	safe_delete(objCannon);
 	safe_delete(player);
 	safe_delete(objFighter2);
 	safe_delete(objFighter3);
@@ -130,7 +135,6 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 	// カメラ生成
 	camera = new Camera(WinApp::window_width, WinApp::window_height);
-	//camera = new DebugCamera(WinApp::window_width, WinApp::window_height, input);
 
 	// 3Dオブジェクトにカメラをセット
 	Object3d::SetCamera(camera);
@@ -440,11 +444,27 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		redParticleObject[i]->SetPosition(OutAriaPos);
 	}
 
+	objCannon = Object3d::Create(modelcowgirl);
+	objCannon->SetScale({ 0.5f,0.5f,0.5f });
+	objCannon->SetRotation({cannon.Rotation});
+	objCannon->SetPosition(cannon.Pos);
+
+	for (int i = 0; i < _countof(objCannonBul); i++)
+	{
+		objCannonBul[i] = Object3d::Create(modelSphere);
+		objCannonBul[i]->SetScale({ 0.5f,0.5f,0.5f });
+		objCannonBul[i]->SetPosition(OutAriaPos);
+	}
+
+
 	//プレイヤー、敵、カメラの初期セット
 	player->SetPosition({ 0,2,30 });
 	objFighter2->SetPosition({ 0,12,30 });
 	objFighter3->SetPosition({ 0,12,30 });
 	bossEnemy->SetPosition({ 0,2, 40 });
+
+	objGround->SetPosition({ 0,1,0 });
+	objGround->SetScale({ 10,1,10 });
 
 
 	//カメラデータ
@@ -805,7 +825,7 @@ void GameScene::Update()
 			pistolVec.z = (targetCameraPos.z - playerPos.z) / 50;
 
 			pistolPos.x = playerPos.x + pistolVec.x;
-			pistolPos.y = playerPos.y - 0.08;
+			pistolPos.y = playerPos.y - 0.05;
 			pistolPos.z = playerPos.z + pistolVec.z;
 
 			pistolVel.x = (targetCameraPos.x - playerPos.x);
@@ -895,7 +915,7 @@ void GameScene::Update()
 			sprite[0]->SetSize({ 64.0f + randUIX,64.0f + randUIY });
 			sprite[0]->ChangeTex(25);
 			sprite[0]->SetPosition({ spritePos.center.x - (32 + (randUIX / 2)),spritePos.center.y - (32 + (randUIY / 2)) });
-			knock = 30.0f;
+			knock = 20.0f;
 			bullet[bulCount - 1].Pos = playerPos;
 			bullet[bulCount - 1].bulShotFlag = true;
 			if (isJust)
@@ -1122,6 +1142,45 @@ void GameScene::Update()
 			SelectAttack(selectAttack, howAttack, skyBul, enemyAttackCounter);
 		}
 
+		if (cannonAttackCount < 92)
+		{
+			cannonAttackCount++;
+		}
+		else
+		{
+			cannonBullet[cannonCount].bulFlag = true;
+			cannonAttackCount = 0;
+		}
+
+		if (cannonBullet[cannonCount].bulFlag == true)
+		{
+			cannonBullet[cannonCount].Pos = cannon.Pos;
+			cannonBullet[cannonCount].bulShotFlag = true;
+			cannonBullet[cannonCount].bulFlag = false;
+		}
+
+		if (cannonBullet[cannonCount].bulShotFlag == true)
+		{
+			cannonBullet[cannonCount].Pos.x -= 0.5f;
+			if ((cannonBullet[cannonCount].Pos.z > AriaField) || (cannonBullet[cannonCount].Pos.z < -AriaField)
+				|| (cannonBullet[cannonCount].Pos.x > AriaField) || (cannonBullet[cannonCount].Pos.x < -AriaField))
+			{
+				cannonBullet[cannonCount].Pos = OutAriaPos;
+				cannonBullet[cannonCount].bulShotFlag = false;
+			}
+			for (int y = 0; y < map_max_y; y++)
+			{
+				for (int x = 0; x < map_max_x; x++)
+				{
+					if (MapCollide(cannonBullet[cannonCount].Pos, objBlock[y][x]->GetPosition()))
+					{
+						cannonBullet[cannonCount].Pos = OutAriaPos;
+						cannonBullet[cannonCount].bulShotFlag = false;
+					}
+				}
+			}
+		}
+
 		//攻撃前処理
 		if (howAttack == Sinple && eBullet[enemyBulCount].bulShotFlag == false && enemyBulCount < 49)
 		{
@@ -1323,8 +1382,6 @@ void GameScene::Update()
 							}
 							eBullet[i].Pos = OutAriaPos;
 							eBullet[i].bulShotFlag = false;
-							eBullet[i].bulFlag = false;
-							eBullet[i].attackAnimation = false;
 							eBullet[i].type = 0;
 							eBullet[i].velocity = { resetFloat3 };
 						}
@@ -1344,7 +1401,6 @@ void GameScene::Update()
 			{
 				eBullet[i].bulShotFlag = false;
 				eBullet[i].bulFlag = false;
-				eBullet[i].attackAnimation = false;
 				eBullet[i].type = 0;
 				eBullet[i].velocity = { resetFloat3 };
 				eBullet[i].Pos = OutAriaPos;
@@ -1372,6 +1428,21 @@ void GameScene::Update()
 					}
 					eBullet[i].Pos = OutAriaPos;
 					eBullet[i].bulShotFlag = false;
+				}
+			}
+		}
+		//敵の攻撃と自分との当たり判定
+		for (int i = 0; i < _countof(cannonBullet); i++)
+		{
+			bool playerHit = Collide(playerPos, playerCollideScale, cannonBullet[i].Pos, cannonBullet[i].Size, isAlive);
+			{
+				//ノックバックとダメージ
+				if (playerHit && hitTimer == 0)
+				{
+					hitTimer = 40;
+					playerHP--;
+					cannonBullet[i].Pos = OutAriaPos;
+					cannonBullet[i].bulShotFlag = false;
 				}
 			}
 		}
@@ -1413,6 +1484,10 @@ void GameScene::Update()
 		{
 			objEnemyBul[i]->SetPosition(eBullet[i].Pos);
 		}
+		for (int i = 0; i < _countof(objCannonBul); i++)
+		{
+			objCannonBul[i]->SetPosition(cannonBullet[i].Pos);
+		}
 		bossEnemy->SetPosition(bossPos);
 
 		// 移動後の座標を計算
@@ -1435,19 +1510,21 @@ void GameScene::Update()
 		objSkydome->SetRotation({ 0, skyDomeRota, 0 });
 	}
 
-	objGround->SetPosition({ 0,1,0 });
-	objGround->SetScale({ 10,1,10 });
-
 	particleMan->Update();
 
 	objSkydome->Update();
 	objGround->Update();
+	objCannon->Update();
 	bossEnemy->Update();
 	shotgun->Update();
 	pistol->Update();
 	player->Update();
 	objFighter2->Update();
 	objFighter3->Update();
+	for (int i = 0; i < _countof(cannonBullet); i++)
+	{
+		objCannonBul[i]->Update();
+	}
 	for (int i = 0; i < _countof(objBul); i++)
 	{
 		objBul[i]->Update();
@@ -1496,6 +1573,7 @@ void GameScene::Draw()
 	{
 		//objFighter2->Draw();
 		bossEnemy->Draw();
+		objCannon->Draw();
 	}
 	if (bossAlive == false)
 	{
@@ -1511,6 +1589,10 @@ void GameScene::Draw()
 	for (int i = 0; i < _countof(objEnemyBul); i++)
 	{
 		objEnemyBul[i]->Draw();
+	}
+	for (int i = 0; i < _countof(cannonBullet); i++)
+	{
+		objCannonBul[i]->Draw();
 	}
 	if (isParticle == true)
 	{

@@ -210,6 +210,30 @@ private: // メンバ変数
 	};
 	EnemyBullet eBullet[50];
 
+	struct Cannon
+	{
+		XMFLOAT3 Pos = { 22.0f,1.5f,22.0f };
+		XMFLOAT3 Size = { 0.5,0.5,0.5 };
+		XMFLOAT3 Rotation = { 0,270,0 };
+		XMFLOAT3 velocity = { 0,0,0 };
+		float normalize = 0.0f;
+		bool bulFlag = false;
+		bool bulShotFlag = false;
+	};
+	Cannon cannon;
+
+	struct CannonBullet
+	{
+		XMFLOAT3 Pos = { 0,0,0 };
+		XMFLOAT3 Size = { 0.5,0.5,0.5 };
+		XMFLOAT3 Rotation = { 0,0,0 };
+		XMFLOAT3 velocity = { 0,0,0 };
+		float normalize = 0.0f;
+		bool bulFlag = false;
+		bool bulShotFlag = false;
+	};
+	CannonBullet cannonBullet[10];
+
 	struct SpritePos
 	{
 		const XMFLOAT2 center = { (WinApp::window_width / 2),(WinApp::window_height / 2) };
@@ -381,6 +405,9 @@ private: // メンバ変数
 
 	int playerGun = Pistol;
 
+	int cannonAttackCount = 0;
+	int cannonCount = 0;
+
 
 	XMFLOAT3 pistolVel = { 0,0,0 };
 
@@ -423,11 +450,13 @@ private: // メンバ変数
 	//3dオブジェクト宣言
 	Object3d* objSkydome = nullptr;
 	Object3d* objGround = nullptr;
+	Object3d* objCannon = nullptr;
 	Object3d* player = nullptr;
 	Object3d* objFighter2 = nullptr;
 	Object3d* objFighter3 = nullptr;
 	Object3d* objBul[50] = { nullptr };
 	Object3d* objEnemyBul[50] = { nullptr };
+	Object3d* objCannonBul[10] = { nullptr };
 	Object3d* particleObject[50] = { nullptr };
 	Object3d* bossEnemy = nullptr;
 	Object3d* redParticleObject[50] = { nullptr };
